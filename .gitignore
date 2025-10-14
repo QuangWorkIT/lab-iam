@@ -1,0 +1,55 @@
+# ====== OS / IDE ======
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# VS Code
+.vscode/
+
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# ====== Node.js / Frontend ======
+# Dependency directories
+laboratory-iamservice-frontend/node_modules/
+
+# Build outputs
+laboratory-iamservice-frontend/dist/
+laboratory-iamservice-frontend/build/
+
+# Environment files
+laboratory-iamservice-frontend/.env
+laboratory-iamservice-frontend/.env.local
+laboratory-iamservice-frontend/.env.production
+laboratory-iamservice-frontend/.env.development
+
+# ====== Java / Backend ======
+# Maven / Gradle build artifacts
+laboratory-iamservice-backend/iam_service/target/
+laboratory-iamservice-backend/iam_service/.mvn/wrapper/maven-wrapper.jar
+laboratory-iamservice-backend/iam_service/.mvn/wrapper/maven-wrapper.properties
+
+# IDE-specific
+laboratory-iamservice-backend/iam_service/.classpath
+laboratory-iamservice-backend/iam_service/.project
+laboratory-iamservice-backend/iam_service/.settings/
+
+# ====== Docker / Runtime ======
+# Ignore any Docker volume or generated files
+**/tmp/
+**/data/
+**/postgres-data/
+**/redis-data/
+**/.env.docker
+
+# ====== Misc ======
+# Backup or temp files
+*.tmp
+*.bak
+*.swp
