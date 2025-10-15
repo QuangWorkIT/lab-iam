@@ -13,7 +13,7 @@ build/
 .classpath
 .settings/
 *.iml
-
+set-env.sh
 # Log files
 logs/
 *.log
