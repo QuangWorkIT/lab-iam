@@ -1,11 +1,17 @@
 import React from "react";
-import TestPages from "../pages/TestPages";
+import LoginPage from "../pages/Auth/LoginPage.jsx";
 
 const routes = [
   {
     path: "/",
-    element: <TestPages />,
+    element: <div>hello</div>,
   },
+
+  {
+    path: "/login",
+    element: <LoginPage />
+  }
+
 ];
 
 export default routes;
