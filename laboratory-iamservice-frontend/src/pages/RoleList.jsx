@@ -16,40 +16,42 @@ import {
 export default function RoleList() {
   const [roles, setRoles] = useState([
     {
-      id: "ADMIN",
+      code: "ROLE_ADMIN",
       name: "Administrator",
-      description: "Full access to all system features",
-      privileges: "CREATE, READ, UPDATE, DELETE, MANAGE_USERS",
-      createdAt: "2025-09-01T08:30:00",
-      lastUpdateAt: "2025-10-10T14:22:33",
-      isActive: "Yes",
+      description: "Has full access to all system features and settings.",
+      privileges: "CREATE,READ,UPDATE,DELETE,MANAGE_USERS", // Chuyển từ mảng sang chuỗi
+      createdAt: "2025-09-01", // Định dạng date
+      lastUpdatedAt: "2025-10-10", // Định dạng date
+      isActive: true,
     },
     {
-      id: "MGR",
+      code: "ROLE_MGR",
       name: "Lab Manager",
-      description: "Manage department resources and staff",
-      privileges: "CREATE, READ, UPDATE, MANAGE_STAFF",
-      createdAt: "2025-09-05T10:15:00",
-      lastUpdateAt: "2025-10-05T09:45:21",
-      isActive: "Yes",
+      description:
+        "Manages laboratory resources, schedules, and staff operations.",
+      privileges: "CREATE,READ,UPDATE,MANAGE_STAFF", // Chuyển từ mảng sang chuỗi
+      createdAt: "2025-09-05", // Định dạng date
+      lastUpdatedAt: "2025-10-05", // Định dạng date
+      isActive: true,
     },
     {
-      id: "STAFF",
+      code: "ROLE_STAFF",
       name: "Service User",
-      description: "Regular staff access to basic features",
-      privileges: "READ, CREATE",
-      createdAt: "2025-09-10T13:20:00",
-      lastUpdateAt: "2025-09-10T13:20:00",
-      isActive: "Yes",
+      description: "Regular staff with permission to create and read lab data.",
+      privileges: "READ,CREATE", // Chuyển từ mảng sang chuỗi
+      createdAt: "2025-09-10", // Định dạng date
+      lastUpdatedAt: "2025-09-10", // Định dạng date
+      isActive: true,
     },
     {
-      id: "GUEST",
+      code: "ROLE_GUEST",
       name: "Lab User",
-      description: "Limited access to view-only features",
-      privileges: "READ",
-      createdAt: "2025-09-15T09:00:00",
-      lastUpdateAt: "2025-10-01T16:05:12",
-      isActive: "Yes",
+      description:
+        "Guest users with read-only access to laboratory information.",
+      privileges: "READ", // Chuyển từ mảng sang chuỗi
+      createdAt: "2025-09-15", // Định dạng date
+      lastUpdatedAt: "2025-10-01", // Định dạng date
+      isActive: true,
     },
   ]);
 
@@ -132,7 +134,7 @@ export default function RoleList() {
               </span>
             </div>
             <span style={{ margin: "0 10px", color: "#ccc" }}>›</span>
-            <span style={{ color: "#ff5a5f" }}>User & Role Management</span>
+            <span style={{ color: "#ff5a5f" }}>Role Management</span>
           </div>
 
           <div style={{ display: "flex", alignItems: "center" }}>
@@ -174,9 +176,9 @@ export default function RoleList() {
                 fontWeight: "bold",
               }}
             >
-              USER & ROLE MANAGEMENT
+              ROLE MANAGEMENT
             </h1>
-            <p style={{ color: "#888" }}>Manage user accounts and user roles</p>
+            <p style={{ color: "#888" }}>Manage user roles</p>
           </div>
 
           <div
