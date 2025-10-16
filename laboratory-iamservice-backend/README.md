@@ -54,13 +54,30 @@ This project uses a set of `application.yml` files to manage different configura
 
 You can run the application in several ways:
 
-### 1. Using your IDE
+### 1. Using your IDE (may not work because I am not using external .env file right now)
 
 * Import the project into your favorite IDE (e.g., IntelliJ IDEA, Eclipse).
 * Run the `IamServiceApplication` class.
 
 ### 2. Using Maven
+**Before building or starting the containers run these command on window powershell**
 
+Create this file script in the backend directory
+```shell
+  ./set-env.sh
+```
+
+Next, run this command
+```shell
+  chmod +x set-env.sh
+```
+
+Use the script
+````shell
+  source ./set-env.sh
+````
+
+Then run the application
 ```bash
   cd iam_service
   ./mvnw spring-boot:run
@@ -100,26 +117,9 @@ This will start the application, and it will be accessible at `http://localhost:
 The Docker configuration uses the `prod` profile, so it will connect to the PostgreSQL database on a host named
 `postgres`. You can use the provided `docker-compose.yml` file to start both the application and a PostgreSQL database.
 
-### Using Docker Compose
+### 3. Using Docker Compose
 
 To run the application and a PostgreSQL database together, use Docker Compose.
-
-**Before building or starting the containers run these command on window powershell**
-
-Create this file script in the backend directory
-```shell
-  ./set-env.sh
-```
-
-Next, run this command
-```shell
-  chmod +x set-env.sh
-```
-
-Use the script
-````shell
-  source ./set-env.sh
-````
 
 **Start containers**
 
