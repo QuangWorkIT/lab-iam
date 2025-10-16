@@ -2,6 +2,8 @@ package com.example.iam_service.service;
 
 import com.example.iam_service.model.User;
 import com.example.iam_service.repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // 💾 Create new user
     public User createUser(User user) {
@@ -22,10 +25,7 @@ public class UserService {
             throw new IllegalArgumentException("Email already exists: " + user.getEmail());
         }
 
-        // set some defaults (optional)
-        user.setUserid(UUID.randomUUID());
-        user.setIsactive(true);
-        user.setCreatedat(java.time.LocalDate.now());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         return userRepository.save(user);
     }
