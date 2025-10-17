@@ -1,4 +1,4 @@
-package com.example.iam_service.model;
+package com.example.iam_service.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -17,7 +17,7 @@ public class User {
     @Id
     @GeneratedValue
     @Column(name = "userid", updatable = false, nullable = false)
-    private UUID userid;
+    private UUID userId;
 
     @NotNull(message = "Email cannot be null")
     @Email(message = "Invalid email format")
@@ -26,7 +26,7 @@ public class User {
 
     @Pattern(regexp = "^\\+?[0-9]*$", message = "Phone number must contain only digits")
     @Column(length = 255)
-    private String phonenumber;
+    private String phoneNumber;
 
     @NotBlank(message = "Full name is required")
     @Column(nullable = false, length = 255)
@@ -34,10 +34,12 @@ public class User {
 
     @NotBlank(message = "Identity number is required")
     @Column(nullable = false, length = 255)
-    private String indentitynumber;
+    private String indentityNumber;
 
-    @NotBlank(message = "Gender is required")
-    @Size(max = 10, message = "Gender must be at most 10 characters")
+    @Pattern(
+            regexp = "^(MALE|FEMALE)$",
+            message = "Gender must be either MALE or FEMALE"
+    )
     @Column(nullable = false, length = 10)
     private String gender;
 
@@ -57,15 +59,15 @@ public class User {
     private String password;
 
     @Column(length = 255)
-    private String rolecode;
+    private String roleCode;
 
-    private Boolean isactive;
+    private Boolean isCctive;
 
-    private LocalDate createdat;
+    private LocalDate createdAt;
 
     @PrePersist
     protected void onCreate() {
-        this.createdat = LocalDate.now();
+        this.createdAt = LocalDate.now();
     }
 
 }

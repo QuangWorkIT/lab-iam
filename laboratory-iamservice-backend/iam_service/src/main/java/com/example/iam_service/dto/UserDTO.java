@@ -8,12 +8,12 @@ import java.util.UUID;
 public class UserDTO {
     private UUID userid;
     private String email;
-    private String phonenumber;
+    private String phoneNumber;
     private String fullName;
     private String gender;
     private Integer age;
     private String address;
     private LocalDate birthdate;
-    private Boolean isactive;
-    private LocalDate createdat;
+    private Boolean isActive;
+    private LocalDate createdAt;
 }

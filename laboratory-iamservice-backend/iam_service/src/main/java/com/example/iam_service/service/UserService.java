@@ -1,6 +1,6 @@
 package com.example.iam_service.service;
 
-import com.example.iam_service.model.User;
+import com.example.iam_service.entity.User;
 import com.example.iam_service.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.UUID;
 import java.util.List;
 
 @Service

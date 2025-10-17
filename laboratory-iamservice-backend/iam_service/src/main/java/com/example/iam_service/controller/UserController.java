@@ -1,7 +1,7 @@
 package com.example.iam_service.controller;
 
 import com.example.iam_service.dto.UserDTO;
-import com.example.iam_service.model.User;
+import com.example.iam_service.entity.User;
 import com.example.iam_service.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +11,6 @@ import org.springframework.http.HttpStatus;
 import com.example.iam_service.dto.UserMapper;
 
 
-import java.util.Optional;
-import java.util.UUID;
 import java.util.List;
 
 @RestController

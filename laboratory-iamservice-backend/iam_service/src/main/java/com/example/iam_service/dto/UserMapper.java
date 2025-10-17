@@ -1,6 +1,6 @@
 package com.example.iam_service.dto;
 
-import com.example.iam_service.model.User;
+import com.example.iam_service.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
