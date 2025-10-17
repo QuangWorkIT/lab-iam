@@ -1,6 +1,6 @@
 import React from "react";
 import TestPages from "../pages/TestPages";
-import RoleList from "../pages/RoleList";
+import RoleList from "../pages/role/RoleList";
 import { Navigate } from "react-router-dom";
 const routes = [
   // {
