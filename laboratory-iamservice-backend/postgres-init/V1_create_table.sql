@@ -35,7 +35,7 @@ CREATE TABLE "User" (
   phoneNumber VARCHAR(255),
   fullName VARCHAR(255) NOT NULL,
   indentityNumber VARCHAR(255) NOT NULL,
-  gender VARCHAR(10) NOT NULL,
+  gender VARCHAR(10) NOT NULL CHECK (gender IN ('MALE', 'FEMALE')),
   age INT,
   address VARCHAR(255),
   birthDate DATE,
