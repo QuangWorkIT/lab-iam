@@ -4,19 +4,25 @@
 export const formatDate = (dateString) => {
   if (!dateString) return "N/A";
 
-  // Xử lý nếu dateString là một date đơn giản (YYYY-MM-DD)
+  // Xử lý nếu dateString là date đơn giản (YYYY-MM-DD)
   if (dateString.length === 10) {
     const [year, month, day] = dateString.split("-");
     return `${day || "?"}/${month || "?"}/${year || "?"}`;
   }
 
   // Xử lý nếu dateString là ISO date string
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "Invalid date";
-
-  return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1)
-    .toString()
-    .padStart(2, "0")}/${date.getFullYear()}`;
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid date";
+    return `${date.getDate().toString().padStart(2, "0")}/${(
+      date.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, "0")}/${date.getFullYear()}`;
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "Invalid date";
+  }
 };
 
 /**

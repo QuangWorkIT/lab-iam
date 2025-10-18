@@ -16,7 +16,7 @@ export default function Header({ pageTitle }) {
   return (
     <header
       style={{
-        borderBottom: "1px solid #ddd",
+        borderBottom: "1px solid #e1e7ef",
         padding: "15px 20px",
         display: "flex",
         justifyContent: "space-between",
@@ -28,7 +28,7 @@ export default function Header({ pageTitle }) {
         <div style={{ display: "flex", alignItems: "center" }}>
           <FaHeartbeat
             style={{
-              color: "#ff5a5f",
+              color: "#fe535b",
               fontSize: "24px",
               marginRight: "10px",
             }}
@@ -42,7 +42,7 @@ export default function Header({ pageTitle }) {
         {pageTitle && (
           <>
             <span style={{ margin: "0 10px", color: "#ccc" }}>›</span>
-            <span style={{ color: "#ff5a5f" }}>{pageTitle}</span>
+            <span style={{ color: "#fe535b" }}>{pageTitle}</span>
           </>
         )}
       </div>
@@ -56,7 +56,7 @@ export default function Header({ pageTitle }) {
           }}
         >
           <span style={{ marginRight: "5px", color: "#888" }}>Welcome, </span>
-          <span style={{ fontWeight: "bold", color: "#ff5a5f" }}>
+          <span style={{ fontWeight: "bold", color: "#fe535b" }}>
             [{user?.name || "User"}]
           </span>
         </div>

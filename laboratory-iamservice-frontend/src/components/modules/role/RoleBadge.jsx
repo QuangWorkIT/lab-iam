@@ -6,32 +6,32 @@ export default function RoleBadge({ roleName }) {
   switch (roleName.toLowerCase()) {
     case "administrator":
       badgeStyle = {
-        backgroundColor: "#2ecc71", // Xanh lá
+        backgroundColor: "#00bf63", // Xanh lá
         color: "white",
       };
       break;
     case "manager":
     case "lab manager":
       badgeStyle = {
-        backgroundColor: "#9b59b6", // Tím
+        backgroundColor: "#8c52ff", // Tím
         color: "white",
       };
       break;
     case "lab user":
       badgeStyle = {
-        backgroundColor: "#e74c3c", // Đỏ
+        backgroundColor: "#fe535b", // Đỏ
         color: "white",
       };
       break;
     case "service user":
       badgeStyle = {
-        backgroundColor: "#3498db", // Xanh dương
+        backgroundColor: "#5170ff", // Xanh dương
         color: "white",
       };
       break;
     default:
       badgeStyle = {
-        backgroundColor: "#95a5a6", // Xám
+        backgroundColor: "#e1e7ef", // Xám
         color: "white",
       };
   }

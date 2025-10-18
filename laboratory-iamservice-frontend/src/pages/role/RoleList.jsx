@@ -13,12 +13,13 @@ import MainLayout from "../../components/layout/MainLayout";
 export default function RoleList() {
   //Redux hooks
   const dispatch = useDispatch();
-  const { roles, loading, error, totalPages } = useSelector(
+  const { roles, loading, error, totalPages, currentPage } = useSelector(
     (state) => state.roles
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [modalMode, setModalMode] = useState("create"); // 'create' | 'edit' | 'view'
 
   // Local state for search and filter params
   const [searchParams, setSearchParams] = useState({
@@ -67,16 +68,19 @@ export default function RoleList() {
   // Handlers cho các action buttons
   const handleViewRole = (role) => {
     setEditingRole(role);
+    setModalMode("view");
     setIsModalOpen(true);
   };
 
   const handleAddRole = () => {
     setEditingRole(null); // null = thêm mới
+    setModalMode("create");
     setIsModalOpen(true);
   };
 
   const handleEditRole = (role) => {
     setEditingRole(role);
+    setModalMode("edit");
     setIsModalOpen(true);
   };
 
@@ -155,36 +159,42 @@ export default function RoleList() {
           style={{
             fontSize: "18px",
             marginBottom: "20px",
-            color: "#ff5a5f",
+            color: "#fe535b",
             fontWeight: "normal",
           }}
         >
           User Roles
         </h2>
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "20px" }}>Loading...</div>
-        ) : error ? (
+        {/* Always render the table to preserve search inputs; show loading or error inline */}
+        {error && (
           <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
             Error: {error}
           </div>
-        ) : (
-          <RoleTable
-            roles={roles}
-            onSearch={handleSearch}
-            onSort={handleSort}
-            onPageChange={handlePageChange}
-            onView={handleViewRole}
-            onEdit={handleEditRole}
-            onDelete={handleDelete}
-            onAdd={handleAddRole}
-            currentPage={searchParams.page}
-            totalPages={totalPages}
-          />
+        )}
+
+        <RoleTable
+          roles={roles}
+          onSearch={handleSearch}
+          onSort={handleSort}
+          onPageChange={handlePageChange}
+          onView={handleViewRole}
+          onEdit={handleEditRole}
+          onDelete={handleDelete}
+          onAdd={handleAddRole}
+          currentPage={currentPage ?? searchParams.page}
+          totalPages={totalPages}
+        />
+
+        {loading && (
+          <div style={{ textAlign: "center", padding: "12px", color: "#666" }}>
+            Loading...
+          </div>
         )}
       </div>
       <RoleModal
         role={editingRole}
         isOpen={isModalOpen}
+        mode={modalMode}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveRole}
       />

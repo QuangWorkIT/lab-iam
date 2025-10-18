@@ -31,7 +31,7 @@ export default function MainLayout({ children, pageTitle, pageDescription }) {
             <div style={{ marginBottom: "20px", width: "100%" }}>
               <h1
                 style={{
-                  color: "#ff5a5f",
+                  color: "#fe535b",
                   fontSize: "24px",
                   marginBottom: "10px",
                   textTransform: "uppercase",

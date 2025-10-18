@@ -46,37 +46,34 @@ export default function RoleTable({
   };
 
   useEffect(() => {
+    // Nếu parent đang xử lý sort ở BE (onSort được cung cấp), không sort ở client
+    if (onSort) {
+      setFilteredRoles(roles);
+      return;
+    }
+
     if (sortConfig.key) {
-      setFilteredRoles((prev) => {
-        const base = prev && prev.length ? prev : roles;
-        return sortRoles(base);
-      });
+      // Luôn sort dựa trên danh sách roles mới nhất
+      setFilteredRoles(sortRoles(roles));
     } else {
       setFilteredRoles(roles); // giữ nguyên thứ tự backend
     }
-  }, [roles, sortConfig]);
+  }, [roles, sortConfig, onSort]);
 
   const handleSearch = (keyword, fromDate, toDate) => {
     if (onSearch) {
       onSearch(keyword, fromDate, toDate);
-    } else {
-      // Local filtering if no callback provided
-      const filtered = roles.filter((role) => {
-        const matchKeyword =
-          role.name.toLowerCase().includes(keyword) ||
-          role.code.toLowerCase().includes(keyword) ||
-          (role.description &&
-            role.description.toLowerCase().includes(keyword)) ||
-          (role.privileges && role.privileges.toLowerCase().includes(keyword));
-
-        const matchDate =
-          (!fromDate || new Date(role.createdAt) >= new Date(fromDate)) &&
-          (!toDate || new Date(role.createdAt) <= new Date(toDate));
-
-        return matchKeyword && matchDate;
-      });
-      setFilteredRoles(sortRoles(filtered));
     }
+  };
+
+  // Chuẩn hóa trạng thái active từ nhiều kiểu dữ liệu trả về
+  const normalizeActive = (r) => {
+    if (r && typeof r.isActive === "boolean") return r.isActive;
+    if (r && typeof r.is_active === "boolean") return r.is_active; // phòng khi API trả snake_case
+    if (r && typeof r.inactive === "boolean") return !r.inactive;
+    if (r && typeof r.status === "string")
+      return r.status.toLowerCase() === "active";
+    return false;
   };
 
   // Toggle sorting for allowed keys (only 'code' and 'name')
@@ -111,7 +108,7 @@ export default function RoleTable({
         <div className="add-new-button">
           <button
             style={{
-              backgroundColor: "#ff5a5f",
+              backgroundColor: "#fe535b",
               color: "white",
               border: "none",
               borderRadius: "4px",
@@ -161,6 +158,7 @@ export default function RoleTable({
                   <span style={{ whiteSpace: "nowrap" }}>Role Code</span>
 
                   <button
+                    type="button"
                     onClick={() => toggleSort("code")}
                     title="Sort by Role Code"
                     style={{
@@ -175,9 +173,9 @@ export default function RoleTable({
                   >
                     {sortConfig.key === "code" ? (
                       sortConfig.direction === "asc" ? (
-                        <FaSortAlphaDown style={{ color: "#ff5a5f" }} />
+                        <FaSortAlphaDown style={{ color: "#fe535b" }} />
                       ) : (
-                        <FaSortAlphaUp style={{ color: "#ff5a5f" }} />
+                        <FaSortAlphaUp style={{ color: "#fe535b" }} />
                       )
                     ) : (
                       <FaSort style={{ color: "#aaa" }} />
@@ -202,6 +200,7 @@ export default function RoleTable({
                   <span style={{ whiteSpace: "nowrap" }}>Role Name</span>
 
                   <button
+                    type="button"
                     onClick={() => toggleSort("name")}
                     title="Sort by Role Name"
                     style={{
@@ -216,9 +215,9 @@ export default function RoleTable({
                   >
                     {sortConfig.key === "name" ? (
                       sortConfig.direction === "asc" ? (
-                        <FaSortAlphaDown style={{ color: "#ff5a5f" }} />
+                        <FaSortAlphaDown style={{ color: "#fe535b" }} />
                       ) : (
-                        <FaSortAlphaUp style={{ color: "#ff5a5f" }} />
+                        <FaSortAlphaUp style={{ color: "#fe535b" }} />
                       )
                     ) : (
                       <FaSort style={{ color: "#aaa" }} />
@@ -336,6 +335,9 @@ export default function RoleTable({
                       borderBottom: "1px solid #eaeaea",
                       maxWidth: "200px",
                       color: "#555",
+                      whiteSpace: "nowrap", // Thêm dòng này để không xuống dòng
+                      overflow: "hidden", // Ẩn phần vượt quá
+                      textOverflow: "ellipsis",
                     }}
                   >
                     {role.description && role.description.length > 30
@@ -349,7 +351,13 @@ export default function RoleTable({
                       color: "#555",
                     }}
                   >
-                    {formatPrivileges(role.privileges)}
+                    {Array.isArray(role.privileges)
+                      ? role.privileges.slice(0, 2).join(", ") +
+                        (role.privileges.length > 2 ? "..." : "")
+                      : typeof role.privileges === "string"
+                      ? role.privileges.split(",").slice(0, 2).join(", ") +
+                        (role.privileges.split(",").length > 2 ? "..." : "")
+                      : "N/A"}
                   </td>
                   <td
                     style={{
@@ -367,7 +375,7 @@ export default function RoleTable({
                       color: "#555",
                     }}
                   >
-                    <StatusBadge active={role.isActive} />
+                    <StatusBadge active={normalizeActive(role)} />
                   </td>
                   <td
                     style={{

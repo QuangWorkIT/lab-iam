@@ -6,7 +6,7 @@ export default function ActionButtons({ onView, onEdit, onDelete, item }) {
     <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
       <button
         style={{
-          backgroundColor: "#3498db",
+          backgroundColor: "#5170ff",
           color: "white",
           border: "none",
           borderRadius: "4px",
@@ -22,7 +22,7 @@ export default function ActionButtons({ onView, onEdit, onDelete, item }) {
       </button>
       <button
         style={{
-          backgroundColor: "#f39c12",
+          backgroundColor: "#ffbf0d",
           color: "white",
           border: "none",
           borderRadius: "4px",
@@ -38,7 +38,7 @@ export default function ActionButtons({ onView, onEdit, onDelete, item }) {
       </button>
       <button
         style={{
-          backgroundColor: "#e74c3c",
+          backgroundColor: "#fe535b",
           color: "white",
           border: "none",
           borderRadius: "4px",

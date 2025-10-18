@@ -1,4 +1,4 @@
-Zserver:
+server:
   port: 8081
 
 spring:
@@ -6,8 +6,8 @@ spring:
     name: iam-service
   datasource:
     url: jdbc:postgresql://localhost:5432/iam_db
-    username: postgres
-    password: your_password_here
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

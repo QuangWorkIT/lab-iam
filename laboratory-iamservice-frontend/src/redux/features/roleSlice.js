@@ -6,28 +6,75 @@ export const fetchRoles = createAsyncThunk(
   "roles/fetchRoles",
   async (params = {}, { rejectWithValue }) => {
     try {
-      // Có thể thêm params để hỗ trợ sorting, filtering, pagination
-      const { sortBy, sortDir, keyword, fromDate, toDate, page, size } = params;
+      // Chuẩn hóa và map tham số
+      const {
+        sortBy = "name",
+        sortDir = "asc",
+        keyword,
+        fromDate, // hiện backend chưa hỗ trợ
+        toDate, // hiện backend chưa hỗ trợ
+        page = 0,
+        size = 10,
+      } = params;
 
-      // Xây dựng query params
-      const queryParams = new URLSearchParams();
-      if (sortBy) queryParams.append("sortBy", sortBy);
-      if (sortDir) queryParams.append("sortDir", sortDir);
-      if (keyword) queryParams.append("keyword", keyword);
-      if (fromDate) queryParams.append("fromDate", fromDate);
-      if (toDate) queryParams.append("toDate", toDate);
-      if (page) queryParams.append("page", page);
-      if (size) queryParams.append("size", size);
+      // Nếu có keyword hoặc khoảng ngày => dùng API search tổng hợp
+      if ((keyword && keyword.trim() !== "") || fromDate || toDate) {
+        const qp = new URLSearchParams();
+        if (keyword && keyword.trim() !== "") {
+          qp.append("q", keyword.trim()); // tham số mới
+          qp.append("name", keyword.trim()); // giữ tương thích cũ
+        }
+        if (fromDate) qp.append("fromDate", fromDate);
+        if (toDate) qp.append("toDate", toDate);
+        if (sortBy) qp.append("sortBy", sortBy);
+        if (sortDir) qp.append("direction", sortDir);
+        const response = await api.get(`/roles/search?${qp.toString()}`);
+        // Chuẩn hóa dữ liệu trả về dạng thống nhất
+        return {
+          roles: response.data || [],
+          currentPage: 0,
+          totalItems: Array.isArray(response.data) ? response.data.length : 0,
+          totalPages: 1,
+          pageSize: Array.isArray(response.data) ? response.data.length : size,
+        };
+      }
 
-      const response = await api.get(`/roles?${queryParams}`);
-      return response.data;
+      // Nếu có tham số phân trang/sắp xếp => dùng API /paged
+      const qp = new URLSearchParams();
+      // page có thể là 0 nên cần check khác null/undefined
+      if (page !== undefined && page !== null) qp.append("page", page);
+      if (size !== undefined && size !== null) qp.append("size", size);
+      if (sortBy) qp.append("sortBy", sortBy);
+      if (sortDir) qp.append("direction", sortDir);
+
+      const response = await api.get(`/roles/paged?${qp.toString()}`);
+      const data = response.data || {};
+      // Backend trả { roles, currentPage, totalItems, totalPages }
+      if (Array.isArray(data.roles)) {
+        return {
+          roles: data.roles,
+          currentPage: data.currentPage ?? page,
+          totalItems: data.totalItems ?? data.roles.length,
+          totalPages: data.totalPages ?? 1,
+          pageSize: size,
+        };
+      }
+
+      // Fallback: gọi /roles (không phân trang)
+      const allRes = await api.get(`/roles`);
+      return {
+        roles: allRes.data || [],
+        currentPage: 0,
+        totalItems: Array.isArray(allRes.data) ? allRes.data.length : 0,
+        totalPages: 1,
+        pageSize: Array.isArray(allRes.data) ? allRes.data.length : size,
+      };
     } catch (error) {
-      // Extract meaningful error message
       const errorMsg =
-        error.response?.data?.message || // Spring Boot standard format
-        error.response?.data?.error || // Alternative format
-        error.message || // JS error
-        "Failed to fetch roles"; // Fallback
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to fetch roles";
 
       return rejectWithValue(errorMsg);
     }
@@ -144,14 +191,13 @@ const roleSlice = createSlice({
       })
       .addCase(fetchRoles.fulfilled, (state, action) => {
         state.loading = false;
-        state.roles = action.payload.content || action.payload;
-        // Nếu API trả về metadata pagination
-        if (action.payload.pageable) {
-          state.totalItems = action.payload.totalElements;
-          state.totalPages = action.payload.totalPages;
-          state.currentPage = action.payload.number;
-          state.pageSize = action.payload.size;
-        }
+        const payload = action.payload || {};
+        // payload đã được chuẩn hóa ở thunk
+        state.roles = payload.roles || [];
+        state.totalItems = payload.totalItems ?? state.roles.length;
+        state.totalPages = payload.totalPages ?? 1;
+        state.currentPage = payload.currentPage ?? 0;
+        state.pageSize = payload.pageSize ?? state.pageSize;
         state.success = true;
       })
       .addCase(fetchRoles.rejected, (state, action) => {

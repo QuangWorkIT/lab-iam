@@ -6,31 +6,40 @@ export default function RoleSearchBar({ onSearch }) {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
-  const handleSearch = () => {
+  const handleSearch = (e) => {
+    // Ngăn chặn hành vi mặc định của form để tránh reload trang
+    if (e) e.preventDefault();
+
     onSearch(search.trim().toLowerCase(), fromDate, toDate);
   };
 
   const handleInputKeyDown = (e) => {
     if (e.key === "Enter") {
+      // Ngăn chặn submit form mặc định khi nhấn Enter
+      e.preventDefault();
       handleSearch();
     }
   };
 
   return (
-    <div
+    // Wrap trong form và xử lý onSubmit (Enter). Nút Search dùng onClick để tránh submit mặc định.
+    <form
+      onSubmit={handleSearch}
       className="search-container"
       style={{ display: "flex", alignItems: "center", gap: 8 }}
+      role="search"
+      aria-label="Role search"
     >
       <div
         style={{
           position: "relative",
           display: "flex",
           alignItems: "center",
-          border: "1px solid #e0e0e0",
+          border: "1px solid #e1e7ef",
           borderRadius: "4px",
           padding: "5px 10px",
           width: "200px",
-          backgroundColor: "#f0f0f0",
+          backgroundColor: "#e1e7ef",
         }}
       >
         <FaSearch style={{ color: "#888", marginRight: "8px" }} />
@@ -49,6 +58,9 @@ export default function RoleSearchBar({ onSearch }) {
             padding: "5px 2px",
             color: "#333",
           }}
+          aria-label="Search by name, code, or privileges"
+          name="keyword"
+          autoComplete="off"
         />
       </div>
       <span style={{ color: "#333" }}>Created Date:</span>
@@ -61,12 +73,14 @@ export default function RoleSearchBar({ onSearch }) {
           style={{
             marginLeft: 8,
             padding: "5px 8px",
-            border: "1px solid #e0e0e0",
+            border: "1px solid #e1e7ef",
             borderRadius: "4px",
             fontSize: "14px",
             backgroundColor: "#fff",
             color: "#333",
           }}
+          aria-label="From date"
+          name="fromDate"
         />
         <FaCalendarAlt
           style={{
@@ -89,12 +103,14 @@ export default function RoleSearchBar({ onSearch }) {
           onChange={(e) => setToDate(e.target.value)}
           style={{
             padding: "5px 8px",
-            border: "1px solid #e0e0e0",
+            border: "1px solid #e1e7ef",
             borderRadius: "4px",
             fontSize: "14px",
             backgroundColor: "#fff",
             color: "#333",
           }}
+          aria-label="To date"
+          name="toDate"
         />
         <FaCalendarAlt
           style={{
@@ -109,18 +125,20 @@ export default function RoleSearchBar({ onSearch }) {
       </div>
 
       <button
+        type="button"
+        onClick={handleSearch}
         style={{
           backgroundColor: "#ffffff",
-          border: "1px solid #e0e0e0",
+          border: "1px solid #e1e7ef",
           borderRadius: "4px",
           padding: "5px 10px",
           marginLeft: "10px",
           cursor: "pointer",
         }}
-        onClick={handleSearch}
+        aria-label="Search"
       >
         <FaSearch style={{ fontSize: "14px", color: "#666" }} />
       </button>
-    </div>
+    </form>
   );
 }

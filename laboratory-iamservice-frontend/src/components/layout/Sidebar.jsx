@@ -42,7 +42,7 @@ export default function Sidebar() {
   const { userRoles } = useSelector((state) => state.user);
 
   // Demo data - sử dụng dữ liệu giả lập thay vì lấy từ Redux
-  const demoUserRoles = ["ADMIN", "USER"]; // Giả lập quyền admin
+  // const demoUserRoles = ["ADMIN", "USER"]; // Giả lập quyền admin
 
   // Kiểm tra quyền truy cập
   const hasAccess = (requiredRoles) => {
@@ -66,7 +66,11 @@ export default function Sidebar() {
       roles: ["ADMIN", "LAB_MANAGER", "TECHNICIAN"],
     },
     { path: "/security", icon: <FaShieldAlt size={20} />, roles: ["ADMIN"] },
-    { path: "/calendar", icon: <FaCalendarAlt size={20} />, roles: [] },
+    {
+      path: "/calendar",
+      icon: <FaCalendarAlt size={20} />,
+      roles: ["LAB_MANAGER"],
+    },
     {
       path: "/reports",
       icon: <FaChartLine size={20} />,
