@@ -1,8 +1,6 @@
-import React from "react";
-import TestPages from "../pages/TestPages";
-import UserListPage from "../pages/users/UserListPage";
-import CreateUserPage from "../pages/users/CreateUserPage";
-
+import TestPages from "../pages/TestPages.jsx";
+import LoginPage from "../pages/auths/LoginPage.jsx";
+import UserListPage from "../pages/users/UserListPage.jsx";
 const routes = [
   {
     path: "/",
@@ -13,9 +11,9 @@ const routes = [
     element: <UserListPage />,
   },
   {
-    path: "/users/create",
-    element: <CreateUserPage />,
-  },
+    path: "/login",
+    element: <LoginPage />,
+  }
 ];
 
 export default routes;

@@ -5,10 +5,10 @@ spring:
   application:
     name: iam-service
   datasource:
-      url: jdbc:postgresql://postgres:5432/iam_db
-      username: postgres
-      password: your_password_here
-      driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update

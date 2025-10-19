@@ -36,6 +36,8 @@ node_modules/
 
 # Environment and configuration files (except what we need)
 iam_service/.env
+iam_service/.env
+set-env.sh
 .env
 .env.local
 .env.prod

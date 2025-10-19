@@ -1,6 +1,11 @@
 import { Button, Form, Input, ConfigProvider } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { login } from '../../redux/features/userSlice.js';
+import { toast } from 'react-toastify';
+import api from '../../configs/axios.js';
+import { parseClaims } from '../../utilities/jwtUtil.js';
 
 // custom input theme 
 const theme = {
@@ -13,18 +18,22 @@ const theme = {
     },
 };
 
-// user name validation
-const userNameRules = [
-    { required: true, message: "Please enter user name" },
-    { min: 6, message: "User name must be at least 6 characters" },
-    { max: 200, message: "Password cannot exceed 20 characters" },
+// email validation
+const emailRules = [
+    { required: true, message: "Please enter your email" },
+    {
+        pattern:
+            /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        message: "Please enter a valid email address",
+    },
+    { max: 200, message: "Please enter a valid email address" },
 ]
 
 // password validation
 const passwordRules = [
     { required: true, message: "Please enter password" },
-    { min: 6, message: "Password must be at least 6 characters" },
-    { max: 200, message: "Password cannot exceed 20 characters" },
+    { min: 8, message: "Password must be at least 8 characters" },
+    { max: 200, message: "Password cannot exceed 200 characters" },
     {
         pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
         message: "Must contain uppercase, lowercase and number"
@@ -33,13 +42,44 @@ const passwordRules = [
 
 
 function LoginForm() {
-    const [isUserExpanded, setIsUserExpanded] = useState(false);
-    const [username, setUserName] = useState("");
+    const [form] = Form.useForm();
+    const [isEmailExpanded, setIsEmailExpanded] = useState(false);
     const [isPasswordExpanded, setIsPasswordExpanded] = useState(false);
-    const [password, setPassword] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const dispatch = useDispatch()
+    const user = useSelector(state => state.user)
+    const onFinish = async (values) => {
+        try {
+            setIsSubmitting(true)
 
-    const onFinish = (values) => {
-        console.log(values)
+            const response = await api.post("/api/auth/login", {
+                email: values.email,
+                password: values.password
+            })
+            const data = response.data?.data
+
+            const payload = parseClaims(data.accessToken)
+            dispatch(login({
+                token: data.accessToken,
+                userInfo: {
+                    id: payload.sub,
+                    userName: payload.userName,
+                    email: payload.email,
+                    role: payload.role,
+                    privileges: payload.privileges,
+                }
+            }))
+            toast.success("Login successfully!")
+        } catch (error) {
+            const errMess = error.response?.data?.message
+            if (errMess) toast.error(errMess)
+            else toast.error("Login failed!")
+        } finally {
+            form.resetFields()
+            setIsSubmitting(false)
+            setIsEmailExpanded(false)
+            setIsPasswordExpanded(false)
+        }
     }
 
     return (
@@ -50,35 +90,28 @@ function LoginForm() {
             >
                 Lab Management
             </p>
+
             <Form
+                form={form}
                 name='login'
                 onFinish={onFinish}
                 className='w-[200px] md:w-[360px]'
             >
                 <ConfigProvider theme={theme}>
                     <Form.Item
-                        name="username"
-                        rules={userNameRules}
+                        name="email"
+                        rules={emailRules}
                         hasFeedback
                     >
                         <div className={`m-auto transition-all duration-500 ease-in-out 
-                        ${isUserExpanded ? "w-full" : "md:w-70"}`}>
+                        ${isEmailExpanded ? "w-full" : "md:w-70"}`}>
                             <Input
-                                value={username}
                                 prefix={<UserOutlined style={{ color: "#FE535B" }} />}
-                                placeholder="Username"
+                                placeholder="Email"
                                 variant='underlined'
-                                onChange={(e) => {
-                                    setUserName(e.target.value)
-                                    if (e.target.value !== "") {
-                                        setIsUserExpanded(true)
-                                    } else {
-                                        setIsUserExpanded(false)
-                                    }
-                                }}
-                                onFocus={() => setIsUserExpanded(true)}
+                                onFocus={() => setIsEmailExpanded(true)}
                                 onBlur={() => {
-                                    if (username === "") setIsUserExpanded(false);
+                                    if (!form.getFieldValue("email")) setIsEmailExpanded(false);
                                 }}
                             />
                         </div>
@@ -93,23 +126,14 @@ function LoginForm() {
                         <div className={`m-auto transition-all duration-500 ease-in-out 
                         ${isPasswordExpanded ? "w-full" : "md:w-70"}`}>
                             <Input.Password
-                                value={password}
-                                style={{ marginBottom: "20px" }}
+                                // style={{ marginBottom: "20px" }}
                                 className="bg-transparent"
                                 prefix={<LockOutlined style={{ color: "#FE535B" }} />}
                                 placeholder="Password"
                                 variant='underlined'
-                                onChange={(e) => {
-                                    setPassword(e.target.value)
-                                    if (e.target.value !== "") {
-                                        setIsPasswordExpanded(true)
-                                    } else {
-                                        setIsPasswordExpanded(false)
-                                    }
-                                }}
                                 onFocus={() => setIsPasswordExpanded(true)}
                                 onBlur={() => {
-                                    if (password === "") setIsPasswordExpanded(false);
+                                    if (!form.getFieldValue("password")) setIsPasswordExpanded(false);
                                 }}
                             />
                         </div>
@@ -118,10 +142,12 @@ function LoginForm() {
 
                 <Form.Item className='flex justify-center'>
                     <Button
+                        style={{ marginTop: "10px" }}
                         className='md:w-30 w-20 hover:bg-[#fca9ad]'
                         color='danger'
                         variant='solid'
                         htmlType='submit'
+                        loading={isSubmitting}
                     >
                         Login
                     </Button>
