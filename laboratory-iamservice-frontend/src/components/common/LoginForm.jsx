@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../../redux/features/userSlice.js';
 import { toast } from 'react-toastify';
 import api from '../../configs/axios.js';
-import { parseClaims } from '../../utilities/jwtUtil.js';
+import { parseClaims } from '../../utils/jwtUtil.js';
 
 // custom input theme 
 const theme = {
