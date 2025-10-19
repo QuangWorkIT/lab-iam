@@ -3,7 +3,7 @@ import { Button, Card } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { login, logout } from "../redux/features/userSlice";
 
-export default function TestPage() {
+export default function TestPages() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user) || {};
 
@@ -16,15 +16,25 @@ export default function TestPage() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        padding: "2rem",
         justifyContent: "center",
       }}
     >
       <Card
         title="User Information"
-        style={{ width: 350, textAlign: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+        style={{
+          width: 350,
+          textAlign: "center",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          marginBottom: "2rem",
+        }}
       >
-        <p><strong>User:</strong> {user.userInfo?.name || "Guest"}</p>
-        <p><strong>Token:</strong> {user.token || "None"}</p>
+        <p>
+          <strong>User:</strong> {user.userInfo?.name || "Guest"}
+        </p>
+        <p>
+          <strong>Token:</strong> {user.token || "None"}
+        </p>
         <Button
           type="primary"
           onClick={() =>

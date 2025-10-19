@@ -1,4 +1,7 @@
-import TestPages from "../pages/TestPages.jsx";
+import React from "react";
+import TestPages from "../pages/TestPages";
+import RoleList from "../pages/role/RoleList";
+import { Navigate } from "react-router-dom";
 import LoginPage from "../pages/auths/LoginPage.jsx";
 import UserListPage from "../pages/users/UserListPage.jsx";
 const routes = [
@@ -11,6 +14,10 @@ const routes = [
     element: <UserListPage />,
   },
   {
+    path: "/roles",
+    element: <RoleList />,
+  },
+
     path: "/login",
     element: <LoginPage />,
   }
