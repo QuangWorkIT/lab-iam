@@ -30,7 +30,7 @@ export default function TestPages() {
         }}
       >
         <p>
-          <strong>User:</strong> {user.userInfo?.name || "Guest"}
+          <strong>User:</strong> {user.userInfo?.userName || "Guest"}
         </p>
         <p>
           <strong>Token:</strong> {user.token || "None"}

@@ -17,9 +17,10 @@ set-env.sh
 # Log files
 logs/
 *.log
-
-# Environment variables and secrets
 .env
+# Environment variables and secrets
+iam_service/.env
+iam_service/.env
 application.properties.example
 application.yml.example
 

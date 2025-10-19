@@ -3,6 +3,10 @@ spring:
     name: iam_service
   profiles:
     active: dev
+  jpa:
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 management:
   endpoints:
     web:
@@ -14,7 +18,10 @@ management:
 eureka:
   client:
     enabled: false
-
+jwt:
+  secret: ${JWT_SECRET}
+allowed:
+  origin: ${ALLOWED_ORIGIN}
 logging:
   level:
     root: INFO
