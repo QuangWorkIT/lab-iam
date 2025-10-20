@@ -27,8 +27,8 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toDto(saved));
     }
 
-    @GetMapping("/email/{email}")
-    public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) {
+    @GetMapping("/email")
+    public ResponseEntity<UserDTO> getUserByEmail(@RequestParam String email) {
         return userService.getUserByEmail(email)
                 .map(user -> ResponseEntity.ok(userMapper.toDto(user)))
                 .orElse(ResponseEntity.notFound().build());
