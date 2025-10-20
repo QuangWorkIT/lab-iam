@@ -1,5 +1,6 @@
-package com.example.iam_service.dto;
+package com.example.iam_service.mapper;
 
+import com.example.iam_service.dto.RoleDTO;
 import com.example.iam_service.entity.Role;
 import org.springframework.stereotype.Component;
 

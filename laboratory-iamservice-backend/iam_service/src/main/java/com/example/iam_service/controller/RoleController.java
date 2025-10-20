@@ -1,7 +1,7 @@
 package com.example.iam_service.controller;
 
 import com.example.iam_service.dto.RoleDTO;
-import com.example.iam_service.dto.RoleMapper;
+import com.example.iam_service.mapper.RoleMapper;
 import com.example.iam_service.entity.Role;
 import com.example.iam_service.service.RoleService;
 import lombok.RequiredArgsConstructor;
