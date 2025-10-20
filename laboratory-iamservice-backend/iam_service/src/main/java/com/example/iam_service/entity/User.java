@@ -34,7 +34,7 @@ public class User {
 
     @NotBlank(message = "Identity number is required")
     @Column(nullable = false, length = 255)
-    private String indentityNumber;
+    private String identityNumber;
 
     @Pattern(
             regexp = "^(MALE|FEMALE)$",
@@ -61,7 +61,7 @@ public class User {
     @Column(length = 255)
     private String roleCode;
 
-    private Boolean isCctive;
+    private Boolean isActive;
 
     private LocalDate createdAt;
 
