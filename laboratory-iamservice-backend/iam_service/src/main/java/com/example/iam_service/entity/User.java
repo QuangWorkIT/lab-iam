@@ -1,5 +1,6 @@
 package com.example.iam_service.entity;
 
+import com.example.iam_service.util.EncryptDecryptConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -25,6 +26,7 @@ public class User {
     private String email;
 
     // null
+    @Convert(converter = EncryptDecryptConverter.class)
     @Pattern(regexp = "^\\+?[0-9]*$", message = "Phone number must contain only digits")
     @Column(nullable = true, length = 255)
     private String phoneNumber;
@@ -34,6 +36,7 @@ public class User {
     private String fullName;
 
     //null
+    @Convert(converter = EncryptDecryptConverter.class)
     @Column(nullable = true, length = 255)
     private String identityNumber;
 
@@ -50,6 +53,7 @@ public class User {
     private Integer age;
 
     //null
+    @Convert(converter = EncryptDecryptConverter.class)
     @Column(nullable = true, length = 255)
     private String address;
 
