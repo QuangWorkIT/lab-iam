@@ -24,30 +24,37 @@ public class User {
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
+    // null
     @Pattern(regexp = "^\\+?[0-9]*$", message = "Phone number must contain only digits")
-    @Column(length = 255)
+    @Column(nullable = true, length = 255)
     private String phoneNumber;
 
     @NotBlank(message = "Full name is required")
     @Column(nullable = false, length = 255)
     private String fullName;
 
-    @NotBlank(message = "Identity number is required")
-    @Column(nullable = false, length = 255)
+    //null
+    @Column(nullable = true, length = 255)
     private String identityNumber;
 
+    //null
     @Pattern(
             regexp = "^(MALE|FEMALE)$",
             message = "Gender must be either MALE or FEMALE"
     )
-    @Column(nullable = false, length = 10)
+    @Column(nullable = true, length = 10)
     private String gender;
 
+    //null
+    @Column(nullable = true)
     private Integer age;
 
-    @Column(length = 255)
+    //null
+    @Column(nullable = true, length = 255)
     private String address;
 
+    //null
+    @Column(nullable = true)
     private LocalDate birthdate;
 
     @NotBlank(message = "Password cannot be blank")
