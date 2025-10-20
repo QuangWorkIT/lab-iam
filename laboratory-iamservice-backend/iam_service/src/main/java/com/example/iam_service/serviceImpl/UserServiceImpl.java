@@ -28,7 +28,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            throw new IllegalArgumentException("No user found with email: " + email);
+        }
+        return user;
     }
 
     @Override
