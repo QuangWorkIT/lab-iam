@@ -14,6 +14,7 @@ public class UserDTO {
     private Integer age;
     private String address;
     private LocalDate birthdate;
+    private String roleCode;
     private Boolean isActive;
     private LocalDate createdAt;
 }

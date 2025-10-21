@@ -63,7 +63,7 @@ public class User {
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(length = 255)
+    @Column(name = "rolecode", length = 255)
     private String roleCode;
 
     private Boolean isActive;

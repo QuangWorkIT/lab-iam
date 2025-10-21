@@ -25,26 +25,27 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("🌱 Seeding initial demo users...");
         seedUser("admin@example.com", "Nguyen Van Admin", "0901234567", "012345678901",
                 "Hanoi, Vietnam", "MALE", 30, LocalDate.of(1995, 5, 12),
-                "admin123ADMIN", "ADMIN", true);
+                "admin123ADMIN", "ROLE_ADMIN", true);
 
-        seedUser("staff1@example.com", "Tran Thi Staff", "0912345678", "123456789012",
+        seedUser("labmanager1@example.com", "Tran Thi Staff", "0912345678", "123456789012",
                 "Ho Chi Minh City, Vietnam", "FEMALE", 28, LocalDate.of(1997, 3, 25),
-                "staff123STAFF", "STAFF", true);
+                "staff123STAFF", "ROLE_LAB_MANAGER", true);
 
-        seedUser("member1@example.com", "Le Quang Member", "0987654321", "234567890123",
+        seedUser("labuser1@example.com", "Le Quang Member", "0987654321", "234567890123",
                 "Da Nang, Vietnam", "MALE", 24, LocalDate.of(2001, 8, 14),
-                "member123MEMBER", "MEMBER", true);
+                "member123MEMBER", "ROLE_LAB_USER", true);
 
-        seedUser("user1@example.com", "Pham Thi User", "0978123456", "345678901234",
+        seedUser("service@example.com", "Pham Thi User", "0978123456", "345678901234",
                 "Can Tho, Vietnam", "FEMALE", 22, LocalDate.of(2003, 1, 10),
-                "user123USER", "USER", true);
+                "user123USER", "ROLE_SERVICE", true);
 
-        seedUser("guest@example.com", "Hoang Minh Guest", "0923456789", "456789012345",
+        seedUser("default@example.com", "Hoang Minh Guest", "0923456789", "456789012345",
                 "Hai Phong, Vietnam", "MALE", 20, LocalDate.of(2005, 7, 20),
-                "guest123GUEST", "GUEST", true);
+                "guest123GUEST", "ROLE_DEFAULT", true);
+
         seedUser("inactive@example.com", "Lazy Inactive Guy", "0911222333", "567890123456",
                 "Hue, Vietnam", "MALE", 26, LocalDate.of(1999, 11, 11),
-                "inactive123USER", "USER", false);
+                "inactive123USER", "ROLE_LAB_MANAGER", false);
 
         System.out.println("✅ Demo users seeded successfully!");
     }
