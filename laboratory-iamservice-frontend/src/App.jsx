@@ -8,7 +8,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 
 function App() {
   const router = createBrowserRouter(routes);
-  const clientid = "757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com"
+  const clientid = import.meta.env.VITE_GOOGLE_CLIENT
   return (
     <GoogleOAuthProvider clientId={clientid}>
       <Provider store={store}>

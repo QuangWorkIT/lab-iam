@@ -1,12 +1,15 @@
 import { Button, Form, Input, ConfigProvider } from 'antd';
+import { Spin } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from "react-router";
 import { login } from '../../redux/features/userSlice.js';
 import { toast } from 'react-toastify';
 import api from '../../configs/axios.js';
 import { parseClaims } from '../../utils/jwtUtil.js';
 import GoogleButton from './GoogleButton.jsx';
+
 
 // custom input theme 
 const theme = {
@@ -47,8 +50,10 @@ function LoginForm() {
     const [isEmailExpanded, setIsEmailExpanded] = useState(false);
     const [isPasswordExpanded, setIsPasswordExpanded] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isGoogleLogin, setIsGoogleLogin] = useState(false)
     const dispatch = useDispatch()
-    const user = useSelector(state => state.user)
+    const nav = useNavigate()
+
     const onFinish = async (values) => {
         try {
             setIsSubmitting(true)
@@ -71,6 +76,7 @@ function LoginForm() {
                 }
             }))
             toast.success("Login successfully!")
+            nav("/", {replace: true})
         } catch (error) {
             const errMess = error.response?.data?.message
             if (errMess) toast.error(errMess)
@@ -161,7 +167,13 @@ function LoginForm() {
                     </div>
 
                     <Form.Item className='flex justify-center'>
-                        <GoogleButton />
+                        {isGoogleLogin ? (
+                            <Spin size='large' />
+                        ) : (
+                            <div className="opacity-100 hover:opacity-70 transition">
+                                <GoogleButton setIsGoogleLogin={setIsGoogleLogin} />
+                            </div>
+                        )}
                     </Form.Item>
                 </div>
             </Form>
