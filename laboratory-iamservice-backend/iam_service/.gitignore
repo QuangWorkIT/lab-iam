@@ -3,7 +3,9 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+../.env
 .env
+set-env.sh
 ### STS ###
 .apt_generated
 .classpath
@@ -31,3 +33,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+###Database_local###
+.env

@@ -34,8 +34,8 @@ CREATE TABLE "User" (
   email VARCHAR(255) NOT NULL UNIQUE,
   phoneNumber VARCHAR(255),
   fullName VARCHAR(255) NOT NULL,
-  indentityNumber VARCHAR(255) NOT NULL,
-  gender VARCHAR(10) NOT NULL,
+  identityNumber VARCHAR(255),
+  gender VARCHAR(10) CHECK (gender IN ('MALE', 'FEMALE')),
   age INT,
   address VARCHAR(255),
   birthDate DATE,
@@ -45,10 +45,24 @@ CREATE TABLE "User" (
   createdAt DATE
 );
 
+
 CREATE TABLE "Token" (
   id SERIAL PRIMARY KEY,
   userId UUID NOT NULL REFERENCES "User"(userId),
   tokenId VARCHAR(255) NOT NULL,
   expiredAt TIMESTAMP NOT NULL,
-  createdAt TIMESTAMP
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+-- ===========================================
+-- INSERT FAKE DATA FOR "User" and "Role" TABLE
+-- ===========================================
+
+INSERT INTO "Role" (code, name, description, privileges, createdAt, lastUpdatedAt, isActive)
+VALUES
+('ADMIN', 'Administrator', 'Full system access', NULL, CURRENT_DATE, CURRENT_DATE, TRUE),
+('STAFF', 'Staff', 'Handles management tasks', NULL, CURRENT_DATE, CURRENT_DATE, TRUE),
+('MEMBER', 'Member', 'Regular registered user', NULL, CURRENT_DATE, CURRENT_DATE, TRUE),
+('USER', 'User', 'Basic access user', NULL, CURRENT_DATE, CURRENT_DATE, TRUE),
+('GUEST', 'Guest', 'Unregistered limited access', NULL, CURRENT_DATE, CURRENT_DATE, TRUE);

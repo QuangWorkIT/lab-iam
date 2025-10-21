@@ -1,8 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  token: null,
-  userInfo: null,
+  user: null,
+  isAuthenticated: false,
+  userRoles: [], // Khởi tạo mảng rỗng thay vì undefined
+  loading: false,
+  error: null,
 };
 
 const userSlice = createSlice({
