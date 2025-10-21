@@ -1,12 +1,10 @@
-package com.example.iam_service.service;
+package com.example.iam_service.service.authen;
 
 import com.example.iam_service.entity.Token;
 import com.example.iam_service.entity.User;
 
-import java.util.Optional;
-import java.util.UUID;
-
 public interface RefreshTokenService {
+    long expiration = 7 * 24 * 60 * 60;
 
     void deleteToken(String tokenId);
 
@@ -14,5 +12,5 @@ public interface RefreshTokenService {
 
     Token generateRefreshToken(User user);
 
-    Token verifyToken(String tokenId);
+    Token verifyRefreshToken(String tokenId);
 }
