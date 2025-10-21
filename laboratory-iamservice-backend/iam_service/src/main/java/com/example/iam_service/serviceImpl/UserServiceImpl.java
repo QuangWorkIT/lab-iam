@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
         // Step 1. Prepare the user object
         String plainPassword = null;
 
-        if ("PATIENT".equalsIgnoreCase(user.getRoleCode())) {
+        if ("ROLE_PATIENT".equalsIgnoreCase(user.getRoleCode())) {
             plainPassword = preparePatientUser(user);
         } else {
             handleNonPatientCreation(user);
@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
 
         // Step 3. If the save succeeded, handle post-save actions
-        if ("PATIENT".equalsIgnoreCase(savedUser.getRoleCode()) && plainPassword != null) {
+        if ("ROLE_PATIENT".equalsIgnoreCase(savedUser.getRoleCode()) && plainPassword != null) {
             // Send email only after the DB commit is successful
             // (this code runs inside @Transactional, so commit will happen after this returns)
             emailService.sendPasswordEmail(savedUser.getEmail(), plainPassword);
@@ -128,7 +128,7 @@ public class UserServiceImpl implements UserService {
         validatePassword(user.getPassword());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        if (isCreatedByLabManager() && !"PATIENT".equalsIgnoreCase(user.getRoleCode())) {
+        if (isCreatedByLabManager() && !"ROLE_PATIENT".equalsIgnoreCase(user.getRoleCode())) {
             user.setIsActive(false);
             auditPublisher.publish(AuditEvent.builder()
                     .eventType("ACCOUNT_PENDING_APPROVAL")
@@ -160,7 +160,7 @@ public class UserServiceImpl implements UserService {
         }
 
         for (GrantedAuthority authority : authentication.getAuthorities()) {
-            if ("LAB_MANAGER".equalsIgnoreCase(authority.getAuthority())) {
+            if ("ROLE_LAB_MANAGER".equalsIgnoreCase(authority.getAuthority())) {
                 return true;
             }
         }
