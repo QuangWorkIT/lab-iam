@@ -6,9 +6,6 @@ const ProtectedRoute = ({ element: Component, allowedRoles }) => {
   const token = useSelector((state) => state.user.token);
   const userInfo = useSelector((state) => state.user.userInfo);
 
-    console.log("🔍 userInfo from Redux:", userInfo);
-    console.log("🔍 token from Redux:", token);
-
   // not logged in? yeet to login
   if (!token || !userInfo) {
     return <Navigate to="/login" replace />;

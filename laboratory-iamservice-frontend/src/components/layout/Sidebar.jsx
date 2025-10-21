@@ -39,7 +39,7 @@ function SidebarIcon({ icon, active, to = "#" }) {
 
 export default function Sidebar() {
   const location = useLocation();
-  const { userRoles } = useSelector((state) => state.user);
+  const { userInfo } = useSelector((state) => state.user);
 
   // Demo data - sử dụng dữ liệu giả lập thay vì lấy từ Redux
   // const demoUserRoles = ["ADMIN", "USER"]; // Giả lập quyền admin
@@ -47,34 +47,34 @@ export default function Sidebar() {
   // Kiểm tra quyền truy cập
   const hasAccess = (requiredRoles) => {
     if (!requiredRoles || requiredRoles.length === 0) return true;
-    if (!userRoles) return false; // Thêm kiểm tra này
-    return requiredRoles.some((role) => userRoles.includes(role));
+    if (!userInfo) return false; // Thêm kiểm tra này
+    return requiredRoles.some((role) => userInfo.role.includes(role));
   };
 
   // Định nghĩa menu items
   const menuItems = [
     { path: "/", icon: <FaHome size={20} />, roles: [] },
-    { path: "/roles", icon: <FaUsers size={20} />, roles: ["ADMIN"] },
+    { path: "/roles", icon: <FaUsers size={20} />, roles: ["ROLE_ADMIN"] },
     {
       path: "/labs",
       icon: <FaFlask size={20} />,
-      roles: ["ADMIN", "LAB_MANAGER"],
+      roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER"],
     },
     {
       path: "/equipment",
       icon: <FaTools size={20} />,
-      roles: ["ADMIN", "LAB_MANAGER", "TECHNICIAN"],
+      roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER", "ROLE_TECHNICIAN"],
     },
-    { path: "/security", icon: <FaShieldAlt size={20} />, roles: ["ADMIN"] },
+    { path: "/security", icon: <FaShieldAlt size={20} />, roles: ["ROLE_ADMIN"] },
     {
       path: "/calendar",
       icon: <FaCalendarAlt size={20} />,
-      roles: ["LAB_MANAGER"],
+      roles: ["ROLE_LAB_MANAGER"],
     },
     {
       path: "/reports",
       icon: <FaChartLine size={20} />,
-      roles: ["ADMIN", "LAB_MANAGER"],
+      roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER"],
     },
   ];
 

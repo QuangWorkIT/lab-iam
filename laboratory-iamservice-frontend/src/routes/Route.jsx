@@ -28,7 +28,6 @@ const routes = [
     element: (
       <ProtectedRoute
         element={TestPages}
-        allowedRoles={["ROLE_USER", "ROLE_OTHER"]} // whatever other roles
       />
     ),
   },
