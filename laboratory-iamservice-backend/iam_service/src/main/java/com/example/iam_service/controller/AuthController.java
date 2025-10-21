@@ -132,6 +132,39 @@ public class AuthController {
                         new TokenResponse(tokens.get("accessToken"), tokens.get("refreshToken"))));
     }
 
+    @DeleteMapping("/logout")
+    public ResponseEntity<ApiResponse<?>> logout(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken
+    ) {
+        try {
+            if (!refreshToken.trim().isEmpty()) {
+                authService.deleteToken(refreshToken);
+            }
+
+            ResponseCookie clearCookie = ResponseCookie.from("refreshToken", "")
+                    .maxAge(0)
+                    .secure(false)
+                    .httpOnly(true)
+                    .path("/")
+                    .sameSite("Lax")
+                    .build();
+
+            return ResponseEntity
+                    .ok()
+                    .header("Set-cookie", clearCookie.toString())
+                    .body(new ApiResponse<>(
+                            "success",
+                            "logout success"
+                    ));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity
+                    .badRequest()
+                    .body(new ApiResponse<>("Error", "Error logout " + e.getMessage()));
+        }
+    }
+
+    // helper function to set header cookie
     private ResponseCookie setCookieToken(String refreshToken) {
         return ResponseCookie.from("refreshToken", refreshToken)
                 .maxAge(7 * 24 * 60 * 60)
