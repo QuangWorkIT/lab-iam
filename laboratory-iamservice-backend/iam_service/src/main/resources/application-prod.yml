@@ -5,7 +5,7 @@ spring:
   application:
     name: iam-service
   datasource:
-      url: jdbc:postgresql://localhost:5432/lab_db
+      url: jdbc:postgresql://postgres:5432/lab_db
       username: ${POSTGRES_USER}
       password: ${POSTGRES_PASSWORD}
       driver-class-name: org.postgresql.Driver

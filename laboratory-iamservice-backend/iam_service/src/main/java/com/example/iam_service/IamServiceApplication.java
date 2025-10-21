@@ -13,11 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class IamServiceApplication {
 
 	public static void main(String[] args) {
-		System.setProperty("user.timezone", "Asia/Ho_Chi_Minh");
 		SpringApplication.run(IamServiceApplication.class, args);
-		System.out.println("Timezone set to: " + java.util.TimeZone.getDefault().getID());
-		System.out.println("ENCRYPTION KEY (exists?): " + (System.getenv("APP_ENCRYPTION_KEY") != null));
-
 	}
 
 }
