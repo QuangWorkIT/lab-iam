@@ -40,7 +40,6 @@ public class User {
     @Column(nullable = true, length = 255)
     private String identityNumber;
 
-    //null
     @Pattern(
             regexp = "^(MALE|FEMALE)$",
             message = "Gender must be either MALE or FEMALE"
