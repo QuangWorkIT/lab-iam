@@ -18,8 +18,8 @@ spring:
         format_sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   mail:
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${MAIL_USERNAME:no-reply@dummy.local}
+    password: ${MAIL_PASSWORD:dummy-password}
 
 google:
   web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
