@@ -60,15 +60,10 @@ public class User {
     @Column(nullable = true)
     private LocalDate birthdate;
 
-    @NotBlank(message = "Password cannot be blank")
-    @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z]).{8,}$",
-            message = "Password must be at least 8 characters long and include at least one uppercase and one lowercase letter"
-    )
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(length = 255)
+    @Column(name = "rolecode", length = 255)
     private String roleCode;
 
     private Boolean isActive;

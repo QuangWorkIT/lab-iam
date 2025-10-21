@@ -14,24 +14,27 @@ import java.time.LocalDate;
 public class Role {
 
     @Id
-    @Column(name = "code", updatable = false, nullable = false)
+    @Column(name = "role_code", updatable = false, nullable = false)
     private String code;
 
     @NotBlank(message = "Role name is required")
-    @Column(nullable = false, length = 255)
+    @Column(name = "role_name", nullable = false, length = 255)
     private String name;
 
     @NotBlank(message = "Description is required")
-    @Column(nullable = false, length = 255)
+    @Column(name = "role_description", nullable = false, length = 255)
     private String description;
 
-    @Column(length = 255)
+    @Column(name = "role_privileges", length = 255)
     private String privileges;
 
+    @Column(name = "created_at")
     private LocalDate createdAt;
 
+    @Column(name = "updated_at")
     private LocalDate lastUpdatedAt;
 
+    @Column(name = "role_is_active")
     private Boolean isActive;
 
     @PrePersist

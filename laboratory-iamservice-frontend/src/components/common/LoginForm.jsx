@@ -76,7 +76,11 @@ function LoginForm() {
                 }
             }))
             toast.success("Login successfully!")
-            nav("/", {replace: true})
+            if (payload.role === "ROLE_ADMIN" || payload.role === "ROLE_LAB_MANAGER") {
+                nav("/roles", { replace: true });
+            } else {
+                nav("/test", { replace: true });
+            }
         } catch (error) {
             const errMess = error.response?.data?.message
             if (errMess) toast.error(errMess)
