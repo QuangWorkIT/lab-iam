@@ -8,4 +8,6 @@ public interface UserService {
     User createUser(User user);
     Optional<User> getUserByEmail(String email);
     List<User> getAllUsers();
+    List<User> getInactiveUsers();
+    void activateUserByEmail(String email);
 }

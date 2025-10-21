@@ -7,6 +7,16 @@ spring:
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 management:
   endpoints:
     web:
@@ -18,10 +28,7 @@ management:
 eureka:
   client:
     enabled: false
-jwt:
-  secret: ${JWT_SECRET}
-allowed:
-  origin: ${ALLOWED_ORIGIN}
 logging:
   level:
     root: INFO
+
