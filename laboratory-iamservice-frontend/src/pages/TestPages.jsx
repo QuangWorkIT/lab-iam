@@ -3,7 +3,6 @@ import { Button, Card } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { login, logout } from "../redux/features/userSlice";
 import api from "../configs/axios.js";
-import { Card } from "antd";
 import MainLayout from "../components/layout/MainLayout";
 
 export default function TestPages() {

@@ -101,7 +101,7 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
                 insertUser.setBirthdate(null);
                 insertUser.setAge(null);
                 insertUser.setGender("MALE");
-                insertUser.setRoleCode("USER");
+                insertUser.setRoleCode("ROLE_PATIENT");
                 insertUser.setIsActive(true);
 
                 userRepository.save(insertUser);
