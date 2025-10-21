@@ -4,6 +4,7 @@ import TestPages from "../pages/TestPages";
 import RoleList from "../pages/role/RoleList";
 import LoginPage from "../pages/auths/LoginPage.jsx";
 import ProtectedRoute from "./ProtectedRoute";
+import HomePage from "../pages/HomePage";
 
 const routes = [
   {
@@ -13,6 +14,10 @@ const routes = [
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/home",
+    element: <ProtectedRoute element={HomePage} />,
   },
   {
     path: "/roles",

@@ -10,6 +10,7 @@ import {
   FaCalendarAlt,
   FaChartLine,
   FaBars,
+  FaUserCog, FaUserCheck
 } from "react-icons/fa";
 
 // Inline component
@@ -53,26 +54,28 @@ export default function Sidebar() {
 
   // Định nghĩa menu items
   const menuItems = [
-    { path: "/", icon: <FaHome size={20} />, roles: [] },
+    { path: "/home", icon: <FaHome size={20} />, roles: [] },
     { path: "/roles", icon: <FaUsers size={20} />, roles: ["ROLE_ADMIN"] },
+    { path: "/test", icon: <FaUserCog size={20} />, roles: ["ROLE_ADMIN","ROLE_LAB_MANAGER"] }, // User management
+    { path: "/test", icon: <FaUserCheck size={20} />, roles: ["ROLE_ADMIN"] }, // Admin Approval page
     {
-      path: "/labs",
+      path: "/test",
       icon: <FaFlask size={20} />,
       roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER"],
     },
     {
-      path: "/equipment",
+      path: "/test",
       icon: <FaTools size={20} />,
       roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER", "ROLE_TECHNICIAN"],
     },
-    { path: "/security", icon: <FaShieldAlt size={20} />, roles: ["ROLE_ADMIN"] },
+    { path: "/test", icon: <FaShieldAlt size={20} />, roles: ["ROLE_ADMIN"] },
     {
-      path: "/calendar",
+      path: "/test",
       icon: <FaCalendarAlt size={20} />,
       roles: ["ROLE_LAB_MANAGER"],
     },
     {
-      path: "/reports",
+      path: "/test",
       icon: <FaChartLine size={20} />,
       roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER"],
     },

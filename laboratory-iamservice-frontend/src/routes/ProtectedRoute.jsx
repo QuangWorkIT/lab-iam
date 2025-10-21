@@ -13,7 +13,7 @@ const ProtectedRoute = ({ element: Component, allowedRoles }) => {
 
   // user logged in but not allowed
   if (allowedRoles && !allowedRoles.includes(userInfo.role)) {
-    return <Navigate to="/test" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // allowed to pass

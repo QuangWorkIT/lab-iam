@@ -5,7 +5,7 @@ import { logout } from "../../redux/features/userSlice";
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.user);
+  const { userInfo } = useSelector((state) => state.user);
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out?")) {
@@ -57,7 +57,7 @@ export default function Header({ pageTitle }) {
         >
           <span style={{ marginRight: "5px", color: "#888" }}>Welcome, </span>
           <span style={{ fontWeight: "bold", color: "#fe535b" }}>
-            [{user?.name || "User"}]
+            [{userInfo?.userName || "User"}]
           </span>
         </div>
         <div style={{ display: "flex", gap: "15px" }}>
