@@ -6,7 +6,7 @@ import LoginPage from "../pages/auths/LoginPage.jsx";
 const routes = [
   {
     path: "/",
-    element: <TestPages />,
+    element: <RoleList />,
   },
   {
     path: "/roles",
@@ -15,7 +15,7 @@ const routes = [
   {
     path: "/login",
     element: <LoginPage />,
-  }
+  },
 ];
 
 export default routes;
