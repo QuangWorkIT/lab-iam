@@ -45,3 +45,6 @@ logging:
     root: INFO
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
+app:
+  email:
+    from: "no-reply@lab-iam.local"

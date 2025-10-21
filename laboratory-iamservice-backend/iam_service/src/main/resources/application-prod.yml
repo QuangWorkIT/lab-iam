@@ -17,6 +17,9 @@ spring:
       hibernate:
         format_sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
 
 google:
   web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
@@ -46,3 +49,7 @@ logging:
     root: INFO
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
+
+app:
+  email:
+    from: "no-reply@lab-iam.local"
