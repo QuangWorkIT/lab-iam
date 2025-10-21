@@ -2,80 +2,20 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../configs/axios";
 
 // Async thunks for API calls
+// ...existing code...
 export const fetchRoles = createAsyncThunk(
   "roles/fetchRoles",
-  async (params = {}, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      // Chuẩn hóa và map tham số
-      const {
-        sortBy = "name",
-        sortDir = "asc",
-        keyword,
-        fromDate, // hiện backend chưa hỗ trợ
-        toDate, // hiện backend chưa hỗ trợ
-        page = 0,
-        size = 10,
-      } = params;
-
-      // Nếu có keyword hoặc khoảng ngày => dùng API search tổng hợp
-      if ((keyword && keyword.trim() !== "") || fromDate || toDate) {
-        const qp = new URLSearchParams();
-        if (keyword && keyword.trim() !== "") {
-          qp.append("q", keyword.trim()); // tham số mới
-          qp.append("name", keyword.trim()); // giữ tương thích cũ
-        }
-        if (fromDate) qp.append("fromDate", fromDate);
-        if (toDate) qp.append("toDate", toDate);
-        if (sortBy) qp.append("sortBy", sortBy);
-        if (sortDir) qp.append("direction", sortDir);
-        const response = await api.get(`/roles/search?${qp.toString()}`);
-        // Chuẩn hóa dữ liệu trả về dạng thống nhất
-        return {
-          roles: response.data || [],
-          currentPage: 0,
-          totalItems: Array.isArray(response.data) ? response.data.length : 0,
-          totalPages: 1,
-          pageSize: Array.isArray(response.data) ? response.data.length : size,
-        };
-      }
-
-      // Nếu có tham số phân trang/sắp xếp => dùng API /paged
-      const qp = new URLSearchParams();
-      // page có thể là 0 nên cần check khác null/undefined
-      if (page !== undefined && page !== null) qp.append("page", page);
-      if (size !== undefined && size !== null) qp.append("size", size);
-      if (sortBy) qp.append("sortBy", sortBy);
-      if (sortDir) qp.append("direction", sortDir);
-
-      const response = await api.get(`/roles/paged?${qp.toString()}`);
-      const data = response.data || {};
-      // Backend trả { roles, currentPage, totalItems, totalPages }
-      if (Array.isArray(data.roles)) {
-        return {
-          roles: data.roles,
-          currentPage: data.currentPage ?? page,
-          totalItems: data.totalItems ?? data.roles.length,
-          totalPages: data.totalPages ?? 1,
-          pageSize: size,
-        };
-      }
-
-      // Fallback: gọi /roles (không phân trang)
-      const allRes = await api.get(`/roles`);
-      return {
-        roles: allRes.data || [],
-        currentPage: 0,
-        totalItems: Array.isArray(allRes.data) ? allRes.data.length : 0,
-        totalPages: 1,
-        pageSize: Array.isArray(allRes.data) ? allRes.data.length : size,
-      };
+      const response = await api.get(`/api/roles`); // Lấy toàn bộ roles
+      const data = response.data || [];
+      return { roles: Array.isArray(data) ? data : data.roles || [] };
     } catch (error) {
       const errorMsg =
         error.response?.data?.message ||
         error.response?.data?.error ||
         error.message ||
         "Failed to fetch roles";
-
       return rejectWithValue(errorMsg);
     }
   }
@@ -85,7 +25,7 @@ export const getRoleByCode = createAsyncThunk(
   "roles/getRoleByCode",
   async (code, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/roles/${code}`);
+      const response = await api.get(`/api/roles/${code}`);
       return response.data;
     } catch (error) {
       const errorMsg =
@@ -102,7 +42,7 @@ export const createRole = createAsyncThunk(
   "roles/createRole",
   async (roleData, { rejectWithValue }) => {
     try {
-      const response = await api.post(`/roles`, roleData);
+      const response = await api.post(`/api/roles`, roleData);
       return response.data;
     } catch (error) {
       const errorMsg =
@@ -119,7 +59,7 @@ export const updateRole = createAsyncThunk(
   "roles/updateRole",
   async ({ code, roleData }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/roles/${code}`, roleData);
+      const response = await api.put(`/api/roles/${code}`, roleData);
       return response.data;
     } catch (error) {
       const errorMsg =
@@ -136,7 +76,7 @@ export const deleteRole = createAsyncThunk(
   "roles/deleteRole",
   async (code, { rejectWithValue }) => {
     try {
-      await api.delete(`/roles/${code}`);
+      await api.delete(`/api/roles/${code}`);
       return code;
     } catch (error) {
       const errorMsg =
@@ -156,12 +96,6 @@ const initialState = {
   loading: false,
   error: null,
   success: false,
-  totalItems: 0,
-  totalPages: 0,
-  currentPage: 0,
-  pageSize: 10,
-  sortBy: "name", // Default sort by name
-  sortDir: "asc", // Default sort direction
 };
 
 // Create slice
@@ -192,12 +126,7 @@ const roleSlice = createSlice({
       .addCase(fetchRoles.fulfilled, (state, action) => {
         state.loading = false;
         const payload = action.payload || {};
-        // payload đã được chuẩn hóa ở thunk
         state.roles = payload.roles || [];
-        state.totalItems = payload.totalItems ?? state.roles.length;
-        state.totalPages = payload.totalPages ?? 1;
-        state.currentPage = payload.currentPage ?? 0;
-        state.pageSize = payload.pageSize ?? state.pageSize;
         state.success = true;
       })
       .addCase(fetchRoles.rejected, (state, action) => {

@@ -10,20 +10,20 @@ export default function RoleBadge({ roleName }) {
         color: "white",
       };
       break;
-    case "manager":
-    case "lab manager":
+    case "staff":
+    case "member":
       badgeStyle = {
         backgroundColor: "#8c52ff", // Tím
         color: "white",
       };
       break;
-    case "lab user":
+    case "user":
       badgeStyle = {
         backgroundColor: "#fe535b", // Đỏ
         color: "white",
       };
       break;
-    case "service user":
+    case "guest":
       badgeStyle = {
         backgroundColor: "#5170ff", // Xanh dương
         color: "white",
