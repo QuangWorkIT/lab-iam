@@ -40,7 +40,7 @@ public class User {
             regexp = "^(MALE|FEMALE)$",
             message = "Gender must be either MALE or FEMALE"
     )
-    @Column(nullable = false, length = 10)
+    @Column(length = 10)
     private String gender;
 
     private Integer age;
