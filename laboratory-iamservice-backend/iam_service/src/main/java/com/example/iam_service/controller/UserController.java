@@ -42,4 +42,19 @@ public class UserController {
                 .toList();
         return ResponseEntity.ok(userDTOs);
     }
+
+    @GetMapping("/inactive")
+    public ResponseEntity<List<UserDTO>> getInactiveUsers() {
+        List<User> inactiveUsers = userService.getInactiveUsers();
+        List<UserDTO> dtoList = inactiveUsers.stream()
+                .map(userMapper::toDto)
+                .toList();
+        return ResponseEntity.ok(dtoList);
+    }
+
+    @PutMapping("/activate")
+    public ResponseEntity<String> activateUserByEmail(@RequestParam String email) {
+        userService.activateUserByEmail(email);
+        return ResponseEntity.ok("User with email " + email + " has been activated successfully.");
+    }
 }

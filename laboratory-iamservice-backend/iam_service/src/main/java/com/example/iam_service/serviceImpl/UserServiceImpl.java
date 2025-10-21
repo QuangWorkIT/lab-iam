@@ -80,6 +80,29 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll();
     }
 
+    @Override
+    public List<User> getInactiveUsers() {
+        return userRepository.findByIsActiveFalse();
+    }
+
+    @Override
+    @Transactional
+    public void activateUserByEmail(String email) {
+        int updated = userRepository.activateUserByEmail(email);
+
+        if (updated == 0) {
+            throw new IllegalArgumentException("User not found or already active: " + email);
+        }
+
+        auditPublisher.publish(AuditEvent.builder()
+                .eventType("ACCOUNT_ACTIVATED")
+                .actor("ADMIN")
+                .target(email)
+                .timestamp(OffsetDateTime.now())
+                .details("User account activated by admin")
+                .build());
+    }
+
     // ================= PRIVATE HELPERS =================
 
     private void validateUniqueEmail(String email) {
