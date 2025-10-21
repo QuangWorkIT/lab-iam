@@ -1,5 +1,6 @@
 package com.example.iam_service.entity;
 
+import com.example.iam_service.util.EncryptDecryptConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;

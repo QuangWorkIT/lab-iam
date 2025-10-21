@@ -92,7 +92,7 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
                 insertUser.setFullName(lastName.concat(" " + firstName));
 
                 // default value when not updated
-                insertUser.setIndentityNumber(UUID.randomUUID().toString());
+                insertUser.setIdentityNumber(UUID.randomUUID().toString());
                 insertUser.setPassword(
                         encoder.encode("Aa" + UUID.randomUUID().toString().substring(0, 10))
                 );
@@ -102,7 +102,7 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
                 insertUser.setAge(null);
                 insertUser.setGender("MALE");
                 insertUser.setRoleCode("USER");
-                insertUser.setIsCctive(true);
+                insertUser.setIsActive(true);
 
                 userRepository.save(insertUser);
                 return insertUser;
