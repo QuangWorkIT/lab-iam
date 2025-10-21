@@ -2,11 +2,20 @@ import React from "react";
 import { Button, Card } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { login, logout } from "../redux/features/userSlice";
+import api from "../configs/axios.js";
 
 export default function TestPages() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user) || {};
 
+  const fetchRoles = async () => {
+    try {
+      const response = await api.get("/api/roles")
+      console.log(response.data)
+    } catch (error) {
+      console.log("get role failed", error)
+    }
+  }
   return (
     <div
       style={{
@@ -38,16 +47,11 @@ export default function TestPages() {
         <Button
           type="primary"
           onClick={() =>
-            dispatch(
-              login({
-                token: "fake-token-123",
-                userInfo: { name: "Kim", role: "Student" },
-              })
-            )
+            fetchRoles()
           }
           style={{ marginRight: "1rem" }}
         >
-          Login (fake)
+          Get roles
         </Button>
         <Button danger onClick={() => dispatch(logout())}>
           Logout
