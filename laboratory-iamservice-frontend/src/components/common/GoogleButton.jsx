@@ -30,7 +30,8 @@ function GoogleButton({ setIsGoogleLogin }) {
                 }
             }))
             toast.success("Login successfully!")
-            nav("/", { replace: true })
+            localStorage.removeItem("banUntil")
+            nav("/test", { replace: true })
         } catch (error) {
             console.error("Error google login ", error)
             toast.error("Login fail!")
@@ -49,7 +50,7 @@ function GoogleButton({ setIsGoogleLogin }) {
             cookiePolicy={'single_host_origin'}
             size='large'
             width={200}
-            text='signin_with'
+            text='signin_with'  
         />
     )
 }

@@ -67,10 +67,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         } catch (JwtException | UsernameNotFoundException e) {
             // throw error if token validation fail
+            System.out.println(e.getMessage());
             SecurityContextHolder.clearContext();
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\": \"Unauthorized: " + e.getMessage() + "\"}");
+            response.getWriter().write("{\"error\": \"JWT invalid or expired"+ "\"}");
         }
     }
 }

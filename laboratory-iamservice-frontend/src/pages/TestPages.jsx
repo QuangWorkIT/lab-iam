@@ -1,8 +1,20 @@
 import React from "react";
-import { Card } from "antd";
+import { Button, Card } from "antd";
+import { useDispatch, useSelector } from "react-redux";
+import { login, logout } from "../redux/features/userSlice";
+import api from "../configs/axios.js";
 import MainLayout from "../components/layout/MainLayout";
 
 export default function TestPages() {
+  const dispatch = useDispatch();
+  const fetchRoles = async () => {
+    try {
+      const response = await api.get("/api/roles")
+      console.log(response.data)
+    } catch (error) {
+      console.log("get role failed", error)
+    }
+  }
   return (
     <MainLayout
       pageTitle="Feature In Development"
@@ -36,9 +48,11 @@ export default function TestPages() {
             🚧 Feature In Development
           </h2>
           <p style={{ color: "#555" }}>
-            The feature you’re trying to access is currently under construction.  
+            The feature you’re trying to access is currently under construction.
             Please check back later or contact an administrator for more info.
           </p>
+
+          <Button onClick={() => fetchRoles()}>Get roles</Button>
         </Card>
       </div>
     </MainLayout>
