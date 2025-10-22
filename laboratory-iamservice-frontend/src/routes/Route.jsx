@@ -2,6 +2,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 import TestPages from "../pages/TestPages";
 import RoleList from "../pages/role/RoleList";
+import UserList from "../pages/user/UserList";
 import LoginPage from "../pages/auths/LoginPage.jsx";
 import ProtectedRoute from "./ProtectedRoute";
 import HomePage from "../pages/HomePage";
@@ -31,6 +32,14 @@ const routes = [
   {
     path: "/test",
     element: <TestPages />,
+  },
+  {
+    path: "/users",
+    element: <UserList />,
+  },
+  {
+    path: "/users/create",
+    element: <UserList />,
   },
 ];
 
