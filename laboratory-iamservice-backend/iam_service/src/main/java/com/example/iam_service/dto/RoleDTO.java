@@ -1,5 +1,6 @@
 package com.example.iam_service.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,20 +14,23 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoleDTO {
-    @NotBlank(message = "Role code is required")
     private String code;
 
     @NotBlank(message = "Role name is required")
     private String name;
 
     @NotBlank(message = "Description is required")
+    @Schema(description = "Role's description", example = "This role belongs to admin")
     private String description;
 
+    @Schema(description = "Role's privileges", example = "READ_ONLY,CREATE_ROLE")
     private String privileges;
 
+    @Schema(description = "Role's create date")
     private LocalDate createdAt;
-
+    @Schema(description = "Role's update date")
     private LocalDate lastUpdatedAt;
 
+    @Schema(description = "Role's active status", example = "true")
     private Boolean isActive;
 }

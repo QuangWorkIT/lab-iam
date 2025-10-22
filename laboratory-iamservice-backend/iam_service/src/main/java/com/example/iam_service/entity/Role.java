@@ -1,53 +1,133 @@
 package com.example.iam_service.entity;
 
+import com.example.iam_service.entity.Enum.Privileges;
+import com.example.iam_service.util.PrivilegesConverter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
-import java.time.LocalDate;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.EnumSet;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table(name = "\"Role\"")
 @Entity
-@Table(name = "\"Role\"") // Use quotes as it might be a reserved keyword
-@Data                   // includes @Getter, @Setter, @ToString, @EqualsAndHashCode
-@NoArgsConstructor      // generates empty constructor
-@AllArgsConstructor     // generates full constructor
-@Builder                // lets you use Role.builder() to create objects easily
+@Schema(description = "Role entity representing system roles and their privileges")
 public class Role {
 
     @Id
-    @Column(name = "role_code", updatable = false, nullable = false)
+    @Column(name = "role_code")
+    @Schema(description = "Unique role code identifier", example = "ROLE_ADMIN", required = true)
     private String code;
 
     @NotBlank(message = "Role name is required")
-    @Column(name = "role_name", nullable = false, length = 255)
+    @Column(name = "role_name", nullable = false)
+    @Schema(description = "Human-readable role name", example = "Administrator", required = true)
     private String name;
 
+    @Column(name = "role_privileges", length = 2000, nullable = false)
+    @Convert(converter = PrivilegesConverter.class)
+    @Schema(description = "Set of privileges assigned to this role",
+            example = "[READ_USER, WRITE_USER, DELETE_USER]",
+            required = true)
+    private EnumSet<Privileges> privileges;
+
     @NotBlank(message = "Description is required")
-    @Column(name = "role_description", nullable = false, length = 255)
+    @Column(name = "role_description", nullable = false)
+    @Schema(description = "Detailed description of the role's purpose",
+            example = "Full system administrator with all privileges",
+            required = true)
     private String description;
 
-    @Column(name = "role_privileges", length = 255)
-    private String privileges;
+    @Builder.Default
+    @Column(name = "role_is_active", nullable = false, columnDefinition = "boolean default true")
+    @Schema(description = "Indicates whether the role is currently active",
+            example = "true",
+            defaultValue = "true")
+    private boolean isActive = true;
 
-    @Column(name = "created_at")
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Schema(description = "Date when the role was created",
+            example = "2024-01-15",
+            accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDate createdAt;
 
+    @LastModifiedDate
     @Column(name = "updated_at")
-    private LocalDate lastUpdatedAt;
-
-    @Column(name = "role_is_active")
-    private Boolean isActive;
+    @Schema(description = "Date when the role was last updated",
+            example = "2024-10-21",
+            accessMode = Schema.AccessMode.READ_ONLY)
+    private LocalDate updatedAt;
 
     @PrePersist
-    protected void onCreate() {
+    public void onCreate() {
         this.createdAt = LocalDate.now();
-        this.lastUpdatedAt = LocalDate.now();
-        if (this.isActive == null) {
-            this.isActive = true;
-        }
+        this.updatedAt = LocalDate.now();
     }
 
     @PreUpdate
-    protected void onUpdate() {
-        this.lastUpdatedAt = LocalDate.now();
+    public void onUpdate() {
+        this.updatedAt = LocalDate.now();
+    }
+
+    // Privilege management methods
+    @Transient
+    @Schema(hidden = true)
+    public boolean hasPrivilege(Privileges privilege) {
+        return privileges != null && privileges.contains(privilege);
+    }
+
+    @Transient
+    @Schema(hidden = true)
+    public boolean hasAllPrivileges(Privileges... privilegeEnum) {
+        return this.privileges != null && !this.privileges.isEmpty()
+                && this.privileges.containsAll(Arrays.asList(privilegeEnum));
+    }
+
+    @Transient
+    @Schema(hidden = true)
+    public boolean hasAnyPrivilege(Privileges...privilegeEnum) {
+        return this.privileges != null && !this.privileges.isEmpty()
+                && Arrays.stream(privilegeEnum).anyMatch(this.privileges::contains);
+    }
+
+    @Schema(hidden = true)
+    public void addPrivilege(Privileges privilege) {
+        if (this.privileges == null) {
+            this.privileges = EnumSet.of(privilege);
+        } else {
+            this.privileges.add(privilege);
+        }
+    }
+
+    @Schema(hidden = true)
+    public void addPrivileges(Privileges... privilegeEnum) {
+        if (this.privileges == null) {
+            this.privileges = EnumSet.copyOf(Arrays.asList(privilegeEnum));
+        } else {
+            this.privileges.addAll(Arrays.asList(privilegeEnum));
+        }
+    }
+
+    @Schema(hidden = true)
+    public void removePrivileges(Privileges... privileges) {
+        if (this.privileges != null) {
+            this.privileges.removeAll(Arrays.asList(privileges));
+        }
+    }
+
+    @Schema(hidden = true)
+    public void clearPrivileges() {
+        if (this.privileges != null) {
+            this.privileges.clear();
+        }
     }
 }
