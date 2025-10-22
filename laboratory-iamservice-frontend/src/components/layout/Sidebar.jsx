@@ -56,7 +56,7 @@ export default function Sidebar() {
   const menuItems = [
     { path: "/home", icon: <FaHome size={20} />, roles: [] },
     { path: "/roles", icon: <FaUsers size={20} />, roles: ["ROLE_ADMIN"] },
-    { path: "/test", icon: <FaUserCog size={20} />, roles: ["ROLE_ADMIN","ROLE_LAB_MANAGER"] }, // User management
+    { path: "/users", icon: <FaUserCog size={20} />, roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER"] }, // User management
     { path: "/test", icon: <FaUserCheck size={20} />, roles: ["ROLE_ADMIN"] }, // Admin Approval page
     {
       path: "/test",
