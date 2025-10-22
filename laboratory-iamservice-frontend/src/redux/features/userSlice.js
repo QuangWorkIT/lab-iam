@@ -2,11 +2,15 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../configs/axios.js";
 
 const initialState = {
-  user: null,
+  users: [],
+  currentUser: null,
+  userInfo: null,
+  token: null,
   isAuthenticated: false,
-  userRoles: [], // Khởi tạo mảng rỗng thay vì undefined
   loading: false,
   error: null,
+  totalPages: 0,
+  totalElements: 0,
 };
 
 export const logout = createAsyncThunk("user/logout", async (_, { rejectWithValue }) => {
