@@ -28,6 +28,7 @@ import java.util.UUID;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
+    private final UserGrantAuthority grantAuthority;
 
     // Filter for up-coming requests
     @Override
@@ -52,9 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             User user = userRepository.findById(UUID.fromString(validatedToken))
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-            List<GrantedAuthority> authorities = List.of(
-                    new SimpleGrantedAuthority(user.getRoleCode())
-            );
+            List<GrantedAuthority> authorities = grantAuthority.getAuthority(user);
 
             // create authentication object
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
