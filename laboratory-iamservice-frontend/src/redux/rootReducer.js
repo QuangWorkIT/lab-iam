@@ -1,7 +1,7 @@
 import { combineReducers } from "@reduxjs/toolkit";
 import userReducer from "./features/userSlice";
 import roleReducer from "./features/roleSlice";
-import userManagementReducer from "./features/usermanagementSlice";
+import userManagementReducer from "./features/userManagementSlice";
 
 const rootReducer = combineReducers({
   user: userReducer,                    // Authentication & current user info

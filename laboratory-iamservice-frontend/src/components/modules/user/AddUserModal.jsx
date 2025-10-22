@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { FaInfoCircle, FaCalendarAlt } from "react-icons/fa";
+import { fetchRolesForUser } from "../../../redux/features/userManagementSlice";
 
 export default function AddUserModal({ isOpen, onClose, onSave }) {
+    const dispatch = useDispatch();
+    const { roles, rolesLoading } = useSelector((state) => state.users);
+
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
         // Basic Info Step
@@ -25,6 +30,13 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         { id: 1, title: "Basic Infor", label: "Basic Infor" },
         { id: 2, title: "Password & Role", label: "Password & Role" },
     ];
+
+    // Fetch roles when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            dispatch(fetchRolesForUser());
+        }
+    }, [isOpen, dispatch]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -596,6 +608,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     name="roleCode"
                                     value={formData.roleCode}
                                     onChange={handleInputChange}
+                                    disabled={rolesLoading}
                                     style={{
                                         width: "100%",
                                         padding: "12px",
@@ -606,14 +619,18 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         backgroundColor: "white",
                                         borderLeft: "3px solid #ff5a5f",
                                         color: "#333",
+                                        cursor: rolesLoading ? "not-allowed" : "pointer",
+                                        opacity: rolesLoading ? 0.6 : 1,
                                     }}
                                 >
-                                    <option value="">Select a role</option>
-                                    <option value="ROLE_ADMIN">Admin</option>
-                                    <option value="ROLE_LAB_USER">User</option>
-                                    <option value="ROLE_LAB_MANAGER">Manager</option>
-                                    <option value="ROLE_SERVICE">Service User</option>
-                                    <option value="ROLE_PATIENT">Patient</option>
+                                    <option value="">
+                                        {rolesLoading ? "Loading roles..." : "Select a role"}
+                                    </option>
+                                    {roles.map((role) => (
+                                        <option key={role.code} value={role.code}>
+                                            {role.name || role.code}
+                                        </option>
+                                    ))}
                                 </select>
                                 {errors.roleCode && (
                                     <span style={{ color: "#dc3545", fontSize: "12px" }}>
