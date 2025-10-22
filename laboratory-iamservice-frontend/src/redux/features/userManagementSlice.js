@@ -8,6 +8,8 @@ const initialState = {
     error: null,
     totalPages: 0,
     totalElements: 0,
+    roles: [],
+    rolesLoading: false,
 };
 
 /**
@@ -129,6 +131,25 @@ export const getInactiveUsers = createAsyncThunk(
     }
 );
 
+/**
+ * API: GET /api/roles
+ * Lấy danh sách tất cả roles từ backend
+ */
+export const fetchRolesForUser = createAsyncThunk(
+    "userManagement/fetchRolesForUser",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await api.get("/api/roles");
+            const data = response.data || [];
+            return Array.isArray(data) ? data : data.roles || [];
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || "Failed to fetch roles"
+            );
+        }
+    }
+);
+
 const userManagementSlice = createSlice({
     name: "userManagement",
     initialState,
@@ -208,6 +229,19 @@ const userManagementSlice = createSlice({
             })
             .addCase(getInactiveUsers.rejected, (state, action) => {
                 state.loading = false;
+                state.error = action.payload || action.error.message;
+            })
+            // Fetch roles for user
+            .addCase(fetchRolesForUser.pending, (state) => {
+                state.rolesLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchRolesForUser.fulfilled, (state, action) => {
+                state.rolesLoading = false;
+                state.roles = action.payload;
+            })
+            .addCase(fetchRolesForUser.rejected, (state, action) => {
+                state.rolesLoading = false;
                 state.error = action.payload || action.error.message;
             });
     },

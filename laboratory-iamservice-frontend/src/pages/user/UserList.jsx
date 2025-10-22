@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
     fetchUsers,
     createUser,
-} from "../../redux/features/usermanagementSlice";
+} from "../../redux/features/userManagementSlice";
 import UserTable from "../../components/modules/user/UserTable";
 import UserModal from "../../components/modules/user/UserModal";
 import AddUserModal from "../../components/modules/user/AddUserModal";
