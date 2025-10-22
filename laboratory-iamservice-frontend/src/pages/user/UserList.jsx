@@ -9,6 +9,7 @@ import UserModal from "../../components/modules/user/UserModal";
 import AddUserModal from "../../components/modules/user/AddUserModal";
 import UserDetailModal from "../../components/modules/user/UserDetailModal";
 import MainLayout from "../../components/layout/MainLayout";
+import { toast } from 'react-toastify';
 
 export default function UserList() {
     //Redux hooks
@@ -148,10 +149,10 @@ export default function UserList() {
             .then(() => {
                 setIsAddModalOpen(false);
                 dispatch(fetchUsers(searchParams));
-                alert("User created successfully!");
+                toast.success("User created successfully!");
             })
             .catch((error) => {
-                alert(`Failed to create user: ${error}`);
+                toast.error(`Failed to create user: ${error}`);
             });
     };
 
