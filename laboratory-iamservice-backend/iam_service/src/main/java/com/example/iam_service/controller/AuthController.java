@@ -41,7 +41,7 @@ public class AuthController {
                 return ResponseEntity
                         .status(429)
                         .body(new ApiResponse<>(
-                                "Error",
+                                loginLimiterService.getBanUntil(ip).toString(),
                                 String.format("Too many attempts. Try after %s minutes",
                                         loginLimiterService.getBanUntil(ip).toString())
                         ));
