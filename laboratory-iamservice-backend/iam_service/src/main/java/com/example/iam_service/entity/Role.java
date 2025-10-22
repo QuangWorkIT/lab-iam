@@ -25,7 +25,7 @@ public class Role {
     @Column(name = "role_description", nullable = false, length = 255)
     private String description;
 
-    @Column(name = "role_privileges", length = 255)
+    @Column(name = "role_privileges", length = 2000)
     private String privileges;
 
     @Column(name = "created_at")

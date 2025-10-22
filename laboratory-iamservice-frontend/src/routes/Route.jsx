@@ -40,7 +40,9 @@ const routes = [
   },
   {
     path: "/test",
-    element: <TestPages />,
+    element: (
+      <ProtectedRoute element={TestPages} />
+    ),
   },
 
 ];

@@ -19,4 +19,7 @@ public interface RoleRepository extends JpaRepository<Role, String>, JpaSpecific
 
     // Kiểm tra role code đã tồn tại chưa
     boolean existsByCode(String code);
+
+    // fetch privileges
+    Role findPrivilegesByCode(String roleCode);
 }
