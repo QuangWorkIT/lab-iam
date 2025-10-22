@@ -1,23 +1,21 @@
 import React, { useState } from "react";
-import { FaInfoCircle, FaCalendarAlt, FaGlobe } from "react-icons/fa";
+import { FaInfoCircle, FaCalendarAlt } from "react-icons/fa";
 
 export default function AddUserModal({ isOpen, onClose, onSave }) {
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
         // Basic Info Step
         fullName: "",
-        identifyNumber: "",
+        identityNumber: "",
         phoneNumber: "",
         email: "",
-        dateOfBirth: "",
-        country: "",
+        birthdate: "",
         address: "",
-        gender: "M",
-        // Username & Password Step
-        username: "",
+        gender: "MALE",
+        // Password & Role Step
         password: "",
         confirmPassword: "",
-        role: "",
+        roleCode: "",
         accountStatus: "A", // A = Active, IA = Inactive
     });
 
@@ -25,7 +23,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
 
     const steps = [
         { id: 1, title: "Basic Infor", label: "Basic Infor" },
-        { id: 2, title: "Username & Password", label: "Username & Password" },
+        { id: 2, title: "Password & Role", label: "Password & Role" },
     ];
 
     const handleInputChange = (e) => {
@@ -48,15 +46,14 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         const newErrors = {};
 
         if (!formData.fullName.trim()) newErrors.fullName = "Full Name is required";
-        if (!formData.identifyNumber.trim()) newErrors.identifyNumber = "Identify Number is required";
+        if (!formData.identityNumber.trim()) newErrors.identityNumber = "Identity Number is required";
         if (!formData.phoneNumber.trim()) newErrors.phoneNumber = "Phone Number is required";
         if (!formData.email.trim()) {
             newErrors.email = "Email is required";
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
             newErrors.email = "Email is invalid";
         }
-        if (!formData.dateOfBirth) newErrors.dateOfBirth = "Date of Birth is required";
-        if (!formData.country.trim()) newErrors.country = "Country is required";
+        if (!formData.birthdate) newErrors.birthdate = "Birthdate is required";
         if (!formData.address.trim()) newErrors.address = "Address is required";
 
         setErrors(newErrors);
@@ -66,7 +63,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const validateStep2 = () => {
         const newErrors = {};
 
-        if (!formData.username.trim()) newErrors.username = "Username is required";
         if (!formData.password.trim()) {
             newErrors.password = "Password is required";
         } else if (formData.password.length < 6) {
@@ -75,7 +71,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         if (formData.password !== formData.confirmPassword) {
             newErrors.confirmPassword = "Passwords do not match";
         }
-        if (!formData.role) newErrors.role = "Role is required";
+        if (!formData.roleCode) newErrors.roleCode = "Role Code is required";
         if (!formData.accountStatus) newErrors.accountStatus = "Account Status is required";
 
         setErrors(newErrors);
@@ -99,19 +95,17 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         if (validateStep2()) {
             // Prepare user data for saving
             const userData = {
-                name: formData.fullName,
+                fullName: formData.fullName,
                 email: formData.email,
                 password: formData.password,
-                role: formData.role,
+                roleCode: formData.roleCode,                  // Backend expects rolecode (not role)
                 isActive: formData.accountStatus === "A",
                 // Additional fields that might be needed
                 phoneNumber: formData.phoneNumber,
-                identifyNumber: formData.identifyNumber,
-                dateOfBirth: formData.dateOfBirth,
-                country: formData.country,
+                identityNumber: formData.identityNumber,  // Backend expects identityNumber
+                birthdate: formData.birthdate,            // Backend expects birthdate
                 address: formData.address,
                 gender: formData.gender,
-                username: formData.username,
             };
             onSave(userData);
         }
@@ -121,17 +115,15 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         setCurrentStep(1);
         setFormData({
             fullName: "",
-            identifyNumber: "",
+            identityNumber: "",
             phoneNumber: "",
             email: "",
-            dateOfBirth: "",
-            country: "",
+            birthdate: "",
             address: "",
-            gender: "M",
-            username: "",
+            gender: "MALE",
             password: "",
             confirmPassword: "",
-            role: "",
+            roleCode: "",
             accountStatus: "A",
         });
         setErrors({});
@@ -330,8 +322,8 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     </label>
                                     <input
                                         type="text"
-                                        name="identifyNumber"
-                                        value={formData.identifyNumber}
+                                        name="identityNumber"
+                                        value={formData.identityNumber}
                                         onChange={handleInputChange}
                                         style={{
                                             width: "100%",
@@ -440,18 +432,18 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             color: "#333",
                                         }}
                                     >
-                                        Date of Birth <span style={{ color: "#ff5a5f" }}>*</span>
+                                        Birthdate <span style={{ color: "#ff5a5f" }}>*</span>
                                     </label>
                                     <div style={{ position: "relative" }}>
                                         <input
                                             type="date"
-                                            name="dateOfBirth"
-                                            value={formData.dateOfBirth}
+                                            name="birthdate"
+                                            value={formData.birthdate}
                                             onChange={handleInputChange}
                                             style={{
                                                 width: "100%",
                                                 padding: "12px 40px 12px 12px",
-                                                border: `1px solid ${errors.dateOfBirth ? "#dc3545" : "#ddd"}`,
+                                                border: `1px solid ${errors.birthdate ? "#dc3545" : "#ddd"}`,
                                                 borderRadius: "4px",
                                                 fontSize: "14px",
                                                 boxSizing: "border-box",
@@ -471,58 +463,9 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             }}
                                         />
                                     </div>
-                                    {errors.dateOfBirth && (
+                                    {errors.birthdate && (
                                         <span style={{ color: "#dc3545", fontSize: "12px" }}>
-                                            {errors.dateOfBirth}
-                                        </span>
-                                    )}
-                                </div>
-
-                                <div style={{ marginBottom: "20px" }}>
-                                    <label
-                                        style={{
-                                            display: "block",
-                                            marginBottom: "8px",
-                                            fontSize: "14px",
-                                            fontWeight: "500",
-                                            color: "#333",
-                                        }}
-                                    >
-                                        Country <span style={{ color: "#ff5a5f" }}>*</span>
-                                    </label>
-                                    <div style={{ position: "relative" }}>
-                                        <input
-                                            type="text"
-                                            name="country"
-                                            value={formData.country}
-                                            onChange={handleInputChange}
-                                            style={{
-                                                width: "100%",
-                                                padding: "12px 40px 12px 12px",
-                                                border: `1px solid ${errors.country ? "#dc3545" : "#ddd"}`,
-                                                borderRadius: "4px",
-                                                fontSize: "14px",
-                                                boxSizing: "border-box",
-                                                borderLeft: "3px solid #ff5a5f",
-                                                backgroundColor: "white",
-                                                color: "#333",
-                                            }}
-                                            placeholder="Enter country"
-                                        />
-                                        <FaGlobe
-                                            style={{
-                                                position: "absolute",
-                                                right: "12px",
-                                                top: "50%",
-                                                transform: "translateY(-50%)",
-                                                color: "#999",
-                                                fontSize: "14px",
-                                            }}
-                                        />
-                                    </div>
-                                    {errors.country && (
-                                        <span style={{ color: "#dc3545", fontSize: "12px" }}>
-                                            {errors.country}
+                                            {errors.birthdate}
                                         </span>
                                     )}
                                 </div>
@@ -593,8 +536,8 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             <input
                                                 type="radio"
                                                 name="gender"
-                                                value="M"
-                                                checked={formData.gender === "M"}
+                                                value="MALE"
+                                                checked={formData.gender === "MALE"}
                                                 onChange={handleInputChange}
                                                 style={{
                                                     marginRight: "8px",
@@ -613,8 +556,8 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             <input
                                                 type="radio"
                                                 name="gender"
-                                                value="F"
-                                                checked={formData.gender === "F"}
+                                                value="FEMALE"
+                                                checked={formData.gender === "FEMALE"}
                                                 onChange={handleInputChange}
                                                 style={{
                                                     marginRight: "8px",
@@ -647,53 +590,16 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         color: "#ff5a5f",
                                     }}
                                 >
-                                    Enter username <span style={{ color: "#ff5a5f" }}>*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    name="username"
-                                    value={formData.username}
-                                    onChange={handleInputChange}
-                                    style={{
-                                        width: "100%",
-                                        padding: "12px",
-                                        border: `1px solid ${errors.username ? "#dc3545" : "#ddd"}`,
-                                        borderRadius: "4px",
-                                        fontSize: "14px",
-                                        boxSizing: "border-box",
-                                        borderLeft: "3px solid #ff5a5f",
-                                        backgroundColor: "white",
-                                        color: "#333",
-                                    }}
-                                    placeholder="Enter username"
-                                />
-                                {errors.username && (
-                                    <span style={{ color: "#dc3545", fontSize: "12px" }}>
-                                        {errors.username}
-                                    </span>
-                                )}
-                            </div>
-
-                            <div style={{ marginBottom: "20px" }}>
-                                <label
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "8px",
-                                        fontSize: "14px",
-                                        fontWeight: "500",
-                                        color: "#ff5a5f",
-                                    }}
-                                >
                                     Role <span style={{ color: "#ff5a5f" }}>*</span>
                                 </label>
                                 <select
-                                    name="role"
-                                    value={formData.role}
+                                    name="roleCode"
+                                    value={formData.roleCode}
                                     onChange={handleInputChange}
                                     style={{
                                         width: "100%",
                                         padding: "12px",
-                                        border: `1px solid ${errors.role ? "#dc3545" : "#ddd"}`,
+                                        border: `1px solid ${errors.roleCode ? "#dc3545" : "#ddd"}`,
                                         borderRadius: "4px",
                                         fontSize: "14px",
                                         boxSizing: "border-box",
@@ -703,15 +609,15 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     }}
                                 >
                                     <option value="">Select a role</option>
-                                    <option value="ADMIN">Administrator</option>
-                                    <option value="LAB USER">Lab User</option>
-                                    <option value="MANAGER">Manager</option>
-                                    <option value="SERVICE USER">Service User</option>
-                                    <option value="GUEST">Guest</option>
+                                    <option value="ROLE_ADMIN">Admin</option>
+                                    <option value="ROLE_LAB_USER">User</option>
+                                    <option value="ROLE_LAB_MANAGER">Manager</option>
+                                    <option value="ROLE_SERVICE">Service User</option>
+                                    <option value="ROLE_PATIENT">Patient</option>
                                 </select>
-                                {errors.role && (
+                                {errors.roleCode && (
                                     <span style={{ color: "#dc3545", fontSize: "12px" }}>
-                                        {errors.role}
+                                        {errors.roleCode}
                                     </span>
                                 )}
                             </div>

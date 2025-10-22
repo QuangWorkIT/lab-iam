@@ -20,9 +20,8 @@ function mapUserDTOToUI(dto) {
         id: dto.userId,                    // Backend: userId -> UI: id
         name: dto.fullName || "",          // Backend: fullName -> UI: name
         email: dto.email || "",
-        role: dto.role || "GUEST",         // Nếu backend có role thì dùng, không thì mặc định GUEST
+        role: dto.roleCode || dto.rolecode || dto.role || "",  // Try multiple field names
         createdAt: dto.createdAt || null,
-        createdBy: dto.createdBy || "System",
         isActive: dto.isActive ?? true,
     };
 }
@@ -216,6 +215,3 @@ const userManagementSlice = createSlice({
 
 export const { clearError, clearCurrentUser } = userManagementSlice.actions;
 export default userManagementSlice.reducer;
-
-
-

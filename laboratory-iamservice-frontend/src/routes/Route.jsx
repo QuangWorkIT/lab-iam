@@ -30,17 +30,19 @@ const routes = [
     ),
   },
   {
+    path: "/users",
+    element: (
+      <ProtectedRoute
+        element={UserList}
+        allowedRoles={["ROLE_ADMIN", "ROLE_LAB_MANAGER"]}
+      />
+    ),
+  },
+  {
     path: "/test",
     element: <TestPages />,
   },
-  {
-    path: "/users",
-    element: <UserList />,
-  },
-  {
-    path: "/users/create",
-    element: <UserList />,
-  },
+
 ];
 
 export default routes;

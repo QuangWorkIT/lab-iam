@@ -339,24 +339,11 @@ export default function UserTable({
                             <th
                                 style={{
                                     padding: "12px 15px",
-                                    textAlign: "left",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
-                                    fontWeight: "600",
-                                    fontSize: "14px",
-                                }}
-                            >
-                                Created By
-                            </th>
-                            <th
-                                style={{
-                                    padding: "12px 15px",
                                     textAlign: "center",
                                     borderBottom: "1px solid #eaeaea",
                                     color: "#666",
                                     fontWeight: "600",
                                     fontSize: "14px",
-                                    width: "160px",
                                 }}
                             >
                                 Action
@@ -503,77 +490,101 @@ export default function UserTable({
                                         style={{
                                             padding: "12px 15px",
                                             borderBottom: "1px solid #eaeaea",
-                                            color: "#555",
-                                        }}
-                                    >
-                                        {user.createdBy || "System"}
-                                    </td>
-                                    <td
-                                        style={{
-                                            padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
                                             display: "flex",
                                             justifyContent: "center",
-                                            gap: "8px",
+                                            alignItems: "center",
+                                            gap: "10px",
                                         }}
                                     >
                                         <button
                                             onClick={() => onView && onView(user)}
                                             style={{
-                                                backgroundColor: "#007bff",
+                                                backgroundColor: "#5a67d8",
                                                 color: "white",
                                                 border: "none",
-                                                borderRadius: "4px",
-                                                padding: "6px 8px",
+                                                borderRadius: "6px",
+                                                padding: "8px 10px",
                                                 cursor: "pointer",
-                                                fontSize: "12px",
+                                                fontSize: "14px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                minWidth: "36px",
+                                                minHeight: "36px",
+                                                transition: "all 0.2s ease",
                                             }}
                                             title="View"
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#4c51bf"}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#5a67d8"}
                                         >
                                             <FaEye />
                                         </button>
                                         <button
                                             onClick={() => onEdit && onEdit(user)}
                                             style={{
-                                                backgroundColor: "#ffc107",
-                                                color: "black",
+                                                backgroundColor: "#f6ad55",
+                                                color: "white",
                                                 border: "none",
-                                                borderRadius: "4px",
-                                                padding: "6px 8px",
+                                                borderRadius: "6px",
+                                                padding: "8px 10px",
                                                 cursor: "pointer",
-                                                fontSize: "12px",
+                                                fontSize: "14px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                minWidth: "36px",
+                                                minHeight: "36px",
+                                                transition: "all 0.2s ease",
                                             }}
                                             title="Edit"
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#ed8936"}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#f6ad55"}
                                         >
                                             <FaEdit />
                                         </button>
                                         <button
                                             onClick={() => onToggleStatus && onToggleStatus(user)}
                                             style={{
-                                                backgroundColor: user.isActive ? "#dc3545" : "#28a745",
+                                                backgroundColor: user.isActive ? "#fc8181" : "#48bb78",
                                                 color: "white",
                                                 border: "none",
-                                                borderRadius: "4px",
-                                                padding: "6px 8px",
+                                                borderRadius: "6px",
+                                                padding: "8px 10px",
                                                 cursor: "pointer",
-                                                fontSize: "12px",
+                                                fontSize: "14px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                minWidth: "36px",
+                                                minHeight: "36px",
+                                                transition: "all 0.2s ease",
                                             }}
                                             title={user.isActive ? "Lock" : "Unlock"}
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = user.isActive ? "#f56565" : "#38a169"}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = user.isActive ? "#fc8181" : "#48bb78"}
                                         >
                                             {user.isActive ? <FaLock /> : <FaUnlock />}
                                         </button>
                                         <button
                                             onClick={() => onDelete && onDelete(user.id)}
                                             style={{
-                                                backgroundColor: "#dc3545",
+                                                backgroundColor: "#fc8181",
                                                 color: "white",
                                                 border: "none",
-                                                borderRadius: "4px",
-                                                padding: "6px 8px",
+                                                borderRadius: "6px",
+                                                padding: "8px 10px",
                                                 cursor: "pointer",
-                                                fontSize: "12px",
+                                                fontSize: "14px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                minWidth: "36px",
+                                                minHeight: "36px",
+                                                transition: "all 0.2s ease",
                                             }}
                                             title="Delete"
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f56565"}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#fc8181"}
                                         >
                                             <FaTrash />
                                         </button>
