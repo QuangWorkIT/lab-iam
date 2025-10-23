@@ -1,6 +1,55 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes, FaInfoCircle } from "react-icons/fa";
 
+const AVAILABLE_PRIVILEGES = [
+  // Test Order Management
+  "READ_ONLY",
+  "CREATE_TEST_ORDER",
+  "MODIFY_TEST_ORDER",
+  "DELETE_TEST_ORDER",
+  "REVIEW_TEST_ORDER",
+
+  // Comment Management
+  "ADD_COMMENT",
+  "MODIFY_COMMENT",
+  "DELETE_COMMENT",
+
+  // Configuration Management
+  "VIEW_CONFIGURATION",
+  "CREATE_CONFIGURATION",
+  "MODIFY_CONFIGURATION",
+  "DELETE_CONFIGURATION",
+
+  // User Management
+  "VIEW_USER",
+  "CREATE_USER",
+  "MODIFY_USER",
+  "DELETE_USER",
+  "LOCK_UNLOCK_USER",
+
+  // Role Management (Laboratory Management)
+  "VIEW_ROLE",
+  "CREATE_ROLE",
+  "UPDATE_ROLE",
+  "DELETE_ROLE",
+
+  // Event Logs
+  "VIEW_EVENT_LOGS",
+
+  // Reagent Management
+  "ADD_REAGENTS",
+  "MODIFY_REAGENTS",
+  "DELETE_REAGENTS",
+
+  // Instrument Management
+  "ADD_INSTRUMENT",
+  "VIEW_INSTRUMENT",
+  "ACTIVATE_DEACTIVATE_INSTRUMENT",
+
+  // Blood Testing
+  "EXECUTE_BLOOD_TESTING",
+];
+
 export default function RoleModal({
   role,
   isOpen,
@@ -12,7 +61,7 @@ export default function RoleModal({
     code: "",
     name: "",
     description: "",
-    privileges: "",
+    privileges: [],
     isActive: true,
   });
 
@@ -74,19 +123,36 @@ export default function RoleModal({
     }));
   };
 
+  const handlePrivilegeChange = (privilege) => {
+  setFormData((prev) => {
+    const isChecked = prev.privileges.includes(privilege);
+    return {
+      ...prev,
+      privileges: isChecked
+        ? prev.privileges.filter((p) => p !== privilege)  // Remove if checked
+        : [...prev.privileges, privilege],                 // Add if unchecked
+    };
+  });
+};
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (mode === "view") return onClose();
 
-    if (!formData.code.trim()) return alert("Role code is required");
     if (!formData.name.trim()) return alert("Role name is required");
+     if (!formData.description.trim()) return alert("Role description is required");
+    if (formData.privileges.length === 0) {
+  return alert("Please select at least one privilege");
+}
 
-     const privilegesString = formData.privileges.split(",").map((i)=>i.trim()).filter(Boolean).join(",");
-    const formattedData = {
-      ...formData,
-      privileges: privilegesString,
-    };
-    onSave(formattedData);
+   const formattedData = {
+    code: "",  // ← Send empty, backend generates it
+    name: formData.name,
+    description: formData.description,
+    privileges: formData.privileges.join(","),
+    isActive: formData.isActive,
+  };
+
     onSave(formattedData);
   };
 
@@ -201,7 +267,6 @@ export default function RoleModal({
                 padding: 16,
               }}
             >
-              <Item label="Role Code" value={formData.code} />
               <Item label="Role Name" value={formData.name} />
               <Item label="Description" value={formData.description || "—"} />
               <Item label="Privileges" value={formData.privileges || "—"} />
@@ -256,22 +321,7 @@ export default function RoleModal({
                 marginBottom: 16,
               }}
             >
-              <Field label="Role Code">
-                <input
-                  type="text"
-                  name="code"
-                  value={formData.code}
-                  onChange={handleChange}
-                  required
-                  disabled={mode !== "create"}
-                  style={inputStyle}
-                  onFocus={(e) =>
-                    (e.currentTarget.style.boxShadow = focusShadow)
-                  }
-                  onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
-                />
-              </Field>
-
+            
               <Field label="Role Name">
                 <input
                   type="text"
@@ -301,21 +351,69 @@ export default function RoleModal({
                 />
               </Field>
 
-              <Field label="Privileges (comma-separated)">
-                <textarea
-                  name="privileges"
-                  value={formData.privileges}
-                  onChange={handleChange}
-                  rows={2}
-                  placeholder="e.g., READ_USER, CREATE_USER, UPDATE_ROLE"
-                  style={{ ...inputStyle, resize: "vertical" }}
-                  onFocus={(e) =>
-                    (e.currentTarget.style.boxShadow = focusShadow)
-                  }
-                  onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
-                />
-              </Field>
-
+            <Field label="Privileges">
+  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    {[
+      {
+        category: "Test Order Management",
+        items: ["READ_ONLY", "CREATE_TEST_ORDER", "MODIFY_TEST_ORDER", "DELETE_TEST_ORDER", "REVIEW_TEST_ORDER"],
+      },
+      {
+        category: "Comment Management",
+        items: ["ADD_COMMENT", "MODIFY_COMMENT", "DELETE_COMMENT"],
+      },
+      {
+        category: "Configuration Management",
+        items: ["VIEW_CONFIGURATION", "CREATE_CONFIGURATION", "MODIFY_CONFIGURATION", "DELETE_CONFIGURATION"],
+      },
+      {
+        category: "User Management",
+        items: ["VIEW_USER", "CREATE_USER", "MODIFY_USER", "DELETE_USER", "LOCK_UNLOCK_USER"],
+      },
+      {
+        category: "Role Management",
+        items: ["VIEW_ROLE", "CREATE_ROLE", "UPDATE_ROLE", "DELETE_ROLE"],
+      },
+      {
+        category: "Event Logs",
+        items: ["VIEW_EVENT_LOGS"],
+      },
+      {
+        category: "Reagent Management",
+        items: ["ADD_REAGENTS", "MODIFY_REAGENTS", "DELETE_REAGENTS"],
+      },
+      {
+        category: "Instrument Management",
+        items: ["ADD_INSTRUMENT", "VIEW_INSTRUMENT", "ACTIVATE_DEACTIVATE_INSTRUMENT"],
+      },
+      {
+        category: "Blood Testing",
+        items: ["EXECUTE_BLOOD_TESTING"],
+      },
+    ].map((group) => (
+      <div key={group.category} style={{ borderBottom: "1px solid #e1e7ef", paddingBottom: 12 }}>
+        <div style={{ fontWeight: 600, color: "#404553", marginBottom: 8, fontSize: 13 }}>
+          {group.category}
+        </div>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
+          {group.items.map((privilege) => (
+            <label key={privilege} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={formData.privileges.includes(privilege)}
+                onChange={() => handlePrivilegeChange(privilege)}
+                style={{ width: 16, height: 16, cursor: "pointer", accentColor: "#fe535b" }}
+              />
+              <span style={{ color: "#404553", fontSize: 12 }}>
+                {privilege}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</Field>
               <div style={{ marginTop: 6 }}>
                 <label
                   style={{ display: "flex", alignItems: "center", gap: 10 }}
