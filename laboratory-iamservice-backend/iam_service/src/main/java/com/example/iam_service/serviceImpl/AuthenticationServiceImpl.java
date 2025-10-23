@@ -104,8 +104,7 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
                 insertUser.setRoleCode("ROLE_PATIENT");
                 insertUser.setIsActive(true);
 
-                userRepository.save(insertUser);
-                return insertUser;
+                return userRepository.save(insertUser);
             }
 
             return optUser.get();
@@ -140,8 +139,7 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
         refreshToken.setTokenId(UUID.randomUUID().toString());
         refreshToken.setExpiredAt(now.plusSeconds(expiration)); // expiration from refresh token service
 
-        refreshRepo.save(refreshToken);
-        return refreshToken;
+        return refreshRepo.save(refreshToken);
     }
 
     @Override
