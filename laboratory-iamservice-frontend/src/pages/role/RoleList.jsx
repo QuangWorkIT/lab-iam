@@ -19,6 +19,19 @@ export default function RoleList() {
   const [actionLoading, setActionLoading] = useState(false);
   const [modalMode, setModalMode] = useState("create"); // 'create' | 'edit' | 'view'
 
+  // Helper: chuyển error sang string an toàn
+  const errorText = useMemo(() => {
+    if (!error) return "";
+    if (typeof error === "string") return error;
+    if (error?.message) return error.message;
+    if (error?.response?.data?.message) return error.response.data.message;
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
+  }, [error]);
+
   // Local state cho search, sort, filter
   const [searchKeyword, setSearchKeyword] = useState("");
   const [fromDate, setFromDate] = useState("");
@@ -61,6 +74,49 @@ export default function RoleList() {
     }
     return result;
   }, [roles, searchKeyword, fromDate, toDate, sortConfig]);
+
+  const formatErr = (error) =>
+    error?.response?.data?.message ||
+    error?.message ||
+    (() => {
+      try {
+        return JSON.stringify(error);
+      } catch {
+        return String(error);
+      }
+    })();
+
+  const handleSaveRole = (roleData) => {
+    // Guard chống double submit
+    if (actionLoading) return;
+    setActionLoading(true);
+
+    if (editingRole) {
+      dispatch(updateRole({ code: editingRole.code, roleData }))
+        .unwrap()
+        .then(() => {
+          setIsModalOpen(false);
+          dispatch(fetchRoles());
+          alert("Role updated successfully!");
+        })
+        .catch((error) => {
+          alert(`Failed to update role: ${formatErr(error)}`);
+        })
+        .finally(() => setActionLoading(false));
+    } else {
+      dispatch(createRole(roleData))
+        .unwrap()
+        .then(() => {
+          setIsModalOpen(false);
+          dispatch(fetchRoles());
+          alert("Role created successfully!");
+        })
+        .catch((error) => {
+          alert(`Failed to create role: ${formatErr(error)}`);
+        })
+        .finally(() => setActionLoading(false));
+    }
+  };
 
   // Handlers cho RoleTable
   const handleSearch = (keyword, from, to) => {
@@ -111,35 +167,6 @@ export default function RoleList() {
         });
     }
   };
-  const handleSaveRole = (roleData) => {
-    if (editingRole) {
-      dispatch(updateRole({ code: editingRole.code, roleData }))
-        .unwrap()
-        .then(() => {
-          setIsModalOpen(false);
-          dispatch(fetchRoles());
-          alert("Role updated successfully!");
-        })
-        .catch((error) => {
-          alert(
-            `Failed to update role: ${
-              error.message || JSON.stringify(error) || "Unknown error"
-            }`
-          );
-        });
-    } else {
-      dispatch(createRole(roleData))
-        .unwrap()
-        .then(() => {
-          setIsModalOpen(false);
-          dispatch(fetchRoles());
-          alert("Role created successfully!");
-        })
-        .catch((error) => {
-          alert(`Failed to create role: ${error}`);
-        });
-    }
-  };
 
   return (
     <MainLayout pageTitle="ROLE MANAGEMENT" pageDescription="Manage user roles">
@@ -165,10 +192,9 @@ export default function RoleList() {
         >
           User Roles
         </h2>
-        {/* Always render the table to preserve search inputs; show loading or error inline */}
-        {error && (
+        {errorText && (
           <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
-            Error: {error}
+            Error: {errorText}
           </div>
         )}
 
@@ -194,6 +220,7 @@ export default function RoleList() {
         mode={modalMode}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveRole}
+        isSaving={actionLoading} // thêm prop để disable nút Save
       />
     </MainLayout>
   );
