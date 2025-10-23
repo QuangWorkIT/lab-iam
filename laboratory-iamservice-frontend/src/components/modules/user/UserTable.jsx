@@ -22,12 +22,16 @@ export default function UserTable({
     onSort,
     onDelete,
     onPageChange,
+    onPageSizeChange,
     onView,
     onEdit,
     onAdd,
     onToggleStatus,
     currentPage = 0,
     totalPages = 1,
+    totalElements = 0,
+    pageSize = 10,
+    searchParams = {},
 }) {
     const [filteredUsers, setFilteredUsers] = useState(users);
     // Sorting: only 'name' and 'email' are sortable alphabetically
@@ -119,7 +123,13 @@ export default function UserTable({
                     width: "100%",
                 }}
             >
-                <UserSearchBar onSearch={handleSearch} />
+                <UserSearchBar
+                    onSearch={handleSearch}
+                    initialKeyword={searchParams.keyword || ""}
+                    initialFromDate={searchParams.fromDate || ""}
+                    initialToDate={searchParams.toDate || ""}
+                    initialRoleFilter={searchParams.roleFilter || ""}
+                />
 
                 <div className="add-new-button">
                     <button
@@ -600,7 +610,10 @@ export default function UserTable({
             <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
+                totalElements={totalElements}
+                pageSize={pageSize}
                 onPageChange={onPageChange}
+                onPageSizeChange={onPageSizeChange}
             />
         </div>
     );

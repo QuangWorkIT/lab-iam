@@ -30,22 +30,127 @@ function mapUserDTOToUI(dto) {
 
 /**
  * API: GET /api/users
- * Lấy danh sách tất cả users từ backend
+ * Lấy danh sách users từ backend với search params
+ * searchParams: { keyword, fromDate, toDate, roleFilter, page, size, sortBy, sortDir }
  */
 export const fetchUsers = createAsyncThunk(
     "userManagement/fetchUsers",
-    async (_, { rejectWithValue }) => {
+    async (searchParams = {}, { rejectWithValue }) => {
         try {
-            const response = await api.get("/api/users");
-            const userDTOs = Array.isArray(response.data) ? response.data : [];
+            // Build query params, only include non-empty values
+            const params = {};
+            if (searchParams.keyword && searchParams.keyword.trim()) {
+                params.keyword = searchParams.keyword.trim();
+            }
+            if (searchParams.fromDate) {
+                params.fromDate = searchParams.fromDate;
+            }
+            if (searchParams.toDate) {
+                params.toDate = searchParams.toDate;
+            }
+            if (searchParams.roleFilter) {
+                params.roleFilter = searchParams.roleFilter;
+            }
+            if (searchParams.page !== undefined) {
+                params.page = searchParams.page;
+            }
+            if (searchParams.size) {
+                params.size = searchParams.size;
+            }
+            if (searchParams.sortBy) {
+                params.sortBy = searchParams.sortBy;
+            }
+            if (searchParams.sortDir) {
+                params.sortDir = searchParams.sortDir;
+            }
+
+            console.log('🔍 Fetching users with params:', params);
+            const response = await api.get("/api/users", { params });
+            console.log('✅ API Response:', response.data);
+
+            // Log all unique roles to help with debugging
+            if (Array.isArray(response.data)) {
+                const roles = [...new Set(response.data.map(u =>
+                    `${u.roleCode || u.role || 'NO_ROLE'}`.toUpperCase()
+                ))];
+                console.log('📋 Available roles in response:', roles);
+            }
+
+            // Handle both paginated and non-paginated responses
+            let userDTOs, totalPages, totalElements;
+
+            if (response.data.content && Array.isArray(response.data.content)) {
+                // Paginated response
+                userDTOs = response.data.content;
+                totalPages = response.data.totalPages || 1;
+                totalElements = response.data.totalElements || userDTOs.length;
+            } else if (Array.isArray(response.data)) {
+                // Simple array response - Apply client-side filtering and pagination
+                let allUsers = response.data;
+
+                // Client-side filtering as fallback
+                if (params.keyword || params.roleFilter || params.fromDate || params.toDate) {
+                    console.log('⚠️ Backend returned full list, applying client-side filtering...');
+                    console.log('Filter params:', { keyword: params.keyword, role: params.roleFilter, fromDate: params.fromDate, toDate: params.toDate });
+
+                    allUsers = allUsers.filter(dto => {
+                        // Keyword matching
+                        const matchKeyword = !params.keyword ||
+                            (dto.fullName && dto.fullName.toLowerCase().includes(params.keyword.toLowerCase())) ||
+                            (dto.email && dto.email.toLowerCase().includes(params.keyword.toLowerCase()));
+
+                        // Role matching - support multiple role field names and formats
+                        let matchRole = true;
+                        if (params.roleFilter) {
+                            const filterRole = params.roleFilter.toUpperCase().trim();
+                            const dtoRoleCode = (dto.roleCode || dto.rolecode || '').toUpperCase().trim();
+                            const dtoRole = (dto.role || '').toUpperCase().trim();
+
+                            // Try matching with roleCode, role, or partial match
+                            matchRole = dtoRoleCode === filterRole ||
+                                dtoRole === filterRole ||
+                                dtoRoleCode.includes(filterRole) ||
+                                dtoRole.includes(filterRole);
+                        }
+
+                        // Date matching
+                        const matchDate =
+                            (!params.fromDate || new Date(dto.createdAt) >= new Date(params.fromDate)) &&
+                            (!params.toDate || new Date(dto.createdAt) <= new Date(params.toDate));
+
+                        return matchKeyword && matchRole && matchDate;
+                    });
+                    console.log(`📊 Filtered ${allUsers.length} users from ${response.data.length} total`);
+                }
+
+                // Client-side pagination
+                const pageSize = params.size || 10;
+                const currentPage = params.page || 0;
+                totalElements = allUsers.length;
+                totalPages = Math.ceil(totalElements / pageSize);
+
+                // Get users for current page
+                const startIndex = currentPage * pageSize;
+                const endIndex = startIndex + pageSize;
+                userDTOs = allUsers.slice(startIndex, endIndex);
+
+                console.log(`📄 Page ${currentPage + 1}/${totalPages}: Showing ${userDTOs.length} users (${startIndex + 1}-${Math.min(endIndex, totalElements)} of ${totalElements})`);
+            } else {
+                userDTOs = [];
+                totalPages = 0;
+                totalElements = 0;
+            }
+
             const users = userDTOs.map(mapUserDTOToUI);
+            console.log('✨ Returning users:', users.length, 'users');
 
             return {
                 content: users,
-                totalElements: users.length,
-                totalPages: 1,
+                totalElements,
+                totalPages,
             };
         } catch (error) {
+            console.error('❌ Error fetching users:', error);
             return rejectWithValue(
                 error.response?.data?.message || error.message || "Failed to fetch users"
             );
