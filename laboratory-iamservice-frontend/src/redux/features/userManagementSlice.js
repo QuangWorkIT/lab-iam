@@ -68,6 +68,14 @@ export const fetchUsers = createAsyncThunk(
             const response = await api.get("/api/users", { params });
             console.log('✅ API Response:', response.data);
 
+            // Log all unique roles to help with debugging
+            if (Array.isArray(response.data)) {
+                const roles = [...new Set(response.data.map(u =>
+                    `${u.roleCode || u.role || 'NO_ROLE'}`.toUpperCase()
+                ))];
+                console.log('📋 Available roles in response:', roles);
+            }
+
             // Handle both paginated and non-paginated responses
             let userDTOs, totalPages, totalElements;
 
@@ -83,15 +91,36 @@ export const fetchUsers = createAsyncThunk(
                 // Client-side filtering as fallback
                 if (params.keyword || params.roleFilter || params.fromDate || params.toDate) {
                     console.log('⚠️ Backend returned full list, applying client-side filtering...');
+                    console.log('Filter params:', { keyword: params.keyword, role: params.roleFilter, fromDate: params.fromDate, toDate: params.toDate });
+
                     userDTOs = userDTOs.filter(dto => {
+                        // Keyword matching
                         const matchKeyword = !params.keyword ||
                             (dto.fullName && dto.fullName.toLowerCase().includes(params.keyword.toLowerCase())) ||
                             (dto.email && dto.email.toLowerCase().includes(params.keyword.toLowerCase()));
 
-                        const matchRole = !params.roleFilter ||
-                            (dto.roleCode && dto.roleCode === params.roleFilter) ||
-                            (dto.role && dto.role === params.roleFilter);
+                        // Role matching - support multiple role field names and formats
+                        let matchRole = true;
+                        if (params.roleFilter) {
+                            const filterRole = params.roleFilter.toUpperCase().trim();
+                            const dtoRoleCode = (dto.roleCode || dto.rolecode || '').toUpperCase().trim();
+                            const dtoRole = (dto.role || '').toUpperCase().trim();
 
+                            // Try matching with roleCode, role, or partial match
+                            matchRole = dtoRoleCode === filterRole ||
+                                dtoRole === filterRole ||
+                                dtoRoleCode.includes(filterRole) ||
+                                dtoRole.includes(filterRole);
+
+                            console.log(`Role check for user ${dto.email}:`, {
+                                filterRole,
+                                dtoRoleCode,
+                                dtoRole,
+                                matchRole
+                            });
+                        }
+
+                        // Date matching
                         const matchDate =
                             (!params.fromDate || new Date(dto.createdAt) >= new Date(params.fromDate)) &&
                             (!params.toDate || new Date(dto.createdAt) <= new Date(params.toDate));
