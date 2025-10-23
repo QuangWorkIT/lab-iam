@@ -2,6 +2,7 @@ package com.example.iam_service.security;
 
 import com.example.iam_service.entity.User;
 import com.example.iam_service.repository.RoleRepository;
+import com.example.iam_service.util.PrivilegesConverter;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,14 +16,14 @@ import java.util.List;
 @AllArgsConstructor
 public class UserGrantAuthority {
 
+    private final PrivilegesConverter privilegesConverter;
     private final RoleRepository roleRepo;
 
     public List<GrantedAuthority> getAuthority(User user) {
 
         try {
-            String[] privileges = roleRepo.findPrivilegesByCode(user.getRoleCode())
-                    .getPrivileges()
-                    .split(",");
+            String[] privileges = privilegesConverter.convertToDatabaseColumn(roleRepo.findPrivilegesByCode(user.getRoleCode())
+                    .getPrivileges()).split(",");
             List<GrantedAuthority> authorities = new ArrayList<>();
 
             // Add role code
