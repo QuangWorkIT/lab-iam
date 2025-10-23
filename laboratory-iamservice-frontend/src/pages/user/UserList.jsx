@@ -204,6 +204,7 @@ export default function UserList() {
                         onAdd={handleAddUser}
                         currentPage={searchParams.page}
                         totalPages={totalPages}
+                        searchParams={searchParams}
                     />
                 )}
             </div>
