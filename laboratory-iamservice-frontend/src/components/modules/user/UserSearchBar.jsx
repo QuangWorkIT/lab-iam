@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaSearch, FaCalendarAlt } from "react-icons/fa";
+import { FaSearch, FaCalendarAlt, FaTimes } from "react-icons/fa";
 
 export default function UserSearchBar({ onSearch }) {
     const [search, setSearch] = useState("");
@@ -15,6 +15,14 @@ export default function UserSearchBar({ onSearch }) {
         if (e.key === "Enter") {
             handleSearch();
         }
+    };
+
+    const handleReset = () => {
+        setSearch("");
+        setFromDate("");
+        setToDate("");
+        setRoleFilter("");
+        onSearch("", "", "", "");
     };
 
     return (
@@ -37,7 +45,7 @@ export default function UserSearchBar({ onSearch }) {
                 <FaSearch style={{ color: "#888", marginRight: "8px" }} />
                 <input
                     type="text"
-                    placeholder="Search by name, email, role..."
+                    placeholder="Search by name, email..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     onKeyDown={handleInputKeyDown}
@@ -139,10 +147,48 @@ export default function UserSearchBar({ onSearch }) {
                     padding: "5px 10px",
                     marginLeft: "10px",
                     cursor: "pointer",
+                    transition: "all 0.2s ease",
                 }}
                 onClick={handleSearch}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f0f0f0";
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#ffffff";
+                }}
+                title="Search"
             >
                 <FaSearch style={{ fontSize: "14px", color: "#666" }} />
+            </button>
+
+            <button
+                style={{
+                    backgroundColor: "#fff5f5",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: "4px",
+                    padding: "5px 10px",
+                    marginLeft: "5px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    fontSize: "14px",
+                    color: "#666",
+                    transition: "all 0.2s ease",
+                }}
+                onClick={handleReset}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#fee";
+                    e.currentTarget.style.borderColor = "#ff5a5f";
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#fff5f5";
+                    e.currentTarget.style.borderColor = "#e0e0e0";
+                }}
+                title="Reset filters"
+            >
+                <FaTimes style={{ fontSize: "12px" }} />
+                Reset
             </button>
         </div>
     );

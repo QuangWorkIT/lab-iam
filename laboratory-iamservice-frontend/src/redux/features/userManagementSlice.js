@@ -30,22 +30,95 @@ function mapUserDTOToUI(dto) {
 
 /**
  * API: GET /api/users
- * Lấy danh sách tất cả users từ backend
+ * Lấy danh sách users từ backend với search params
+ * searchParams: { keyword, fromDate, toDate, roleFilter, page, size, sortBy, sortDir }
  */
 export const fetchUsers = createAsyncThunk(
     "userManagement/fetchUsers",
-    async (_, { rejectWithValue }) => {
+    async (searchParams = {}, { rejectWithValue }) => {
         try {
-            const response = await api.get("/api/users");
-            const userDTOs = Array.isArray(response.data) ? response.data : [];
+            // Build query params, only include non-empty values
+            const params = {};
+            if (searchParams.keyword && searchParams.keyword.trim()) {
+                params.keyword = searchParams.keyword.trim();
+            }
+            if (searchParams.fromDate) {
+                params.fromDate = searchParams.fromDate;
+            }
+            if (searchParams.toDate) {
+                params.toDate = searchParams.toDate;
+            }
+            if (searchParams.roleFilter) {
+                params.roleFilter = searchParams.roleFilter;
+            }
+            if (searchParams.page !== undefined) {
+                params.page = searchParams.page;
+            }
+            if (searchParams.size) {
+                params.size = searchParams.size;
+            }
+            if (searchParams.sortBy) {
+                params.sortBy = searchParams.sortBy;
+            }
+            if (searchParams.sortDir) {
+                params.sortDir = searchParams.sortDir;
+            }
+
+            console.log('🔍 Fetching users with params:', params);
+            const response = await api.get("/api/users", { params });
+            console.log('✅ API Response:', response.data);
+
+            // Handle both paginated and non-paginated responses
+            let userDTOs, totalPages, totalElements;
+
+            if (response.data.content && Array.isArray(response.data.content)) {
+                // Paginated response
+                userDTOs = response.data.content;
+                totalPages = response.data.totalPages || 1;
+                totalElements = response.data.totalElements || userDTOs.length;
+            } else if (Array.isArray(response.data)) {
+                // Simple array response - Apply client-side filtering if backend doesn't support it
+                userDTOs = response.data;
+
+                // Client-side filtering as fallback
+                if (params.keyword || params.roleFilter || params.fromDate || params.toDate) {
+                    console.log('⚠️ Backend returned full list, applying client-side filtering...');
+                    userDTOs = userDTOs.filter(dto => {
+                        const matchKeyword = !params.keyword ||
+                            (dto.fullName && dto.fullName.toLowerCase().includes(params.keyword.toLowerCase())) ||
+                            (dto.email && dto.email.toLowerCase().includes(params.keyword.toLowerCase()));
+
+                        const matchRole = !params.roleFilter ||
+                            (dto.roleCode && dto.roleCode === params.roleFilter) ||
+                            (dto.role && dto.role === params.roleFilter);
+
+                        const matchDate =
+                            (!params.fromDate || new Date(dto.createdAt) >= new Date(params.fromDate)) &&
+                            (!params.toDate || new Date(dto.createdAt) <= new Date(params.toDate));
+
+                        return matchKeyword && matchRole && matchDate;
+                    });
+                    console.log(`📊 Filtered ${userDTOs.length} users from ${response.data.length} total`);
+                }
+
+                totalPages = 1;
+                totalElements = userDTOs.length;
+            } else {
+                userDTOs = [];
+                totalPages = 0;
+                totalElements = 0;
+            }
+
             const users = userDTOs.map(mapUserDTOToUI);
+            console.log('✨ Returning users:', users.length, 'users');
 
             return {
                 content: users,
-                totalElements: users.length,
-                totalPages: 1,
+                totalElements,
+                totalPages,
             };
         } catch (error) {
+            console.error('❌ Error fetching users:', error);
             return rejectWithValue(
                 error.response?.data?.message || error.message || "Failed to fetch users"
             );
