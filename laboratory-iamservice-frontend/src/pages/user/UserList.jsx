@@ -14,7 +14,7 @@ import { toast } from 'react-toastify';
 export default function UserList() {
     //Redux hooks
     const dispatch = useDispatch();
-    const { users, loading, error, totalPages } = useSelector(
+    const { users, loading, error, totalPages, totalElements } = useSelector(
         (state) => state.users
     );
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -66,6 +66,15 @@ export default function UserList() {
         setSearchParams((prev) => ({
             ...prev,
             page: newPage,
+        }));
+    };
+
+    //Handler cho thay đổi số items mỗi trang
+    const handlePageSizeChange = (newSize) => {
+        setSearchParams((prev) => ({
+            ...prev,
+            size: newSize,
+            page: 0, // Reset về trang đầu khi thay đổi page size
         }));
     };
 
@@ -199,11 +208,14 @@ export default function UserList() {
                         onSearch={handleSearch}
                         onSort={handleSort}
                         onPageChange={handlePageChange}
+                        onPageSizeChange={handlePageSizeChange}
                         onView={handleViewUser}
                         onEdit={handleEditUser}
                         onAdd={handleAddUser}
                         currentPage={searchParams.page}
                         totalPages={totalPages}
+                        totalElements={totalElements}
+                        pageSize={searchParams.size}
                         searchParams={searchParams}
                     />
                 )}
