@@ -22,12 +22,15 @@ export default function UserTable({
     onSort,
     onDelete,
     onPageChange,
+    onPageSizeChange,
     onView,
     onEdit,
     onAdd,
     onToggleStatus,
     currentPage = 0,
     totalPages = 1,
+    totalElements = 0,
+    pageSize = 10,
     searchParams = {},
 }) {
     const [filteredUsers, setFilteredUsers] = useState(users);
@@ -607,7 +610,10 @@ export default function UserTable({
             <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
+                totalElements={totalElements}
+                pageSize={pageSize}
                 onPageChange={onPageChange}
+                onPageSizeChange={onPageSizeChange}
             />
         </div>
     );
