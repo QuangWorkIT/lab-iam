@@ -81,13 +81,12 @@ export default function RoleModal({
     if (!formData.code.trim()) return alert("Role code is required");
     if (!formData.name.trim()) return alert("Role name is required");
 
+     const privilegesString = formData.privileges.split(",").map((i)=>i.trim()).filter(Boolean).join(",");
     const formattedData = {
       ...formData,
-      privileges: formData.privileges
-        .split(",")
-        .map((i) => i.trim())
-        .filter(Boolean),
+      privileges: privilegesString,
     };
+    onSave(formattedData);
     onSave(formattedData);
   };
 
