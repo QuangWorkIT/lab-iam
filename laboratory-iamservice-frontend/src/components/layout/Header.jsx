@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FaHeartbeat, FaCog, FaSignOutAlt } from "react-icons/fa";
 import { logout } from "../../redux/features/userSlice";
@@ -7,71 +7,202 @@ export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.user);
 
+  // Confirm modal state
+  const [showConfirm, setShowConfirm] = useState(false);
+  const confirmBtnRef = useRef(null);
+
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to log out?")) {
-      dispatch(logout());
+    // Mở popup confirm thay vì window.confirm
+    setShowConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    dispatch(logout());
+    setShowConfirm(false);
+  };
+
+  const closeConfirm = () => setShowConfirm(false);
+
+  // Focus nút "Đăng xuất" và hỗ trợ phím Esc để đóng
+  useEffect(() => {
+    if (showConfirm) {
+      confirmBtnRef.current?.focus();
+      const onKeyDown = (e) => {
+        if (e.key === "Escape") closeConfirm();
+      };
+      window.addEventListener("keydown", onKeyDown);
+      return () => window.removeEventListener("keydown", onKeyDown);
     }
+  }, [showConfirm]);
+
+  // Styles cho modal
+  const styles = {
+    overlay: {
+      position: "fixed",
+      inset: 0,
+      backgroundColor: "rgba(17, 24, 39, 0.45)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+      padding: "16px",
+    },
+    modal: {
+      position: "relative",
+      width: "100%",
+      maxWidth: "420px",
+      backgroundColor: "#ffffff",
+      borderRadius: "12px",
+      boxShadow:
+        "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
+      padding: "18px 20px",
+      borderTop: "5px solid #fe535b",
+    },
+    titleRow: {
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      marginBottom: "6px",
+    },
+    title: { margin: 0, fontSize: "18px", fontWeight: 700, color: "#111827" },
+    text: { margin: "0 0 16px 0", color: "#4b5563", lineHeight: 1.5 },
+    actions: { display: "flex", justifyContent: "flex-end", gap: "10px" },
+    btnBase: {
+      padding: "8px 14px",
+      borderRadius: "8px",
+      border: "1px solid transparent",
+      fontWeight: 600,
+      cursor: "pointer",
+      fontSize: "14px",
+    },
+    btnCancel: {
+      backgroundColor: "#ffffff",
+      borderColor: "#e5e7eb",
+      color: "#374151",
+    },
+    btnDanger: {
+      backgroundColor: "#fe535b",
+      color: "#ffffff",
+    },
+    closeX: {
+      position: "absolute",
+      top: "8px",
+      right: "10px",
+      background: "transparent",
+      border: "none",
+      fontSize: "22px",
+      color: "#9ca3af",
+      cursor: "pointer",
+      lineHeight: 1,
+    },
   };
 
   return (
-    <header
-      style={{
-        borderBottom: "1px solid #e1e7ef",
-        padding: "15px 20px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        backgroundColor: "white",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center" }}>
+    <>
+      <header
+        style={{
+          borderBottom: "1px solid #e1e7ef",
+          padding: "15px 20px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          backgroundColor: "white",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center" }}>
-          <FaHeartbeat
-            style={{
-              color: "#fe535b",
-              fontSize: "24px",
-              marginRight: "10px",
-            }}
-          />
-          <span
-            style={{ color: "black", fontWeight: "bold", fontSize: "18px" }}
-          >
-            Laboratory Management
-          </span>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <FaHeartbeat
+              style={{
+                color: "#fe535b",
+                fontSize: "24px",
+                marginRight: "10px",
+              }}
+            />
+            <span
+              style={{ color: "black", fontWeight: "bold", fontSize: "18px" }}
+            >
+              Laboratory Management
+            </span>
+          </div>
+          {pageTitle && (
+            <>
+              <span style={{ margin: "0 10px", color: "#ccc" }}>›</span>
+              <span style={{ color: "#fe535b" }}>{pageTitle}</span>
+            </>
+          )}
         </div>
-        {pageTitle && (
-          <>
-            <span style={{ margin: "0 10px", color: "#ccc" }}>›</span>
-            <span style={{ color: "#fe535b" }}>{pageTitle}</span>
-          </>
-        )}
-      </div>
 
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <div
-          style={{
-            marginRight: "15px",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <span style={{ marginRight: "5px", color: "#888" }}>Welcome, </span>
-          <span style={{ fontWeight: "bold", color: "#fe535b" }}>
-            [{userInfo?.userName || "User"}]
-          </span>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <div
+            style={{
+              marginRight: "15px",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <span style={{ marginRight: "5px", color: "#888" }}>Welcome, </span>
+            <span style={{ fontWeight: "bold", color: "#fe535b" }}>
+              [{userInfo?.userName || "User"}]
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: "15px" }}>
+            <FaCog
+              style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
+              title="Settings"
+            />
+            <FaSignOutAlt
+              style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
+              title="Logout"
+              onClick={handleLogout}
+            />
+          </div>
         </div>
-        <div style={{ display: "flex", gap: "15px" }}>
-          <FaCog
-            style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
-            title="Settings"
-          />
-          <FaSignOutAlt
-            style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
-            title="Logout"
-            onClick={handleLogout}
-          />
+      </header>
+
+      {showConfirm && (
+        <div style={styles.overlay} onClick={closeConfirm}>
+          <div
+            style={styles.modal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logout-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              aria-label="Close dialog"
+              style={styles.closeX}
+              onClick={closeConfirm}
+            >
+              ×
+            </button>
+
+            <div style={styles.titleRow}>
+              <FaSignOutAlt style={{ color: "#fe535b", fontSize: "20px" }} />
+              <h3 id="logout-title" style={styles.title}>
+                Confirm Logout
+              </h3>
+            </div>
+
+            <p style={styles.text}>Are you sure you want to log out?</p>
+
+            <div style={styles.actions}>
+              <button
+                style={{ ...styles.btnBase, ...styles.btnCancel }}
+                onClick={closeConfirm}
+              >
+                Cancel
+              </button>
+              <button
+                ref={confirmBtnRef}
+                style={{ ...styles.btnBase, ...styles.btnDanger }}
+                onClick={confirmLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </header>
+      )}
+    </>
   );
 }
