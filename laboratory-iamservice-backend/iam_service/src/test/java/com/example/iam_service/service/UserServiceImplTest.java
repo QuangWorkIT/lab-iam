@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.List;
@@ -149,6 +150,26 @@ class UserServiceImplTest {
 
         assertThrows(IllegalArgumentException.class, () -> userService.activateUserByEmail("ghost@y.com"));
     }
+
+    @Test
+    void createUser_ShouldAutoCalculateAge_WhenBirthdateProvided() {
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(patientVerificationService.verifyPatientExists(anyString())).thenReturn(true);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArgument(0));
+
+        User user = new User();
+        user.setEmail("birthdate@example.com");
+        user.setRoleCode("ROLE_PATIENT");
+        user.setBirthdate(LocalDate.of(2000, 1, 1)); // 👈 give it a date
+        user.setAge(null); // 👈 force age null
+
+        User result = userService.createUser(user);
+
+        assertNotNull(result.getAge(), "Age should be automatically calculated");
+        assertTrue(result.getAge() > 0 && result.getAge() < 100, "Age should be realistic");
+    }
+
 
     // ========== UTIL ==========
     private void mockLabManagerAuth() {
