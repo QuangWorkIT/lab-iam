@@ -2,25 +2,28 @@ package com.example.iam_service.util;
 
 
 import com.example.iam_service.entity.User;
+import com.example.iam_service.security.UserGrantAuthority;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class JwtUtil {
     private final SecretKey key;
     private final long expiration = 15 * 60 * 1000;
+    private final UserGrantAuthority grantAuthority;
 
-    public JwtUtil(@Value("${jwt.secret}") String secret) {
+
+    public JwtUtil(@Value("${jwt.secret}") String secret, UserGrantAuthority grantAuthority) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.grantAuthority = grantAuthority;
     }
 
     public String generateToken(User user) {
@@ -30,12 +33,18 @@ public class JwtUtil {
         payload.put("userName", user.getFullName());
         payload.put("role", user.getRoleCode());
         payload.put("email", user.getEmail());
+        List<GrantedAuthority> authorities = grantAuthority.getAuthorityByUser(user);
+
+        // transfer authority object to string name
+        List<String> authorityNames = authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
 
         return Jwts.builder()
                 .subject(user.getUserId().toString())
                 .expiration(expired)
                 .issuedAt(now)
-                .claim("privileges", List.of("user", "admin"))
+                .claim("privileges", authorityNames)
                 .claims(payload)
                 .signWith(key)
                 .compact();
@@ -43,6 +52,21 @@ public class JwtUtil {
 
     public String getSubject(String token) {
         return parseClaim(token).getSubject();
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<GrantedAuthority> getUserAuthorities(String token) {
+        Claims payload = parseClaim(token);
+        List<String> authorities = (List<String>) payload.get("privileges");
+
+        List<GrantedAuthority> userAuthorities = new ArrayList<>();
+        if(authorities == null) return userAuthorities;
+
+        // convert authority string to granted authority object
+        authorities.forEach(p -> {
+            userAuthorities.add(new SimpleGrantedAuthority(p.trim()));
+        });
+        return userAuthorities;
     }
 
     public String validate(String token) {
