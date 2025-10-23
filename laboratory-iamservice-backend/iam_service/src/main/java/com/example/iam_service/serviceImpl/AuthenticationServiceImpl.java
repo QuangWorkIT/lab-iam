@@ -109,7 +109,7 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
 
             return optUser.get();
         } catch (RuntimeException e) {
-            System.out.println("error google login " + e);
+            System.out.println("Error google login " + e);
             return null;
         }
     }
