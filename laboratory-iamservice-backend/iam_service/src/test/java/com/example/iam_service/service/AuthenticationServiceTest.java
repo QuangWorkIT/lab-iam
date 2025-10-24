@@ -59,6 +59,39 @@ public class AuthenticationServiceTest {
     @InjectMocks
     private AuthenticationServiceImpl authenticationService; // Test class
 
+    @Test
+    void testGetTokens_ReturnsAccessAndRefreshTokens() {
+        User mockUser = new User();
+        mockUser.setEmail("test@example.com");
+        mockUser.setFullName("Test User");
+
+        // Arrange
+        String expectedAccessToken = "mock-access-token";
+        String expectedRefreshTokenId = "mock-refresh-token-id";
+
+        // Mock jwtUtil.generateToken()
+        when(jwtUtil.generateToken(mockUser)).thenReturn(expectedAccessToken);
+
+        // Mock refreshRepo.save() inside generateRefreshToken()
+        Token mockToken = new Token();
+        mockToken.setTokenId(expectedRefreshTokenId);
+        mockToken.setUser(mockUser);
+        mockToken.setExpiredAt(LocalDateTime.now().plusDays(1));
+        when(refreshRepo.save(any(Token.class))).thenReturn(mockToken);
+
+        // Act
+        Map<String, String> tokens = authenticationService.getTokens(mockUser);
+
+        // Assert
+        assertNotNull(tokens);
+        assertEquals(expectedAccessToken, tokens.get("accessToken"));
+        assertEquals(expectedRefreshTokenId, tokens.get("refreshToken"));
+
+        // Verify interactions
+        verify(jwtUtil, times(1)).generateToken(mockUser);
+        verify(refreshRepo, times(1)).save(any(Token.class));
+    }
+
     @Nested
     class LoginTestGroup {
         @Test
@@ -156,6 +189,31 @@ public class AuthenticationServiceTest {
 
     @Nested
     class GoogleServiceTestGroup {
+        @Test
+        void testGetPayload_ReturnsExpectedPayload() throws Exception {
+            GoogleIdToken mockGoogleIdToken = mock(GoogleIdToken.class);
+
+            // Arrange
+            String fakeTokenId = "fake-google-token";
+            GoogleIdToken.Payload mockPayload = new GoogleIdToken.Payload();
+
+            // mock googleIdTokenVerifier.verify() → returns mock GoogleIdToken
+            when(googleIdTokenVerifier.verify(fakeTokenId)).thenReturn(mockGoogleIdToken);
+            // mock GoogleIdToken.getPayload() → returns mock payload
+            when(mockGoogleIdToken.getPayload()).thenReturn(mockPayload);
+
+            // Act
+            GoogleIdToken.Payload result = authenticationService.getPayload(fakeTokenId);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(mockPayload, result);
+
+            // Verify method calls
+            verify(googleIdTokenVerifier, times(1)).verify(fakeTokenId);
+            verify(mockGoogleIdToken, times(1)).getPayload();
+        }
+
         @Test
         void google_ValidToken_ShouldReturnIdToken() throws GeneralSecurityException, IOException {
             String validCredential = "valiGoogleToken";
@@ -281,6 +339,22 @@ public class AuthenticationServiceTest {
         }
 
         @Test
+        void refreshToken_TokenNotFound_ShouldReturnNull() {
+            // Arrange
+            String tokenId = "missingTokenId";
+
+            // The repository returns an empty Optional → findByToken() returns null
+            when(refreshRepo.findByTokenId(tokenId)).thenReturn(Optional.empty());
+
+            // Act
+            Token tokenFound = authenticationService.verifyRefreshToken(tokenId);
+
+            // Assert
+            assertNull(tokenFound); // expected null when token is not found
+            verify(refreshRepo, times(1)).findByTokenId(tokenId);
+        }
+
+        @Test
         void deleteToken_ShouldCallRepository() {
             // Arrange
             String tokenId = "sampleTokenId";
@@ -357,7 +431,7 @@ public class AuthenticationServiceTest {
             String token = "invalidToken";
 
             JwtException exception = assertThrows(JwtException.class, () -> {
-               jwtUtil.validate(token);
+                jwtUtil.validate(token);
             });
 
             assertTrue(exception.getMessage().contains("JWT validation failed"));
