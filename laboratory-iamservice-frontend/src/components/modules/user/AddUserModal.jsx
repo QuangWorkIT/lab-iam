@@ -32,6 +32,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const [errors, setErrors] = useState({});
     const [isPasswordGenerated, setIsPasswordGenerated] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [passwordStrength, setPasswordStrength] = useState({});
 
     const steps = [
         { id: 1, title: "Basic Infor", label: "Basic Infor" },
@@ -91,6 +92,16 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                 [name]: ""
             }));
         }
+
+        // Check password strength in real-time
+        if (name === "password") {
+            const strength = {
+                length: value.length >= 8,
+                uppercase: /[A-Z]/.test(value),
+                lowercase: /[a-z]/.test(value),
+            };
+            setPasswordStrength(strength);
+        }
     };
 
     const validateStep1 = () => {
@@ -121,8 +132,8 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         if (!isPatientRole) {
             if (!formData.password.trim()) {
                 newErrors.password = "Password is required";
-            } else if (formData.password.length < 6) {
-                newErrors.password = "Password must be at least 6 characters";
+            } else if (!formData.password.match(/^(?=.*[a-z])(?=.*[A-Z]).{8,}$/)) {
+                newErrors.password = "Password must be at least 8 characters long and include at least one uppercase and one lowercase letter";
             }
             if (formData.password !== formData.confirmPassword) {
                 newErrors.confirmPassword = "Passwords do not match";
@@ -196,6 +207,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         setErrors({});
         setIsPasswordGenerated(false);
         setShowPassword(false);
+        setPasswordStrength({});
         onClose();
     };
 
@@ -756,6 +768,31 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                                 {errors.password}
                                             </span>
                                         )}
+                                        <div style={{
+                                            marginTop: "8px",
+                                            padding: "12px",
+                                            backgroundColor: "#f8f9fa",
+                                            border: "1px solid #e9ecef",
+                                            borderRadius: "4px",
+                                            fontSize: "12px",
+                                            color: "#6c757d",
+                                            lineHeight: "1.4"
+                                        }}>
+                                            <div style={{ fontWeight: "500", marginBottom: "4px", color: "#495057" }}>
+                                                Password Requirements:
+                                            </div>
+                                            <ul style={{ margin: "0", paddingLeft: "16px" }}>
+                                                <li style={{ color: passwordStrength.length ? "#28a745" : "#6c757d" }}>
+                                                    ✓ At least 8 characters long {passwordStrength.length ? "✓" : ""}
+                                                </li>
+                                                <li style={{ color: passwordStrength.uppercase ? "#28a745" : "#6c757d" }}>
+                                                    ✓ At least one uppercase letter (A-Z) {passwordStrength.uppercase ? "✓" : ""}
+                                                </li>
+                                                <li style={{ color: passwordStrength.lowercase ? "#28a745" : "#6c757d" }}>
+                                                    ✓ At least one lowercase letter (a-z) {passwordStrength.lowercase ? "✓" : ""}
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
 
                                     <div style={{ marginBottom: "20px" }}>
