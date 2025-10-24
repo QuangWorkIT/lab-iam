@@ -1,79 +1,37 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
     FaPlus,
-    FaSort,
-    FaSortAlphaDown,
-    FaSortAlphaUp,
-    FaEye,
-    FaEdit,
-    FaTrash,
-    FaLock,
-    FaUnlock,
 } from "react-icons/fa";
 import UserSearchBar from "./UserSearchBar";
 import Pagination from "../../common/Pagination";
 import StatusBadge from "../../common/StatusBadge";
 import UserBadge from "./UserBadge";
+import UserActionButtons from "./UserActionButtons";
 import { formatDate } from "../../../utils/formatter";
 
 export default function UserTable({
     users,
     onSearch,
-    onSort,
     onDelete,
     onPageChange,
     onPageSizeChange,
     onView,
     onEdit,
     onAdd,
-    onToggleStatus,
     currentPage = 0,
     totalPages = 1,
     totalElements = 0,
     pageSize = 10,
     searchParams = {},
+    isSearching = false,
 }) {
     const [filteredUsers, setFilteredUsers] = useState(users);
-    // Sorting: only 'name' and 'email' are sortable alphabetically
-    const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
-
-    const sortUsers = useCallback((list) => {
-        if (!sortConfig.key) return list;
-        // Allow sorting by name, email, role, createdAt
-        if (!["name", "email", "role", "createdAt"].includes(sortConfig.key)) return list;
-
-        const sorted = [...list].sort((a, b) => {
-            let aVal, bVal;
-
-            if (sortConfig.key === "createdAt") {
-                // Sort by date
-                aVal = new Date(a[sortConfig.key] || 0);
-                bVal = new Date(b[sortConfig.key] || 0);
-            } else {
-                // Sort by string
-                aVal = (a[sortConfig.key] || "").toString().toLowerCase();
-                bVal = (b[sortConfig.key] || "").toString().toLowerCase();
-            }
-
-            if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
-            if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
-            return 0;
-        });
-        return sorted;
-    }, [sortConfig]);
 
     useEffect(() => {
-        if (sortConfig.key) {
-            setFilteredUsers((prev) => {
-                const base = prev && prev.length ? prev : users;
-                return sortUsers(base);
-            });
-        } else {
-            setFilteredUsers(users); // giữ nguyên thứ tự backend
-        }
-    }, [users, sortConfig, sortUsers]);
+        setFilteredUsers(users);
+    }, [users]);
 
-    const handleSearch = (keyword, fromDate, toDate, roleFilter) => {
+    const handleSearch = useCallback((keyword, fromDate, toDate, roleFilter) => {
         if (onSearch) {
             onSearch(keyword, fromDate, toDate, roleFilter);
         } else {
@@ -92,27 +50,39 @@ export default function UserTable({
 
                 return matchKeyword && matchDate && matchRole;
             });
-            setFilteredUsers(sortUsers(filtered));
+            setFilteredUsers(filtered);
         }
-    };
+    }, [onSearch, users]);
 
-    // Toggle sorting for allowed keys (name, email, role, createdAt)
-    const toggleSort = (key) => {
-        if (!["name", "email", "role", "createdAt"].includes(key)) return;
-        const direction =
-            sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc";
-        setSortConfig({ key, direction });
+    // Chuẩn hóa trạng thái active từ nhiều kiểu dữ liệu trả về
+    const normalizeActive = useCallback((user) => {
+        if (user && typeof user.isActive === "boolean") return user.isActive;
+        if (user && typeof user.is_active === "boolean") return user.is_active; // phòng khi API trả snake_case
+        if (user && typeof user.inactive === "boolean") return !user.inactive;
+        if (user && typeof user.status === "string")
+            return user.status.toLowerCase() === "active";
+        return true; // Mặc định là active nếu không có thông tin
+    }, []);
 
-        if (onSort) {
-            // Nếu có callback, báo cáo sự thay đổi lên cha
-            onSort(key, direction);
-        } else {
-            setSortConfig({ key, direction: "asc" });
-        }
-    };
+    // Memoize users list để tránh re-render không cần thiết
+    const usersToRender = useMemo(() => {
+        return filteredUsers.length > 0 ? filteredUsers : users;
+    }, [filteredUsers, users]);
 
     return (
         <div className="user-table-container" style={{ width: "100%" }}>
+            <style>
+                {`
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                    @keyframes fadeIn {
+                        0% { opacity: 0; }
+                        100% { opacity: 1; }
+                    }
+                `}
+            </style>
             {/* Toolbar & Search */}
             <div
                 style={{
@@ -154,7 +124,49 @@ export default function UserTable({
             </div>
 
             {/* Bảng users */}
-            <div style={{ width: "100%", overflowX: "auto" }}>
+            <div style={{ width: "100%", overflowX: "auto", position: "relative" }}>
+                {/* Loading overlay */}
+                {isSearching && (
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: "rgba(255, 255, 255, 0.9)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            zIndex: 10,
+                            borderRadius: "4px",
+                            animation: "fadeIn 0.2s ease-in-out",
+                        }}
+                    >
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                color: "#888",
+                                fontSize: "13px",
+                                fontWeight: "500",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: "16px",
+                                    height: "16px",
+                                    border: "2px solid #e0e0e0",
+                                    borderTop: "2px solid #4CAF50",
+                                    borderRadius: "50%",
+                                    animation: "spin 0.8s linear infinite",
+                                }}
+                            />
+                            Searching...
+                        </div>
+                    </div>
+                )}
                 <table
                     style={{
                         width: "100%",
@@ -195,33 +207,7 @@ export default function UserTable({
                                     verticalAlign: "middle",
                                 }}
                             >
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ whiteSpace: "nowrap" }}>Name</span>
-
-                                    <button
-                                        onClick={() => toggleSort("name")}
-                                        title="Sort by Name"
-                                        style={{
-                                            background: "transparent",
-                                            border: "none",
-                                            cursor: "pointer",
-                                            padding: 4,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                        }}
-                                    >
-                                        {sortConfig.key === "name" ? (
-                                            sortConfig.direction === "asc" ? (
-                                                <FaSortAlphaDown style={{ color: "#ff5a5f" }} />
-                                            ) : (
-                                                <FaSortAlphaUp style={{ color: "#ff5a5f" }} />
-                                            )
-                                        ) : (
-                                            <FaSort style={{ color: "#aaa" }} />
-                                        )}
-                                    </button>
-                                </div>
+                                Name
                             </th>
                             <th
                                 style={{
@@ -236,33 +222,7 @@ export default function UserTable({
                                     verticalAlign: "middle",
                                 }}
                             >
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ whiteSpace: "nowrap" }}>Email</span>
-
-                                    <button
-                                        onClick={() => toggleSort("email")}
-                                        title="Sort by Email"
-                                        style={{
-                                            background: "transparent",
-                                            border: "none",
-                                            cursor: "pointer",
-                                            padding: 4,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                        }}
-                                    >
-                                        {sortConfig.key === "email" ? (
-                                            sortConfig.direction === "asc" ? (
-                                                <FaSortAlphaDown style={{ color: "#ff5a5f" }} />
-                                            ) : (
-                                                <FaSortAlphaUp style={{ color: "#ff5a5f" }} />
-                                            )
-                                        ) : (
-                                            <FaSort style={{ color: "#aaa" }} />
-                                        )}
-                                    </button>
-                                </div>
+                                Email
                             </th>
                             <th
                                 style={{
@@ -277,33 +237,7 @@ export default function UserTable({
                                     verticalAlign: "middle",
                                 }}
                             >
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ whiteSpace: "nowrap" }}>Role</span>
-
-                                    <button
-                                        onClick={() => toggleSort("role")}
-                                        title="Sort by Role"
-                                        style={{
-                                            background: "transparent",
-                                            border: "none",
-                                            cursor: "pointer",
-                                            padding: 4,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                        }}
-                                    >
-                                        {sortConfig.key === "role" ? (
-                                            sortConfig.direction === "asc" ? (
-                                                <FaSortAlphaDown style={{ color: "#ff5a5f" }} />
-                                            ) : (
-                                                <FaSortAlphaUp style={{ color: "#ff5a5f" }} />
-                                            )
-                                        ) : (
-                                            <FaSort style={{ color: "#aaa" }} />
-                                        )}
-                                    </button>
-                                </div>
+                                Role
                             </th>
                             <th
                                 style={{
@@ -318,33 +252,19 @@ export default function UserTable({
                                     verticalAlign: "middle",
                                 }}
                             >
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ whiteSpace: "nowrap" }}>Created Date</span>
-
-                                    <button
-                                        onClick={() => toggleSort("createdAt")}
-                                        title="Sort by Created Date"
-                                        style={{
-                                            background: "transparent",
-                                            border: "none",
-                                            cursor: "pointer",
-                                            padding: 4,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                        }}
-                                    >
-                                        {sortConfig.key === "createdAt" ? (
-                                            sortConfig.direction === "asc" ? (
-                                                <FaSortAlphaDown style={{ color: "#ff5a5f" }} />
-                                            ) : (
-                                                <FaSortAlphaUp style={{ color: "#ff5a5f" }} />
-                                            )
-                                        ) : (
-                                            <FaSort style={{ color: "#aaa" }} />
-                                        )}
-                                    </button>
-                                </div>
+                                Created Date
+                            </th>
+                            <th
+                                style={{
+                                    padding: "12px 15px",
+                                    textAlign: "left",
+                                    borderBottom: "1px solid #eaeaea",
+                                    color: "#666",
+                                    fontWeight: "600",
+                                    fontSize: "14px",
+                                }}
+                            >
+                                Status
                             </th>
                             <th
                                 style={{
@@ -361,10 +281,10 @@ export default function UserTable({
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredUsers.length === 0 ? (
+                        {usersToRender.length === 0 ? (
                             <tr>
                                 <td
-                                    colSpan={7}
+                                    colSpan={8}
                                     style={{
                                         textAlign: "center",
                                         padding: "60px 20px",
@@ -443,7 +363,7 @@ export default function UserTable({
                                 </td>
                             </tr>
                         ) : (
-                            filteredUsers.map((user, index) => (
+                            usersToRender.map((user, index) => (
                                 <tr
                                     key={user.id}
                                     style={{
@@ -500,104 +420,23 @@ export default function UserTable({
                                         style={{
                                             padding: "12px 15px",
                                             borderBottom: "1px solid #eaeaea",
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            gap: "10px",
+                                            color: "#555",
                                         }}
                                     >
-                                        <button
-                                            onClick={() => onView && onView(user)}
-                                            style={{
-                                                backgroundColor: "#5a67d8",
-                                                color: "white",
-                                                border: "none",
-                                                borderRadius: "6px",
-                                                padding: "8px 10px",
-                                                cursor: "pointer",
-                                                fontSize: "14px",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                minWidth: "36px",
-                                                minHeight: "36px",
-                                                transition: "all 0.2s ease",
-                                            }}
-                                            title="View"
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#4c51bf"}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#5a67d8"}
-                                        >
-                                            <FaEye />
-                                        </button>
-                                        <button
-                                            onClick={() => onEdit && onEdit(user)}
-                                            style={{
-                                                backgroundColor: "#f6ad55",
-                                                color: "white",
-                                                border: "none",
-                                                borderRadius: "6px",
-                                                padding: "8px 10px",
-                                                cursor: "pointer",
-                                                fontSize: "14px",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                minWidth: "36px",
-                                                minHeight: "36px",
-                                                transition: "all 0.2s ease",
-                                            }}
-                                            title="Edit"
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#ed8936"}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#f6ad55"}
-                                        >
-                                            <FaEdit />
-                                        </button>
-                                        <button
-                                            onClick={() => onToggleStatus && onToggleStatus(user)}
-                                            style={{
-                                                backgroundColor: user.isActive ? "#fc8181" : "#48bb78",
-                                                color: "white",
-                                                border: "none",
-                                                borderRadius: "6px",
-                                                padding: "8px 10px",
-                                                cursor: "pointer",
-                                                fontSize: "14px",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                minWidth: "36px",
-                                                minHeight: "36px",
-                                                transition: "all 0.2s ease",
-                                            }}
-                                            title={user.isActive ? "Lock" : "Unlock"}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = user.isActive ? "#f56565" : "#38a169"}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = user.isActive ? "#fc8181" : "#48bb78"}
-                                        >
-                                            {user.isActive ? <FaLock /> : <FaUnlock />}
-                                        </button>
-                                        <button
-                                            onClick={() => onDelete && onDelete(user.id)}
-                                            style={{
-                                                backgroundColor: "#fc8181",
-                                                color: "white",
-                                                border: "none",
-                                                borderRadius: "6px",
-                                                padding: "8px 10px",
-                                                cursor: "pointer",
-                                                fontSize: "14px",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                minWidth: "36px",
-                                                minHeight: "36px",
-                                                transition: "all 0.2s ease",
-                                            }}
-                                            title="Delete"
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f56565"}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#fc8181"}
-                                        >
-                                            <FaTrash />
-                                        </button>
+                                        <StatusBadge active={normalizeActive(user)} />
+                                    </td>
+                                    <td
+                                        style={{
+                                            padding: "12px 15px",
+                                            borderBottom: "1px solid #eaeaea",
+                                        }}
+                                    >
+                                        <UserActionButtons
+                                            user={user}
+                                            onView={onView}
+                                            onEdit={onEdit}
+                                            onDelete={onDelete}
+                                        />
                                     </td>
                                 </tr>
                             ))

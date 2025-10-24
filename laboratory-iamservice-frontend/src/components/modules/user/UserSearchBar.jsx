@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaSearch, FaCalendarAlt, FaTimes } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import { fetchRolesForUser } from "../../../redux/features/userManagementSlice";
 
 export default function UserSearchBar({
@@ -32,7 +32,9 @@ export default function UserSearchBar({
     }, [initialKeyword, initialFromDate, initialToDate, initialRoleFilter]);
 
     const handleSearch = () => {
-        onSearch(search.trim().toLowerCase(), fromDate, toDate, roleFilter);
+        // If search is empty, show all users by passing empty string
+        const searchKeyword = search.trim() === "" ? "" : search.trim().toLowerCase();
+        onSearch(searchKeyword, fromDate, toDate, roleFilter);
     };
 
     const handleInputKeyDown = (e) => {
@@ -41,35 +43,30 @@ export default function UserSearchBar({
         }
     };
 
-    // Auto-search when role changes (no flickering since it's a single select action)
+    // Only update search state, don't auto-search
+    const handleSearchChange = (e) => {
+        const newSearch = e.target.value;
+        setSearch(newSearch);
+    };
+
+    // Update role state and auto-search
     const handleRoleChange = (e) => {
         const newRole = e.target.value;
         setRoleFilter(newRole);
-        // Trigger search immediately with new role
-        onSearch(search.trim().toLowerCase(), fromDate, toDate, newRole);
+        // Auto-search when role changes
+        const searchKeyword = search.trim() === "" ? "" : search.trim().toLowerCase();
+        onSearch(searchKeyword, fromDate, toDate, newRole);
     };
 
-    // Auto-search when date changes (no flickering since it's a single date pick action)
+    // Only update date state, don't auto-search
     const handleFromDateChange = (e) => {
         const newFromDate = e.target.value;
         setFromDate(newFromDate);
-        // Trigger search immediately with new date
-        onSearch(search.trim().toLowerCase(), newFromDate, toDate, roleFilter);
     };
 
     const handleToDateChange = (e) => {
         const newToDate = e.target.value;
         setToDate(newToDate);
-        // Trigger search immediately with new date
-        onSearch(search.trim().toLowerCase(), fromDate, newToDate, roleFilter);
-    };
-
-    const handleReset = () => {
-        setSearch("");
-        setFromDate("");
-        setToDate("");
-        setRoleFilter("");
-        onSearch("", "", "", "");
     };
 
     return (
@@ -94,7 +91,7 @@ export default function UserSearchBar({
                     type="text"
                     placeholder="Search by name, email..."
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={handleSearchChange}
                     onKeyDown={handleInputKeyDown}
                     style={{
                         border: "none",
@@ -143,7 +140,7 @@ export default function UserSearchBar({
 
             <span style={{ color: "#333", marginLeft: "16px" }}>Created Date:</span>
 
-            <div style={{ position: "relative", display: "inline-block" }}>
+            <div style={{ display: "inline-block" }}>
                 <input
                     type="date"
                     value={fromDate}
@@ -159,21 +156,11 @@ export default function UserSearchBar({
                         cursor: "pointer",
                     }}
                 />
-                <FaCalendarAlt
-                    style={{
-                        position: "absolute",
-                        right: 8,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        color: "#666",
-                        pointerEvents: "none",
-                    }}
-                />
             </div>
 
             <span style={{ margin: "0 4px", color: "#888" }}>-</span>
 
-            <div style={{ position: "relative", display: "inline-block" }}>
+            <div style={{ display: "inline-block" }}>
                 <input
                     type="date"
                     value={toDate}
@@ -186,16 +173,6 @@ export default function UserSearchBar({
                         backgroundColor: "#fff",
                         color: "#333",
                         cursor: "pointer",
-                    }}
-                />
-                <FaCalendarAlt
-                    style={{
-                        position: "absolute",
-                        right: 8,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        color: "#666",
-                        pointerEvents: "none",
                     }}
                 />
             </div>
@@ -220,36 +197,6 @@ export default function UserSearchBar({
                 title="Search"
             >
                 <FaSearch style={{ fontSize: "14px", color: "#666" }} />
-            </button>
-
-            <button
-                style={{
-                    backgroundColor: "#fff5f5",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: "4px",
-                    padding: "5px 10px",
-                    marginLeft: "5px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "5px",
-                    fontSize: "14px",
-                    color: "#666",
-                    transition: "all 0.2s ease",
-                }}
-                onClick={handleReset}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#fee";
-                    e.currentTarget.style.borderColor = "#ff5a5f";
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#fff5f5";
-                    e.currentTarget.style.borderColor = "#e0e0e0";
-                }}
-                title="Reset filters"
-            >
-                <FaTimes style={{ fontSize: "12px" }} />
-                Reset
             </button>
         </div>
     );
