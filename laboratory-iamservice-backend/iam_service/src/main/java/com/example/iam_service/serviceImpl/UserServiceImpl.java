@@ -16,7 +16,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.Period;
 import java.util.Optional;
 import java.util.List;
 
@@ -35,7 +37,11 @@ public class UserServiceImpl implements UserService {
     public User createUser(User user) {
         validateUniqueEmail(user.getEmail());
 
-        // Step 1. Prepare the user object
+        // Automatically calculate age if not provided
+        if (user.getBirthdate() != null && user.getAge() == null) {
+            user.setAge(calculateAge(user.getBirthdate()));
+        }
+
         String plainPassword = null;
 
         if ("ROLE_PATIENT".equalsIgnoreCase(user.getRoleCode())) {
@@ -44,15 +50,10 @@ public class UserServiceImpl implements UserService {
             handleNonPatientCreation(user);
         }
 
-        // Step 2. Save user first (transactional)
         User savedUser = userRepository.save(user);
 
-        // Step 3. If the save succeeded, handle post-save actions
         if ("ROLE_PATIENT".equalsIgnoreCase(savedUser.getRoleCode()) && plainPassword != null) {
-            // Send email only after the DB commit is successful
-            // (this code runs inside @Transactional, so commit will happen after this returns)
             emailService.sendPasswordEmail(savedUser.getEmail(), plainPassword);
-
             auditPublisher.publish(AuditEvent.builder()
                     .eventType("PATIENT_CREATED")
                     .actor("SYSTEM")
@@ -166,5 +167,9 @@ public class UserServiceImpl implements UserService {
         }
 
         return false;
+    }
+
+    private int calculateAge(LocalDate birthdate) {
+        return Period.between(birthdate, LocalDate.now()).getYears();
     }
 }

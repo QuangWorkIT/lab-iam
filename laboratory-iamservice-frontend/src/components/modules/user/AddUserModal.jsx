@@ -6,6 +6,11 @@ import { fetchRolesForUser } from "../../../redux/features/userManagementSlice";
 export default function AddUserModal({ isOpen, onClose, onSave }) {
     const dispatch = useDispatch();
     const { roles, rolesLoading } = useSelector((state) => state.users);
+    const { userInfo } = useSelector((state) => state.user); // Get current logged-in user
+
+    // Check if current user is LAB_MANAGER
+    const isLabManager = userInfo?.role?.includes("ROLE_LAB_MANAGER");
+    const isAdmin = userInfo?.role?.includes("ROLE_ADMIN");
 
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
@@ -21,7 +26,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         password: "",
         confirmPassword: "",
         roleCode: "",
-        accountStatus: "A", // A = Active, IA = Inactive
+        accountStatus: isLabManager ? "IA" : "A", // LAB_MANAGER auto creates Inactive users
     });
 
     const [errors, setErrors] = useState({});
@@ -153,12 +158,11 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
             const userData = {
                 fullName: formData.fullName,
                 email: formData.email,
-                roleCode: formData.roleCode,                  // Backend expects rolecode (not role)
-                isActive: formData.accountStatus === "A",
-                // Additional fields that might be needed
+                roleCode: formData.roleCode,
+                isActive: formData.accountStatus === "A",     // Backend Entity has 'isActive' field
                 phoneNumber: formData.phoneNumber,
-                identityNumber: formData.identityNumber,  // Backend expects identityNumber
-                birthdate: formData.birthdate,            // Backend expects birthdate
+                identityNumber: formData.identityNumber,
+                birthdate: formData.birthdate,
                 address: formData.address,
                 gender: formData.gender,
             };
@@ -187,7 +191,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
             password: "",
             confirmPassword: "",
             roleCode: "",
-            accountStatus: "A",
+            accountStatus: isLabManager ? "IA" : "A",
         });
         setErrors({});
         setIsPasswordGenerated(false);
@@ -844,72 +848,126 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                 </div>
                             )}
 
-                            <div style={{ marginBottom: "20px" }}>
-                                <label
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "8px",
-                                        fontSize: "14px",
-                                        fontWeight: "500",
-                                        color: "#ff5a5f",
-                                    }}
-                                >
-                                    Account Status <span style={{ color: "#ff5a5f" }}>*</span>
-                                </label>
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        gap: "20px",
-                                        alignItems: "center",
-                                    }}
-                                >
+                            {/* Account Status - Only show for ADMIN, auto-set to Inactive for LAB_MANAGER */}
+                            {isAdmin ? (
+                                <div style={{ marginBottom: "20px" }}>
                                     <label
                                         style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            cursor: "pointer",
+                                            display: "block",
+                                            marginBottom: "8px",
+                                            fontSize: "14px",
+                                            fontWeight: "500",
+                                            color: "#ff5a5f",
                                         }}
                                     >
-                                        <input
-                                            type="radio"
-                                            name="accountStatus"
-                                            value="A"
-                                            checked={formData.accountStatus === "A"}
-                                            onChange={handleInputChange}
-                                            style={{
-                                                marginRight: "8px",
-                                                accentColor: "#ff5a5f",
-                                            }}
-                                        />
-                                        <span style={{ color: "#333", fontSize: "14px" }}>A</span>
+                                        Account Status <span style={{ color: "#ff5a5f" }}>*</span>
                                     </label>
-                                    <label
+                                    <div
                                         style={{
                                             display: "flex",
+                                            gap: "20px",
                                             alignItems: "center",
-                                            cursor: "pointer",
                                         }}
                                     >
-                                        <input
-                                            type="radio"
-                                            name="accountStatus"
-                                            value="IA"
-                                            checked={formData.accountStatus === "IA"}
-                                            onChange={handleInputChange}
+                                        <label
                                             style={{
-                                                marginRight: "8px",
-                                                accentColor: "#ff5a5f",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                cursor: "pointer",
                                             }}
-                                        />
-                                        <span style={{ color: "#333", fontSize: "14px" }}>IA</span>
-                                    </label>
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="accountStatus"
+                                                value="A"
+                                                checked={formData.accountStatus === "A"}
+                                                onChange={handleInputChange}
+                                                style={{
+                                                    marginRight: "8px",
+                                                    accentColor: "#ff5a5f",
+                                                }}
+                                            />
+                                            <span style={{ color: "#333", fontSize: "14px" }}>Active</span>
+                                        </label>
+                                        <label
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="accountStatus"
+                                                value="IA"
+                                                checked={formData.accountStatus === "IA"}
+                                                onChange={handleInputChange}
+                                                style={{
+                                                    marginRight: "8px",
+                                                    accentColor: "#ff5a5f",
+                                                }}
+                                            />
+                                            <span style={{ color: "#333", fontSize: "14px" }}>Inactive</span>
+                                        </label>
+                                    </div>
+                                    {errors.accountStatus && (
+                                        <span style={{ color: "#dc3545", fontSize: "12px" }}>
+                                            {errors.accountStatus}
+                                        </span>
+                                    )}
                                 </div>
-                                {errors.accountStatus && (
-                                    <span style={{ color: "#dc3545", fontSize: "12px" }}>
-                                        {errors.accountStatus}
-                                    </span>
-                                )}
-                            </div>
+                            ) : isLabManager ? (
+                                /* Info notification for LAB_MANAGER - User will be created as Inactive */
+                                <div style={{
+                                    marginBottom: "20px",
+                                    padding: "20px",
+                                    backgroundColor: "#fff3cd",
+                                    border: "2px solid #ffc107",
+                                    borderRadius: "8px",
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: "12px",
+                                }}>
+                                    <div style={{
+                                        width: "40px",
+                                        height: "40px",
+                                        backgroundColor: "#ffc107",
+                                        borderRadius: "50%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        flexShrink: 0,
+                                    }}>
+                                        <FaInfoCircle style={{ color: "white", fontSize: "20px" }} />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <h4 style={{
+                                            margin: "0 0 8px 0",
+                                            fontSize: "16px",
+                                            fontWeight: "600",
+                                            color: "#856404",
+                                        }}>
+                                            ⏳ Account Pending Approval
+                                        </h4>
+                                        <p style={{
+                                            margin: "0",
+                                            fontSize: "14px",
+                                            color: "#856404",
+                                            lineHeight: "1.6",
+                                        }}>
+                                            As a <strong>Lab Manager</strong>, new users you create will be set to <strong>Inactive</strong> status and require <strong>Admin approval</strong> before they can access the system.
+                                        </p>
+                                        <p style={{
+                                            margin: "8px 0 0 0",
+                                            fontSize: "13px",
+                                            color: "#856404",
+                                            fontStyle: "italic",
+                                        }}>
+                                            ℹ️ Admin will review and activate the account in the Account Management section.
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : null}
                         </div>
                     )}
 

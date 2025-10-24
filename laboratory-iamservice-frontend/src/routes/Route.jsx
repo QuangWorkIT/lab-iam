@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import TestPages from "../pages/TestPages";
 import RoleList from "../pages/role/RoleList";
 import UserList from "../pages/user/UserList";
+import AccountList from "../pages/account/AccountList";
 import LoginPage from "../pages/auths/LoginPage.jsx";
 import ProtectedRoute from "./ProtectedRoute";
 import HomePage from "../pages/HomePage";
@@ -35,6 +36,15 @@ const routes = [
       <ProtectedRoute
         element={UserList}
         allowedRoles={["ROLE_ADMIN", "ROLE_LAB_MANAGER"]}
+      />
+    ),
+  },
+  {
+    path: "/accounts",
+    element: (
+      <ProtectedRoute
+        element={AccountList}
+        allowedRoles={["ROLE_ADMIN"]}
       />
     ),
   },
