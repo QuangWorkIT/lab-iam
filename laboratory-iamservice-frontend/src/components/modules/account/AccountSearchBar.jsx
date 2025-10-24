@@ -1,25 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { FaSearch, FaCalendarAlt, FaTimes } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 
 export default function AccountSearchBar({
     onSearch,
     initialKeyword = "",
     initialFromDate = "",
     initialToDate = "",
+    initialRoleFilter = "",
+    roles = [],
 }) {
     const [search, setSearch] = useState(initialKeyword);
     const [fromDate, setFromDate] = useState(initialFromDate);
     const [toDate, setToDate] = useState(initialToDate);
+    const [roleFilter, setRoleFilter] = useState(initialRoleFilter);
 
     // Update local state when initial values change (from parent)
     useEffect(() => {
         setSearch(initialKeyword);
         setFromDate(initialFromDate);
         setToDate(initialToDate);
-    }, [initialKeyword, initialFromDate, initialToDate]);
+        setRoleFilter(initialRoleFilter);
+    }, [initialKeyword, initialFromDate, initialToDate, initialRoleFilter]);
 
     const handleSearch = () => {
-        onSearch(search.trim().toLowerCase(), fromDate, toDate);
+        onSearch(search.trim().toLowerCase(), fromDate, toDate, roleFilter);
     };
 
     const handleInputKeyDown = (e) => {
@@ -33,27 +37,28 @@ export default function AccountSearchBar({
         const newFromDate = e.target.value;
         setFromDate(newFromDate);
         // Trigger search immediately with new date
-        onSearch(search.trim().toLowerCase(), newFromDate, toDate);
+        onSearch(search.trim().toLowerCase(), newFromDate, toDate, roleFilter);
     };
 
     const handleToDateChange = (e) => {
         const newToDate = e.target.value;
         setToDate(newToDate);
         // Trigger search immediately with new date
-        onSearch(search.trim().toLowerCase(), fromDate, newToDate);
+        onSearch(search.trim().toLowerCase(), fromDate, newToDate, roleFilter);
     };
 
-    const handleReset = () => {
-        setSearch("");
-        setFromDate("");
-        setToDate("");
-        onSearch("", "", "");
+    const handleRoleChange = (e) => {
+        const newRoleFilter = e.target.value;
+        setRoleFilter(newRoleFilter);
+        // Trigger search immediately with new role filter
+        onSearch(search.trim().toLowerCase(), fromDate, toDate, newRoleFilter);
     };
+
 
     return (
         <div
             className="search-container"
-            style={{ display: "flex", alignItems: "center", gap: 8 }}
+            style={{ display: "flex", alignItems: "center", gap: 12 }}
         >
             <div
                 style={{
@@ -86,9 +91,40 @@ export default function AccountSearchBar({
                 />
             </div>
 
-            <span style={{ color: "#333" }}>Created Date:</span>
+            <span style={{ color: "#333", marginLeft: "8px" }}>Role:</span>
+            <select
+                value={roleFilter}
+                onChange={handleRoleChange}
+                style={{
+                    padding: "5px 8px",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: "4px",
+                    fontSize: "14px",
+                    backgroundColor: "#fff",
+                    color: "#333",
+                    marginLeft: "8px",
+                    cursor: "pointer",
+                }}
+            >
+                <option value="">All Roles</option>
+                {roles && roles.length > 0 ? (
+                    roles.map((role) => (
+                        <option key={role.roleCode || role.code} value={role.roleCode || role.code}>
+                            {role.roleName || role.name || role.roleCode || role.code}
+                        </option>
+                    ))
+                ) : (
+                    <>
+                        <option value="ADMIN">ADMIN</option>
+                        <option value="LAB_MANAGER">LAB MANAGER</option>
+                        <option value="LAB_USER">LAB USER</option>
+                    </>
+                )}
+            </select>
 
-            <div style={{ position: "relative", display: "inline-block" }}>
+            <span style={{ color: "#333", marginLeft: "8px" }}>Created Date:</span>
+
+            <div style={{ display: "inline-block", marginRight: "8px" }}>
                 <input
                     type="date"
                     value={fromDate}
@@ -102,23 +138,14 @@ export default function AccountSearchBar({
                         backgroundColor: "#fff",
                         color: "#333",
                         cursor: "pointer",
-                    }}
-                />
-                <FaCalendarAlt
-                    style={{
-                        position: "absolute",
-                        right: 8,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        color: "#666",
-                        pointerEvents: "none",
+                        width: "140px",
                     }}
                 />
             </div>
 
             <span style={{ margin: "0 4px", color: "#888" }}>-</span>
 
-            <div style={{ position: "relative", display: "inline-block" }}>
+            <div style={{ display: "inline-block", marginLeft: "8px" }}>
                 <input
                     type="date"
                     value={toDate}
@@ -131,16 +158,7 @@ export default function AccountSearchBar({
                         backgroundColor: "#fff",
                         color: "#333",
                         cursor: "pointer",
-                    }}
-                />
-                <FaCalendarAlt
-                    style={{
-                        position: "absolute",
-                        right: 8,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        color: "#666",
-                        pointerEvents: "none",
+                        width: "140px",
                     }}
                 />
             </div>
@@ -151,7 +169,7 @@ export default function AccountSearchBar({
                     border: "1px solid #e0e0e0",
                     borderRadius: "4px",
                     padding: "5px 10px",
-                    marginLeft: "10px",
+                    marginLeft: "8px",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                 }}
@@ -167,35 +185,6 @@ export default function AccountSearchBar({
                 <FaSearch style={{ fontSize: "14px", color: "#666" }} />
             </button>
 
-            <button
-                style={{
-                    backgroundColor: "#fff5f5",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: "4px",
-                    padding: "5px 10px",
-                    marginLeft: "5px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "5px",
-                    fontSize: "14px",
-                    color: "#666",
-                    transition: "all 0.2s ease",
-                }}
-                onClick={handleReset}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#fee";
-                    e.currentTarget.style.borderColor = "#ff5a5f";
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#fff5f5";
-                    e.currentTarget.style.borderColor = "#e0e0e0";
-                }}
-                title="Reset filters"
-            >
-                <FaTimes style={{ fontSize: "12px" }} />
-                Reset
-            </button>
         </div>
     );
 }

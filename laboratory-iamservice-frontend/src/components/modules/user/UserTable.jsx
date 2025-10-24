@@ -7,7 +7,7 @@ import Pagination from "../../common/Pagination";
 import StatusBadge from "../../common/StatusBadge";
 import UserBadge from "./UserBadge";
 import UserActionButtons from "./UserActionButtons";
-import { formatDate } from "../../../utils/formatter";
+import { formatDate, truncateId } from "../../../utils/formatter";
 
 export default function UserTable({
     users,
@@ -181,7 +181,7 @@ export default function UserTable({
                         <tr style={{ backgroundColor: "#f8f9fa" }}>
                             <th
                                 style={{
-                                    padding: "12px 15px",
+                                    padding: "12px 15px 12px 18px",
                                     textAlign: "left",
                                     borderBottom: "1px solid #eaeaea",
                                     color: "#666",
@@ -196,7 +196,7 @@ export default function UserTable({
                             </th>
                             <th
                                 style={{
-                                    padding: "12px 15px",
+                                    padding: "12px 15px 12px 18px",
                                     textAlign: "left",
                                     borderBottom: "1px solid #eaeaea",
                                     color: "#666",
@@ -211,7 +211,7 @@ export default function UserTable({
                             </th>
                             <th
                                 style={{
-                                    padding: "12px 15px",
+                                    padding: "12px 15px 12px 18px",
                                     textAlign: "left",
                                     borderBottom: "1px solid #eaeaea",
                                     color: "#666",
@@ -226,7 +226,7 @@ export default function UserTable({
                             </th>
                             <th
                                 style={{
-                                    padding: "12px 15px",
+                                    padding: "12px 15px 12px 18px",
                                     textAlign: "left",
                                     borderBottom: "1px solid #eaeaea",
                                     color: "#666",
@@ -241,7 +241,7 @@ export default function UserTable({
                             </th>
                             <th
                                 style={{
-                                    padding: "12px 15px",
+                                    padding: "12px 12px",
                                     textAlign: "left",
                                     borderBottom: "1px solid #eaeaea",
                                     color: "#666",
@@ -256,7 +256,7 @@ export default function UserTable({
                             </th>
                             <th
                                 style={{
-                                    padding: "12px 15px",
+                                    padding: "12px 15px 12px 16px",
                                     textAlign: "left",
                                     borderBottom: "1px solid #eaeaea",
                                     color: "#666",
@@ -377,8 +377,9 @@ export default function UserTable({
                                             fontWeight: "500",
                                             color: "#333",
                                         }}
+                                        title={user.id}
                                     >
-                                        {user.id}
+                                        {truncateId(user.id)}
                                     </td>
                                     <td
                                         style={{

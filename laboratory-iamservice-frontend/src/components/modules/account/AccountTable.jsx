@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from "react";
 import {
-    FaSort,
-    FaSortAlphaDown,
-    FaSortAlphaUp,
     FaEye,
     FaUnlock,
-    FaSync,
 } from "react-icons/fa";
 import AccountSearchBar from "./AccountSearchBar";
 import StatusBadge from "../../common/StatusBadge";
 import UserBadge from "../user/UserBadge";
-import { formatDate } from "../../../utils/formatter";
+import { formatDate, truncateId } from "../../../utils/formatter";
 
 export default function AccountTable({
     accounts,
@@ -18,13 +14,11 @@ export default function AccountTable({
     onSearch,
     onView,
     onActivate,
-    onRefresh,
     searchParams = {},
 }) {
     const [filteredAccounts, setFilteredAccounts] = useState([]);
-    const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
-    // Client-side filtering and sorting
+    // Client-side filtering
     useEffect(() => {
         let result = [...accounts];
 
@@ -47,40 +41,20 @@ export default function AccountTable({
             result = result.filter((acc) => acc.createdAt && acc.createdAt <= searchParams.toDate);
         }
 
-        // Apply sorting
-        if (sortConfig.key && ["name", "email", "role", "createdAt"].includes(sortConfig.key)) {
-            result.sort((a, b) => {
-                let aVal, bVal;
-
-                if (sortConfig.key === "createdAt") {
-                    aVal = new Date(a[sortConfig.key] || 0);
-                    bVal = new Date(b[sortConfig.key] || 0);
-                } else {
-                    aVal = (a[sortConfig.key] || "").toString().toLowerCase();
-                    bVal = (b[sortConfig.key] || "").toString().toLowerCase();
-                }
-
-                if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
-                if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
-                return 0;
-            });
+        // Apply role filter
+        if (searchParams.roleFilter) {
+            result = result.filter((acc) => acc.role === searchParams.roleFilter);
         }
 
         setFilteredAccounts(result);
-    }, [accounts, searchParams, sortConfig]);
+    }, [accounts, searchParams]);
 
-    const handleSearch = (keyword, fromDate, toDate) => {
+    const handleSearch = (keyword, fromDate, toDate, roleFilter) => {
         if (onSearch) {
-            onSearch(keyword, fromDate, toDate);
+            onSearch(keyword, fromDate, toDate, roleFilter);
         }
     };
 
-    const toggleSort = (key) => {
-        if (!["name", "email", "role", "createdAt"].includes(key)) return;
-        const direction =
-            sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc";
-        setSortConfig({ key, direction });
-    };
 
     return (
         <div className="account-table-container" style={{ width: "100%" }}>
@@ -99,38 +73,9 @@ export default function AccountTable({
                     initialKeyword={searchParams.keyword || ""}
                     initialFromDate={searchParams.fromDate || ""}
                     initialToDate={searchParams.toDate || ""}
+                    initialRoleFilter={searchParams.roleFilter || ""}
+                    roles={[]}
                 />
-
-                <button
-                    onClick={() => onRefresh && onRefresh()}
-                    disabled={loading}
-                    style={{
-                        backgroundColor: loading ? "#ccc" : "#5a67d8",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        padding: "8px 15px",
-                        fontWeight: "bold",
-                        cursor: loading ? "not-allowed" : "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        fontSize: "14px",
-                        gap: "8px",
-                        transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                        if (!loading) e.currentTarget.style.backgroundColor = "#4c51bf";
-                    }}
-                    onMouseLeave={(e) => {
-                        if (!loading) e.currentTarget.style.backgroundColor = "#5a67d8";
-                    }}
-                    title="Refresh inactive accounts list"
-                >
-                    <FaSync style={{
-                        animation: loading ? "spin 1s linear infinite" : "none",
-                    }} />
-                    Refresh
-                </button>
             </div>
 
             <style>{`
@@ -182,32 +127,7 @@ export default function AccountTable({
                                     verticalAlign: "middle",
                                 }}
                             >
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ whiteSpace: "nowrap" }}>Name</span>
-                                    <button
-                                        onClick={() => toggleSort("name")}
-                                        title="Sort by Name"
-                                        style={{
-                                            background: "transparent",
-                                            border: "none",
-                                            cursor: "pointer",
-                                            padding: 4,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                        }}
-                                    >
-                                        {sortConfig.key === "name" ? (
-                                            sortConfig.direction === "asc" ? (
-                                                <FaSortAlphaDown style={{ color: "#ff5a5f" }} />
-                                            ) : (
-                                                <FaSortAlphaUp style={{ color: "#ff5a5f" }} />
-                                            )
-                                        ) : (
-                                            <FaSort style={{ color: "#aaa" }} />
-                                        )}
-                                    </button>
-                                </div>
+                                Name
                             </th>
                             <th
                                 style={{
@@ -222,32 +142,7 @@ export default function AccountTable({
                                     verticalAlign: "middle",
                                 }}
                             >
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ whiteSpace: "nowrap" }}>Email</span>
-                                    <button
-                                        onClick={() => toggleSort("email")}
-                                        title="Sort by Email"
-                                        style={{
-                                            background: "transparent",
-                                            border: "none",
-                                            cursor: "pointer",
-                                            padding: 4,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                        }}
-                                    >
-                                        {sortConfig.key === "email" ? (
-                                            sortConfig.direction === "asc" ? (
-                                                <FaSortAlphaDown style={{ color: "#ff5a5f" }} />
-                                            ) : (
-                                                <FaSortAlphaUp style={{ color: "#ff5a5f" }} />
-                                            )
-                                        ) : (
-                                            <FaSort style={{ color: "#aaa" }} />
-                                        )}
-                                    </button>
-                                </div>
+                                Email
                             </th>
                             <th
                                 style={{
@@ -262,32 +157,7 @@ export default function AccountTable({
                                     verticalAlign: "middle",
                                 }}
                             >
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ whiteSpace: "nowrap" }}>Role</span>
-                                    <button
-                                        onClick={() => toggleSort("role")}
-                                        title="Sort by Role"
-                                        style={{
-                                            background: "transparent",
-                                            border: "none",
-                                            cursor: "pointer",
-                                            padding: 4,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                        }}
-                                    >
-                                        {sortConfig.key === "role" ? (
-                                            sortConfig.direction === "asc" ? (
-                                                <FaSortAlphaDown style={{ color: "#ff5a5f" }} />
-                                            ) : (
-                                                <FaSortAlphaUp style={{ color: "#ff5a5f" }} />
-                                            )
-                                        ) : (
-                                            <FaSort style={{ color: "#aaa" }} />
-                                        )}
-                                    </button>
-                                </div>
+                                Role
                             </th>
                             <th
                                 style={{
@@ -317,32 +187,7 @@ export default function AccountTable({
                                     verticalAlign: "middle",
                                 }}
                             >
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <span style={{ whiteSpace: "nowrap" }}>Created Date</span>
-                                    <button
-                                        onClick={() => toggleSort("createdAt")}
-                                        title="Sort by Created Date"
-                                        style={{
-                                            background: "transparent",
-                                            border: "none",
-                                            cursor: "pointer",
-                                            padding: 4,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                        }}
-                                    >
-                                        {sortConfig.key === "createdAt" ? (
-                                            sortConfig.direction === "asc" ? (
-                                                <FaSortAlphaDown style={{ color: "#ff5a5f" }} />
-                                            ) : (
-                                                <FaSortAlphaUp style={{ color: "#ff5a5f" }} />
-                                            )
-                                        ) : (
-                                            <FaSort style={{ color: "#aaa" }} />
-                                        )}
-                                    </button>
-                                </div>
+                                Created Date
                             </th>
                             <th
                                 style={{
@@ -449,8 +294,9 @@ export default function AccountTable({
                                             fontWeight: "500",
                                             color: "#333",
                                         }}
+                                        title={account.id}
                                     >
-                                        {account.id}
+                                        {truncateId(account.id)}
                                     </td>
                                     <td
                                         style={{
