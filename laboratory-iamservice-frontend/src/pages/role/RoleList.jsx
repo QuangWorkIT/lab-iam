@@ -9,6 +9,7 @@ import {
 import RoleTable from "../../components/modules/role/RoleTable";
 import RoleModal from "../../components/modules/role/RoleModal";
 import MainLayout from "../../components/layout/MainLayout";
+import { toast } from "react-toastify";
 
 export default function RoleList() {
   // Redux hooks
@@ -97,10 +98,10 @@ export default function RoleList() {
         .then(() => {
           setIsModalOpen(false);
           dispatch(fetchRoles());
-          alert("Role updated successfully!");
+          toast.success("Role updated successfully!");
         })
         .catch((error) => {
-          alert(`Failed to update role: ${formatErr(error)}`);
+          toast.error(`Failed to update role: ${formatErr(error)}`);
         })
         .finally(() => setActionLoading(false));
     } else {
@@ -109,10 +110,10 @@ export default function RoleList() {
         .then(() => {
           setIsModalOpen(false);
           dispatch(fetchRoles());
-          alert("Role created successfully!");
+          toast.success("Role created successfully!");
         })
         .catch((error) => {
-          alert(`Failed to create role: ${formatErr(error)}`);
+          toast.error(`Failed to create role: ${formatErr(error)}`);
         })
         .finally(() => setActionLoading(false));
     }
