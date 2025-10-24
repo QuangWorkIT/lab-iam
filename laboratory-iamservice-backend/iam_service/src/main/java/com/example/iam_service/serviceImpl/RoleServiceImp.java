@@ -113,7 +113,12 @@ public class RoleServiceImp implements RoleService {
     @Override
     public RoleDTO createRole(Role role) {
 
-        role.setCode("ROLE_"+role.getName().trim().toUpperCase().replace(" ","_"));
+        String cleanName = role.getName()
+                .trim()                          // Remove leading/trailing spaces
+                .replaceAll("\\s+", "_")         // Replace one or more whitespace with single underscore
+                .toUpperCase();                  // Convert to uppercase
+
+        role.setCode("ROLE_" + cleanName);
         if(isRoleCodeExists(role.getCode()))
         {
             throw new DuplicateRoleException("Role with name '" + role.getName() + "' already exists");
