@@ -57,7 +57,7 @@ export default function Sidebar() {
     { path: "/home", icon: <FaHome size={20} />, roles: [] },
     { path: "/roles", icon: <FaUsers size={20} />, roles: ["ROLE_ADMIN"] },
     { path: "/users", icon: <FaUserCog size={20} />, roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER"] }, // User management
-    { path: "/test", icon: <FaUserCheck size={20} />, roles: ["ROLE_ADMIN"] }, // Admin Approval page
+    { path: "/accounts", icon: <FaUserCheck size={20} />, roles: ["ROLE_ADMIN"] }, // Account status management
     {
       path: "/test",
       icon: <FaFlask size={20} />,

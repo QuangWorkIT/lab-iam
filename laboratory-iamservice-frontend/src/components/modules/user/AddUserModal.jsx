@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaInfoCircle, FaCalendarAlt } from "react-icons/fa";
+import { FaInfoCircle, FaCalendarAlt, FaEye, FaEyeSlash } from "react-icons/fa";
 import { fetchRolesForUser } from "../../../redux/features/userManagementSlice";
 
 export default function AddUserModal({ isOpen, onClose, onSave }) {
     const dispatch = useDispatch();
     const { roles, rolesLoading } = useSelector((state) => state.users);
+    const { userInfo } = useSelector((state) => state.user); // Get current logged-in user
+
+    // Check if current user is LAB_MANAGER
+    const isLabManager = userInfo?.role?.includes("ROLE_LAB_MANAGER");
+    const isAdmin = userInfo?.role?.includes("ROLE_ADMIN");
 
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
@@ -21,10 +26,12 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         password: "",
         confirmPassword: "",
         roleCode: "",
-        accountStatus: "A", // A = Active, IA = Inactive
+        accountStatus: isLabManager ? "IA" : "A", // LAB_MANAGER auto creates Inactive users
     });
 
     const [errors, setErrors] = useState({});
+    const [isPasswordGenerated, setIsPasswordGenerated] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const steps = [
         { id: 1, title: "Basic Infor", label: "Basic Infor" },
@@ -37,6 +44,38 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
             dispatch(fetchRolesForUser());
         }
     }, [isOpen, dispatch]);
+
+    // Handle PATIENT role - backend will auto-generate password and send via email
+    useEffect(() => {
+        const isPatientRole = formData.roleCode &&
+            formData.roleCode.toString().toUpperCase().includes("PATIENT");
+
+        console.log('Role check:', {
+            roleCode: formData.roleCode,
+            isPatient: isPatientRole
+        });
+
+        if (isPatientRole) {
+            // Clear password fields - backend will generate and send via email
+            setFormData(prev => ({
+                ...prev,
+                password: "",
+                confirmPassword: ""
+            }));
+            setIsPasswordGenerated(true); // Flag to show email notification
+            console.log('✅ PATIENT role selected - password will be sent via email');
+        } else if (!isPatientRole && isPasswordGenerated) {
+            // Reset when changing from PATIENT to another role
+            setFormData(prev => ({
+                ...prev,
+                password: "",
+                confirmPassword: ""
+            }));
+            setIsPasswordGenerated(false);
+            console.log('🔄 Role changed from PATIENT - password input enabled');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formData.roleCode]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -75,14 +114,21 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const validateStep2 = () => {
         const newErrors = {};
 
-        if (!formData.password.trim()) {
-            newErrors.password = "Password is required";
-        } else if (formData.password.length < 6) {
-            newErrors.password = "Password must be at least 6 characters";
+        const isPatientRole = formData.roleCode &&
+            formData.roleCode.toString().toUpperCase().includes("PATIENT");
+
+        // Only validate password for non-PATIENT roles
+        if (!isPatientRole) {
+            if (!formData.password.trim()) {
+                newErrors.password = "Password is required";
+            } else if (formData.password.length < 6) {
+                newErrors.password = "Password must be at least 6 characters";
+            }
+            if (formData.password !== formData.confirmPassword) {
+                newErrors.confirmPassword = "Passwords do not match";
+            }
         }
-        if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = "Passwords do not match";
-        }
+
         if (!formData.roleCode) newErrors.roleCode = "Role Code is required";
         if (!formData.accountStatus) newErrors.accountStatus = "Account Status is required";
 
@@ -105,20 +151,29 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (validateStep2()) {
+            const isPatientRole = formData.roleCode &&
+                formData.roleCode.toString().toUpperCase().includes("PATIENT");
+
             // Prepare user data for saving
             const userData = {
                 fullName: formData.fullName,
                 email: formData.email,
-                password: formData.password,
-                roleCode: formData.roleCode,                  // Backend expects rolecode (not role)
-                isActive: formData.accountStatus === "A",
-                // Additional fields that might be needed
+                roleCode: formData.roleCode,
+                isActive: formData.accountStatus === "A",     // Backend Entity has 'isActive' field
                 phoneNumber: formData.phoneNumber,
-                identityNumber: formData.identityNumber,  // Backend expects identityNumber
-                birthdate: formData.birthdate,            // Backend expects birthdate
+                identityNumber: formData.identityNumber,
+                birthdate: formData.birthdate,
                 address: formData.address,
                 gender: formData.gender,
             };
+
+            // Only include password for non-PATIENT roles
+            // For PATIENT, backend will auto-generate and send via email
+            if (!isPatientRole) {
+                userData.password = formData.password;
+            }
+
+            console.log('📤 Submitting user data:', { ...userData, password: userData.password ? '***hidden***' : 'not included' });
             onSave(userData);
         }
     };
@@ -136,9 +191,11 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
             password: "",
             confirmPassword: "",
             roleCode: "",
-            accountStatus: "A",
+            accountStatus: isLabManager ? "IA" : "A",
         });
         setErrors({});
+        setIsPasswordGenerated(false);
+        setShowPassword(false);
         onClose();
     };
 
@@ -639,146 +696,278 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                 )}
                             </div>
 
-                            <div style={{ marginBottom: "20px" }}>
-                                <label
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "8px",
-                                        fontSize: "14px",
-                                        fontWeight: "500",
-                                        color: "#ff5a5f",
-                                    }}
-                                >
-                                    Enter password <span style={{ color: "#ff5a5f" }}>*</span>
-                                </label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    style={{
-                                        width: "100%",
-                                        padding: "12px",
-                                        border: `1px solid ${errors.password ? "#dc3545" : "#ddd"}`,
-                                        borderRadius: "4px",
-                                        fontSize: "14px",
-                                        boxSizing: "border-box",
-                                        borderLeft: "3px solid #ff5a5f",
-                                        backgroundColor: "white",
-                                        color: "#333",
-                                    }}
-                                    placeholder="Enter password"
-                                />
-                                {errors.password && (
-                                    <span style={{ color: "#dc3545", fontSize: "12px" }}>
-                                        {errors.password}
-                                    </span>
-                                )}
-                            </div>
+                            {/* Password fields - Only show for non-PATIENT roles */}
+                            {!isPasswordGenerated ? (
+                                <>
+                                    <div style={{ marginBottom: "20px" }}>
+                                        <label
+                                            style={{
+                                                marginBottom: "8px",
+                                                fontSize: "14px",
+                                                fontWeight: "500",
+                                                color: "#ff5a5f",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "8px",
+                                            }}
+                                        >
+                                            <span>Enter password <span style={{ color: "#ff5a5f" }}>*</span></span>
+                                        </label>
+                                        <div style={{ position: "relative" }}>
+                                            <input
+                                                type={showPassword ? "text" : "password"}
+                                                name="password"
+                                                value={formData.password}
+                                                onChange={handleInputChange}
+                                                style={{
+                                                    width: "100%",
+                                                    padding: "12px 40px 12px 12px",
+                                                    border: `1px solid ${errors.password ? "#dc3545" : "#ddd"}`,
+                                                    borderRadius: "4px",
+                                                    fontSize: "14px",
+                                                    boxSizing: "border-box",
+                                                    borderLeft: "3px solid #ff5a5f",
+                                                    backgroundColor: "white",
+                                                    color: "#333",
+                                                }}
+                                                placeholder="Enter password"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                style={{
+                                                    position: "absolute",
+                                                    right: "12px",
+                                                    top: "50%",
+                                                    transform: "translateY(-50%)",
+                                                    backgroundColor: "transparent",
+                                                    border: "none",
+                                                    cursor: "pointer",
+                                                    padding: "4px",
+                                                    color: "#666",
+                                                }}
+                                                title={showPassword ? "Hide password" : "Show password"}
+                                            >
+                                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                            </button>
+                                        </div>
+                                        {errors.password && (
+                                            <span style={{ color: "#dc3545", fontSize: "12px" }}>
+                                                {errors.password}
+                                            </span>
+                                        )}
+                                    </div>
 
-                            <div style={{ marginBottom: "20px" }}>
-                                <label
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "8px",
-                                        fontSize: "14px",
-                                        fontWeight: "500",
-                                        color: "#ff5a5f",
-                                    }}
-                                >
-                                    Confirm password <span style={{ color: "#ff5a5f" }}>*</span>
-                                </label>
-                                <input
-                                    type="password"
-                                    name="confirmPassword"
-                                    value={formData.confirmPassword}
-                                    onChange={handleInputChange}
-                                    style={{
-                                        width: "100%",
-                                        padding: "12px",
-                                        border: `1px solid ${errors.confirmPassword ? "#dc3545" : "#ddd"}`,
-                                        borderRadius: "4px",
-                                        fontSize: "14px",
-                                        boxSizing: "border-box",
-                                        borderLeft: "3px solid #ff5a5f",
-                                        backgroundColor: "white",
-                                        color: "#333",
-                                    }}
-                                    placeholder="Confirm password"
-                                />
-                                {errors.confirmPassword && (
-                                    <span style={{ color: "#dc3545", fontSize: "12px" }}>
-                                        {errors.confirmPassword}
-                                    </span>
-                                )}
-                            </div>
-
-                            <div style={{ marginBottom: "20px" }}>
-                                <label
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "8px",
-                                        fontSize: "14px",
-                                        fontWeight: "500",
-                                        color: "#ff5a5f",
-                                    }}
-                                >
-                                    Account Status <span style={{ color: "#ff5a5f" }}>*</span>
-                                </label>
-                                <div
-                                    style={{
+                                    <div style={{ marginBottom: "20px" }}>
+                                        <label
+                                            style={{
+                                                display: "block",
+                                                marginBottom: "8px",
+                                                fontSize: "14px",
+                                                fontWeight: "500",
+                                                color: "#ff5a5f",
+                                            }}
+                                        >
+                                            Confirm password <span style={{ color: "#ff5a5f" }}>*</span>
+                                        </label>
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            name="confirmPassword"
+                                            value={formData.confirmPassword}
+                                            onChange={handleInputChange}
+                                            style={{
+                                                width: "100%",
+                                                padding: "12px",
+                                                border: `1px solid ${errors.confirmPassword ? "#dc3545" : "#ddd"}`,
+                                                borderRadius: "4px",
+                                                fontSize: "14px",
+                                                boxSizing: "border-box",
+                                                borderLeft: "3px solid #ff5a5f",
+                                                backgroundColor: "white",
+                                                color: "#333",
+                                            }}
+                                            placeholder="Confirm password"
+                                        />
+                                        {errors.confirmPassword && (
+                                            <span style={{ color: "#dc3545", fontSize: "12px" }}>
+                                                {errors.confirmPassword}
+                                            </span>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
+                                /* Email notification for PATIENT role */
+                                <div style={{
+                                    marginBottom: "20px",
+                                    padding: "20px",
+                                    backgroundColor: "#e8f4fd",
+                                    border: "2px solid #4a9eff",
+                                    borderRadius: "8px",
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: "12px",
+                                }}>
+                                    <div style={{
+                                        width: "40px",
+                                        height: "40px",
+                                        backgroundColor: "#4a9eff",
+                                        borderRadius: "50%",
                                         display: "flex",
-                                        gap: "20px",
                                         alignItems: "center",
-                                    }}
-                                >
-                                    <label
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="accountStatus"
-                                            value="A"
-                                            checked={formData.accountStatus === "A"}
-                                            onChange={handleInputChange}
-                                            style={{
-                                                marginRight: "8px",
-                                                accentColor: "#ff5a5f",
-                                            }}
-                                        />
-                                        <span style={{ color: "#333", fontSize: "14px" }}>A</span>
-                                    </label>
-                                    <label
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        <input
-                                            type="radio"
-                                            name="accountStatus"
-                                            value="IA"
-                                            checked={formData.accountStatus === "IA"}
-                                            onChange={handleInputChange}
-                                            style={{
-                                                marginRight: "8px",
-                                                accentColor: "#ff5a5f",
-                                            }}
-                                        />
-                                        <span style={{ color: "#333", fontSize: "14px" }}>IA</span>
-                                    </label>
+                                        justifyContent: "center",
+                                        flexShrink: 0,
+                                    }}>
+                                        <FaInfoCircle style={{ color: "white", fontSize: "20px" }} />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <h4 style={{
+                                            margin: "0 0 8px 0",
+                                            fontSize: "16px",
+                                            fontWeight: "600",
+                                            color: "#2563eb",
+                                        }}>
+                                            📧 Password Auto-Generation
+                                        </h4>
+                                        <p style={{
+                                            margin: "0",
+                                            fontSize: "14px",
+                                            color: "#1e40af",
+                                            lineHeight: "1.6",
+                                        }}>
+                                            Since this user is a <strong>PATIENT</strong>, the password will be automatically generated by the system and sent to <strong>{formData.email || "the user's email"}</strong>.
+                                        </p>
+                                        <p style={{
+                                            margin: "8px 0 0 0",
+                                            fontSize: "13px",
+                                            color: "#3b82f6",
+                                            fontStyle: "italic",
+                                        }}>
+                                            ℹ️ No need to enter a password manually.
+                                        </p>
+                                    </div>
                                 </div>
-                                {errors.accountStatus && (
-                                    <span style={{ color: "#dc3545", fontSize: "12px" }}>
-                                        {errors.accountStatus}
-                                    </span>
-                                )}
-                            </div>
+                            )}
+
+                            {/* Account Status - Only show for ADMIN, auto-set to Inactive for LAB_MANAGER */}
+                            {isAdmin ? (
+                                <div style={{ marginBottom: "20px" }}>
+                                    <label
+                                        style={{
+                                            display: "block",
+                                            marginBottom: "8px",
+                                            fontSize: "14px",
+                                            fontWeight: "500",
+                                            color: "#ff5a5f",
+                                        }}
+                                    >
+                                        Account Status <span style={{ color: "#ff5a5f" }}>*</span>
+                                    </label>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            gap: "20px",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <label
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="accountStatus"
+                                                value="A"
+                                                checked={formData.accountStatus === "A"}
+                                                onChange={handleInputChange}
+                                                style={{
+                                                    marginRight: "8px",
+                                                    accentColor: "#ff5a5f",
+                                                }}
+                                            />
+                                            <span style={{ color: "#333", fontSize: "14px" }}>Active</span>
+                                        </label>
+                                        <label
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="accountStatus"
+                                                value="IA"
+                                                checked={formData.accountStatus === "IA"}
+                                                onChange={handleInputChange}
+                                                style={{
+                                                    marginRight: "8px",
+                                                    accentColor: "#ff5a5f",
+                                                }}
+                                            />
+                                            <span style={{ color: "#333", fontSize: "14px" }}>Inactive</span>
+                                        </label>
+                                    </div>
+                                    {errors.accountStatus && (
+                                        <span style={{ color: "#dc3545", fontSize: "12px" }}>
+                                            {errors.accountStatus}
+                                        </span>
+                                    )}
+                                </div>
+                            ) : isLabManager ? (
+                                /* Info notification for LAB_MANAGER - User will be created as Inactive */
+                                <div style={{
+                                    marginBottom: "20px",
+                                    padding: "20px",
+                                    backgroundColor: "#fff3cd",
+                                    border: "2px solid #ffc107",
+                                    borderRadius: "8px",
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: "12px",
+                                }}>
+                                    <div style={{
+                                        width: "40px",
+                                        height: "40px",
+                                        backgroundColor: "#ffc107",
+                                        borderRadius: "50%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        flexShrink: 0,
+                                    }}>
+                                        <FaInfoCircle style={{ color: "white", fontSize: "20px" }} />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <h4 style={{
+                                            margin: "0 0 8px 0",
+                                            fontSize: "16px",
+                                            fontWeight: "600",
+                                            color: "#856404",
+                                        }}>
+                                            ⏳ Account Pending Approval
+                                        </h4>
+                                        <p style={{
+                                            margin: "0",
+                                            fontSize: "14px",
+                                            color: "#856404",
+                                            lineHeight: "1.6",
+                                        }}>
+                                            As a <strong>Lab Manager</strong>, new users you create will be set to <strong>Inactive</strong> status and require <strong>Admin approval</strong> before they can access the system.
+                                        </p>
+                                        <p style={{
+                                            margin: "8px 0 0 0",
+                                            fontSize: "13px",
+                                            color: "#856404",
+                                            fontStyle: "italic",
+                                        }}>
+                                            ℹ️ Admin will review and activate the account in the Account Management section.
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : null}
                         </div>
                     )}
 

@@ -13,7 +13,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
@@ -28,7 +27,6 @@ import java.util.UUID;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
-    private final UserGrantAuthority grantAuthority;
 
     // Filter for up-coming requests
     @Override
@@ -49,11 +47,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
             // validate token
-            String validatedToken = jwtUtil.validate(header.substring(7));
-            User user = userRepository.findById(UUID.fromString(validatedToken))
+            String jwt = header.substring(7);
+            String userId = jwtUtil.validate(jwt);
+            User user = userRepository.findById(UUID.fromString(userId))
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-            List<GrantedAuthority> authorities = grantAuthority.getAuthority(user);
+            List<GrantedAuthority> authorities = jwtUtil.getUserAuthorities(jwt);
 
             // create authentication object
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

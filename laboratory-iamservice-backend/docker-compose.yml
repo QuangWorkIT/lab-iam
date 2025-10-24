@@ -21,7 +21,7 @@ services:
       context: ./iam_service
       dockerfile: Dockerfile
     ports:
-      - "8081:8081"
+      - "8089:8089"
     environment:
       SPRING_PROFILES_ACTIVE: prod
       JWT_SECRET: ${JWT_SECRET}

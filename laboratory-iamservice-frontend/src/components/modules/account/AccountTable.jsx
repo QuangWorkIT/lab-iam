@@ -1,118 +1,89 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
-    FaPlus,
     FaSort,
     FaSortAlphaDown,
     FaSortAlphaUp,
     FaEye,
-    FaEdit,
-    FaTrash,
-    FaLock,
     FaUnlock,
+    FaSync,
 } from "react-icons/fa";
-import UserSearchBar from "./UserSearchBar";
-import Pagination from "../../common/Pagination";
+import AccountSearchBar from "./AccountSearchBar";
 import StatusBadge from "../../common/StatusBadge";
-import UserBadge from "./UserBadge";
+import UserBadge from "../user/UserBadge";
 import { formatDate } from "../../../utils/formatter";
 
-export default function UserTable({
-    users,
+export default function AccountTable({
+    accounts,
+    loading = false,
     onSearch,
-    onSort,
-    onDelete,
-    onPageChange,
-    onPageSizeChange,
     onView,
-    onEdit,
-    onAdd,
-    onToggleStatus,
-    currentPage = 0,
-    totalPages = 1,
-    totalElements = 0,
-    pageSize = 10,
+    onActivate,
+    onRefresh,
     searchParams = {},
 }) {
-    const [filteredUsers, setFilteredUsers] = useState(users);
-    // Sorting: only 'name' and 'email' are sortable alphabetically
+    const [filteredAccounts, setFilteredAccounts] = useState([]);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
-    const sortUsers = useCallback((list) => {
-        if (!sortConfig.key) return list;
-        // Allow sorting by name, email, role, createdAt
-        if (!["name", "email", "role", "createdAt"].includes(sortConfig.key)) return list;
-
-        const sorted = [...list].sort((a, b) => {
-            let aVal, bVal;
-
-            if (sortConfig.key === "createdAt") {
-                // Sort by date
-                aVal = new Date(a[sortConfig.key] || 0);
-                bVal = new Date(b[sortConfig.key] || 0);
-            } else {
-                // Sort by string
-                aVal = (a[sortConfig.key] || "").toString().toLowerCase();
-                bVal = (b[sortConfig.key] || "").toString().toLowerCase();
-            }
-
-            if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
-            if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
-            return 0;
-        });
-        return sorted;
-    }, [sortConfig]);
-
+    // Client-side filtering and sorting
     useEffect(() => {
-        if (sortConfig.key) {
-            setFilteredUsers((prev) => {
-                const base = prev && prev.length ? prev : users;
-                return sortUsers(base);
-            });
-        } else {
-            setFilteredUsers(users); // giữ nguyên thứ tự backend
+        let result = [...accounts];
+
+        // Apply search filters
+        if (searchParams.keyword) {
+            const kw = searchParams.keyword.toLowerCase();
+            result = result.filter(
+                (acc) =>
+                    (acc.name && acc.name.toLowerCase().includes(kw)) ||
+                    (acc.email && acc.email.toLowerCase().includes(kw)) ||
+                    (acc.role && acc.role.toLowerCase().includes(kw))
+            );
         }
-    }, [users, sortConfig, sortUsers]);
 
-    const handleSearch = (keyword, fromDate, toDate, roleFilter) => {
-        if (onSearch) {
-            onSearch(keyword, fromDate, toDate, roleFilter);
-        } else {
-            // Local filtering if no callback provided
-            const filtered = users.filter((user) => {
-                const matchKeyword =
-                    user.name.toLowerCase().includes(keyword) ||
-                    user.email.toLowerCase().includes(keyword) ||
-                    (user.role && user.role.toLowerCase().includes(keyword));
+        // Apply date filters
+        if (searchParams.fromDate) {
+            result = result.filter((acc) => acc.createdAt && acc.createdAt >= searchParams.fromDate);
+        }
+        if (searchParams.toDate) {
+            result = result.filter((acc) => acc.createdAt && acc.createdAt <= searchParams.toDate);
+        }
 
-                const matchDate =
-                    (!fromDate || new Date(user.createdAt) >= new Date(fromDate)) &&
-                    (!toDate || new Date(user.createdAt) <= new Date(toDate));
+        // Apply sorting
+        if (sortConfig.key && ["name", "email", "role", "createdAt"].includes(sortConfig.key)) {
+            result.sort((a, b) => {
+                let aVal, bVal;
 
-                const matchRole = !roleFilter || user.role === roleFilter;
+                if (sortConfig.key === "createdAt") {
+                    aVal = new Date(a[sortConfig.key] || 0);
+                    bVal = new Date(b[sortConfig.key] || 0);
+                } else {
+                    aVal = (a[sortConfig.key] || "").toString().toLowerCase();
+                    bVal = (b[sortConfig.key] || "").toString().toLowerCase();
+                }
 
-                return matchKeyword && matchDate && matchRole;
+                if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+                if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+                return 0;
             });
-            setFilteredUsers(sortUsers(filtered));
+        }
+
+        setFilteredAccounts(result);
+    }, [accounts, searchParams, sortConfig]);
+
+    const handleSearch = (keyword, fromDate, toDate) => {
+        if (onSearch) {
+            onSearch(keyword, fromDate, toDate);
         }
     };
 
-    // Toggle sorting for allowed keys (name, email, role, createdAt)
     const toggleSort = (key) => {
         if (!["name", "email", "role", "createdAt"].includes(key)) return;
         const direction =
             sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc";
         setSortConfig({ key, direction });
-
-        if (onSort) {
-            // Nếu có callback, báo cáo sự thay đổi lên cha
-            onSort(key, direction);
-        } else {
-            setSortConfig({ key, direction: "asc" });
-        }
     };
 
     return (
-        <div className="user-table-container" style={{ width: "100%" }}>
+        <div className="account-table-container" style={{ width: "100%" }}>
             {/* Toolbar & Search */}
             <div
                 style={{
@@ -123,37 +94,53 @@ export default function UserTable({
                     width: "100%",
                 }}
             >
-                <UserSearchBar
+                <AccountSearchBar
                     onSearch={handleSearch}
                     initialKeyword={searchParams.keyword || ""}
                     initialFromDate={searchParams.fromDate || ""}
                     initialToDate={searchParams.toDate || ""}
-                    initialRoleFilter={searchParams.roleFilter || ""}
                 />
 
-                <div className="add-new-button">
-                    <button
-                        style={{
-                            backgroundColor: "#ff5a5f",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            padding: "8px 15px",
-                            fontWeight: "bold",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            fontSize: "14px",
-                        }}
-                        onClick={() => (onAdd ? onAdd() : console.log("Add new user"))}
-                    >
-                        <FaPlus style={{ marginRight: "5px" }} />
-                        Add New User
-                    </button>
-                </div>
+                <button
+                    onClick={() => onRefresh && onRefresh()}
+                    disabled={loading}
+                    style={{
+                        backgroundColor: loading ? "#ccc" : "#5a67d8",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "8px 15px",
+                        fontWeight: "bold",
+                        cursor: loading ? "not-allowed" : "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        fontSize: "14px",
+                        gap: "8px",
+                        transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                        if (!loading) e.currentTarget.style.backgroundColor = "#4c51bf";
+                    }}
+                    onMouseLeave={(e) => {
+                        if (!loading) e.currentTarget.style.backgroundColor = "#5a67d8";
+                    }}
+                    title="Refresh inactive accounts list"
+                >
+                    <FaSync style={{
+                        animation: loading ? "spin 1s linear infinite" : "none",
+                    }} />
+                    Refresh
+                </button>
             </div>
 
-            {/* Bảng users */}
+            <style>{`
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
+
+            {/* Account table */}
             <div style={{ width: "100%", overflowX: "auto" }}>
                 <table
                     style={{
@@ -197,7 +184,6 @@ export default function UserTable({
                             >
                                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                     <span style={{ whiteSpace: "nowrap" }}>Name</span>
-
                                     <button
                                         onClick={() => toggleSort("name")}
                                         title="Sort by Name"
@@ -238,7 +224,6 @@ export default function UserTable({
                             >
                                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                     <span style={{ whiteSpace: "nowrap" }}>Email</span>
-
                                     <button
                                         onClick={() => toggleSort("email")}
                                         title="Sort by Email"
@@ -279,7 +264,6 @@ export default function UserTable({
                             >
                                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                     <span style={{ whiteSpace: "nowrap" }}>Role</span>
-
                                     <button
                                         onClick={() => toggleSort("role")}
                                         title="Sort by Role"
@@ -308,6 +292,21 @@ export default function UserTable({
                             <th
                                 style={{
                                     padding: "12px 15px",
+                                    textAlign: "center",
+                                    borderBottom: "1px solid #eaeaea",
+                                    color: "#666",
+                                    fontWeight: "600",
+                                    fontSize: "14px",
+                                    minWidth: "100px",
+                                    whiteSpace: "nowrap",
+                                    verticalAlign: "middle",
+                                }}
+                            >
+                                Status
+                            </th>
+                            <th
+                                style={{
+                                    padding: "12px 15px",
                                     textAlign: "left",
                                     borderBottom: "1px solid #eaeaea",
                                     color: "#666",
@@ -320,7 +319,6 @@ export default function UserTable({
                             >
                                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                     <span style={{ whiteSpace: "nowrap" }}>Created Date</span>
-
                                     <button
                                         onClick={() => toggleSort("createdAt")}
                                         title="Sort by Created Date"
@@ -361,7 +359,22 @@ export default function UserTable({
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredUsers.length === 0 ? (
+                        {loading ? (
+                            <tr>
+                                <td
+                                    colSpan={7}
+                                    style={{
+                                        textAlign: "center",
+                                        padding: "60px 20px",
+                                        backgroundColor: "#fafafa",
+                                    }}
+                                >
+                                    <div style={{ fontSize: "16px", color: "#666" }}>
+                                        Loading inactive accounts...
+                                    </div>
+                                </td>
+                            </tr>
+                        ) : filteredAccounts.length === 0 ? (
                             <tr>
                                 <td
                                     colSpan={7}
@@ -392,7 +405,7 @@ export default function UserTable({
                                                 color: "#ccc",
                                             }}
                                         >
-                                            👥
+                                            ✅
                                         </div>
                                         <div>
                                             <h3
@@ -403,49 +416,28 @@ export default function UserTable({
                                                     color: "#666",
                                                 }}
                                             >
-                                                No Users Found
+                                                No Inactive Accounts
                                             </h3>
                                             <p
                                                 style={{
                                                     margin: "0",
                                                     fontSize: "14px",
                                                     color: "#888",
-                                                    maxWidth: "300px",
+                                                    maxWidth: "350px",
                                                 }}
                                             >
-                                                {users.length === 0
-                                                    ? "There are no users in the system yet. Click 'Add New User' to create the first user."
-                                                    : "No users match your current search criteria. Try adjusting your filters."}
+                                                {accounts.length === 0
+                                                    ? "Great! All accounts are currently active. There are no pending accounts to approve."
+                                                    : "No accounts match your current search criteria. Try adjusting your filters."}
                                             </p>
                                         </div>
-                                        {users.length === 0 && (
-                                            <button
-                                                onClick={() => onAdd && onAdd()}
-                                                style={{
-                                                    backgroundColor: "#ff5a5f",
-                                                    color: "white",
-                                                    border: "none",
-                                                    borderRadius: "6px",
-                                                    padding: "10px 20px",
-                                                    fontSize: "14px",
-                                                    fontWeight: "500",
-                                                    cursor: "pointer",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    gap: "8px",
-                                                }}
-                                            >
-                                                <FaPlus />
-                                                Add First User
-                                            </button>
-                                        )}
                                     </div>
                                 </td>
                             </tr>
                         ) : (
-                            filteredUsers.map((user, index) => (
+                            filteredAccounts.map((account, index) => (
                                 <tr
-                                    key={user.id}
+                                    key={account.id}
                                     style={{
                                         backgroundColor: index % 2 === 0 ? "#fff" : "#f9f9f9",
                                     }}
@@ -458,7 +450,7 @@ export default function UserTable({
                                             color: "#333",
                                         }}
                                     >
-                                        {user.id}
+                                        {account.id}
                                     </td>
                                     <td
                                         style={{
@@ -468,7 +460,7 @@ export default function UserTable({
                                             color: "#333",
                                         }}
                                     >
-                                        {user.name}
+                                        {account.name}
                                     </td>
                                     <td
                                         style={{
@@ -477,7 +469,7 @@ export default function UserTable({
                                             color: "#555",
                                         }}
                                     >
-                                        {user.email}
+                                        {account.email}
                                     </td>
                                     <td
                                         style={{
@@ -485,7 +477,16 @@ export default function UserTable({
                                             borderBottom: "1px solid #eaeaea",
                                         }}
                                     >
-                                        <UserBadge roleName={user.role} />
+                                        <UserBadge roleName={account.role} />
+                                    </td>
+                                    <td
+                                        style={{
+                                            padding: "12px 15px",
+                                            borderBottom: "1px solid #eaeaea",
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        <StatusBadge active={account.isActive} />
                                     </td>
                                     <td
                                         style={{
@@ -494,7 +495,7 @@ export default function UserTable({
                                             color: "#555",
                                         }}
                                     >
-                                        {formatDate(user.createdAt)}
+                                        {formatDate(account.createdAt)}
                                     </td>
                                     <td
                                         style={{
@@ -507,7 +508,7 @@ export default function UserTable({
                                         }}
                                     >
                                         <button
-                                            onClick={() => onView && onView(user)}
+                                            onClick={() => onView && onView(account)}
                                             style={{
                                                 backgroundColor: "#5a67d8",
                                                 color: "white",
@@ -523,81 +524,51 @@ export default function UserTable({
                                                 minHeight: "36px",
                                                 transition: "all 0.2s ease",
                                             }}
-                                            title="View"
+                                            title="View Details"
                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#4c51bf"}
                                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#5a67d8"}
                                         >
                                             <FaEye />
                                         </button>
-                                        <button
-                                            onClick={() => onEdit && onEdit(user)}
-                                            style={{
-                                                backgroundColor: "#f6ad55",
-                                                color: "white",
-                                                border: "none",
-                                                borderRadius: "6px",
-                                                padding: "8px 10px",
-                                                cursor: "pointer",
-                                                fontSize: "14px",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                minWidth: "36px",
-                                                minHeight: "36px",
-                                                transition: "all 0.2s ease",
-                                            }}
-                                            title="Edit"
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#ed8936"}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#f6ad55"}
-                                        >
-                                            <FaEdit />
-                                        </button>
-                                        <button
-                                            onClick={() => onToggleStatus && onToggleStatus(user)}
-                                            style={{
-                                                backgroundColor: user.isActive ? "#fc8181" : "#48bb78",
-                                                color: "white",
-                                                border: "none",
-                                                borderRadius: "6px",
-                                                padding: "8px 10px",
-                                                cursor: "pointer",
-                                                fontSize: "14px",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                minWidth: "36px",
-                                                minHeight: "36px",
-                                                transition: "all 0.2s ease",
-                                            }}
-                                            title={user.isActive ? "Lock" : "Unlock"}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = user.isActive ? "#f56565" : "#38a169"}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = user.isActive ? "#fc8181" : "#48bb78"}
-                                        >
-                                            {user.isActive ? <FaLock /> : <FaUnlock />}
-                                        </button>
-                                        <button
-                                            onClick={() => onDelete && onDelete(user.id)}
-                                            style={{
-                                                backgroundColor: "#fc8181",
-                                                color: "white",
-                                                border: "none",
-                                                borderRadius: "6px",
-                                                padding: "8px 10px",
-                                                cursor: "pointer",
-                                                fontSize: "14px",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                minWidth: "36px",
-                                                minHeight: "36px",
-                                                transition: "all 0.2s ease",
-                                            }}
-                                            title="Delete"
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f56565"}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#fc8181"}
-                                        >
-                                            <FaTrash />
-                                        </button>
+                                        {!account.isActive && (
+                                            <button
+                                                onClick={() => onActivate && onActivate(account)}
+                                                style={{
+                                                    backgroundColor: "#48bb78",
+                                                    color: "white",
+                                                    border: "none",
+                                                    borderRadius: "6px",
+                                                    padding: "8px 12px",
+                                                    cursor: "pointer",
+                                                    fontSize: "14px",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    gap: "6px",
+                                                    minHeight: "36px",
+                                                    transition: "all 0.2s ease",
+                                                    fontWeight: "500",
+                                                }}
+                                                title="Activate Account"
+                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#38a169"}
+                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#48bb78"}
+                                            >
+                                                <FaUnlock />
+                                                <span>Activate</span>
+                                            </button>
+                                        )}
+                                        {account.isActive && (
+                                            <span
+                                                style={{
+                                                    color: "#48bb78",
+                                                    fontSize: "14px",
+                                                    fontWeight: "500",
+                                                    padding: "8px 12px",
+                                                }}
+                                            >
+                                                ✓ Active
+                                            </span>
+                                        )}
                                     </td>
                                 </tr>
                             ))
@@ -606,15 +577,14 @@ export default function UserTable({
                 </table>
             </div>
 
-            {/* Phần pagination */}
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalElements={totalElements}
-                pageSize={pageSize}
-                onPageChange={onPageChange}
-                onPageSizeChange={onPageSizeChange}
-            />
+            {/* Summary info */}
+            {!loading && filteredAccounts.length > 0 && (
+                <div style={{ marginTop: "16px", textAlign: "right", fontSize: "14px", color: "#666" }}>
+                    Showing {filteredAccounts.length} inactive account{filteredAccounts.length !== 1 ? 's' : ''}
+                    {filteredAccounts.length !== accounts.length && ` (filtered from ${accounts.length} total)`}
+                </div>
+            )}
         </div>
     );
 }
+

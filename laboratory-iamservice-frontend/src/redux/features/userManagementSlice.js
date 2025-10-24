@@ -85,15 +85,15 @@ export const fetchUsers = createAsyncThunk(
                 totalPages = response.data.totalPages || 1;
                 totalElements = response.data.totalElements || userDTOs.length;
             } else if (Array.isArray(response.data)) {
-                // Simple array response - Apply client-side filtering if backend doesn't support it
-                userDTOs = response.data;
+                // Simple array response - Apply client-side filtering and pagination
+                let allUsers = response.data;
 
                 // Client-side filtering as fallback
                 if (params.keyword || params.roleFilter || params.fromDate || params.toDate) {
                     console.log('⚠️ Backend returned full list, applying client-side filtering...');
                     console.log('Filter params:', { keyword: params.keyword, role: params.roleFilter, fromDate: params.fromDate, toDate: params.toDate });
 
-                    userDTOs = userDTOs.filter(dto => {
+                    allUsers = allUsers.filter(dto => {
                         // Keyword matching
                         const matchKeyword = !params.keyword ||
                             (dto.fullName && dto.fullName.toLowerCase().includes(params.keyword.toLowerCase())) ||
@@ -111,13 +111,6 @@ export const fetchUsers = createAsyncThunk(
                                 dtoRole === filterRole ||
                                 dtoRoleCode.includes(filterRole) ||
                                 dtoRole.includes(filterRole);
-
-                            console.log(`Role check for user ${dto.email}:`, {
-                                filterRole,
-                                dtoRoleCode,
-                                dtoRole,
-                                matchRole
-                            });
                         }
 
                         // Date matching
@@ -127,11 +120,21 @@ export const fetchUsers = createAsyncThunk(
 
                         return matchKeyword && matchRole && matchDate;
                     });
-                    console.log(`📊 Filtered ${userDTOs.length} users from ${response.data.length} total`);
+                    console.log(`📊 Filtered ${allUsers.length} users from ${response.data.length} total`);
                 }
 
-                totalPages = 1;
-                totalElements = userDTOs.length;
+                // Client-side pagination
+                const pageSize = params.size || 10;
+                const currentPage = params.page || 0;
+                totalElements = allUsers.length;
+                totalPages = Math.ceil(totalElements / pageSize);
+
+                // Get users for current page
+                const startIndex = currentPage * pageSize;
+                const endIndex = startIndex + pageSize;
+                userDTOs = allUsers.slice(startIndex, endIndex);
+
+                console.log(`📄 Page ${currentPage + 1}/${totalPages}: Showing ${userDTOs.length} users (${startIndex + 1}-${Math.min(endIndex, totalElements)} of ${totalElements})`);
             } else {
                 userDTOs = [];
                 totalPages = 0;
@@ -164,9 +167,12 @@ export const createUser = createAsyncThunk(
     "userManagement/createUser",
     async (userData, { rejectWithValue }) => {
         try {
+            console.log('🔵 [CREATE USER] Request payload:', userData);
             const response = await api.post("/api/users", userData);
+            console.log('🟢 [CREATE USER] Response from backend:', response.data);
             return mapUserDTOToUI(response.data);
         } catch (error) {
+            console.error('🔴 [CREATE USER] Error:', error.response?.data || error);
             return rejectWithValue(
                 error.response?.data?.message || error.message || "Failed to create user"
             );

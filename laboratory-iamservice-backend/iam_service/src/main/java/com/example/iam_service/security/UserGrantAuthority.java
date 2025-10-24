@@ -19,7 +19,7 @@ public class UserGrantAuthority {
     private final PrivilegesConverter privilegesConverter;
     private final RoleRepository roleRepo;
 
-    public List<GrantedAuthority> getAuthority(User user) {
+    public List<GrantedAuthority> getAuthorityByUser(User user) {
 
         try {
             String[] privileges = privilegesConverter.convertToDatabaseColumn(roleRepo.findPrivilegesByCode(user.getRoleCode())
