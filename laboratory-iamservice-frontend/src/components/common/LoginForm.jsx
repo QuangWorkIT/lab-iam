@@ -46,7 +46,7 @@ function LoginForm() {
     const [isPasswordExpanded, setIsPasswordExpanded] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isGoogleLogin, setIsGoogleLogin] = useState(false)
-    const [banUntil, setbanUntil] = useState("ban intu")
+    const [banUntil, setbanUntil] = useState(null)
     const dispatch = useDispatch()
     const nav = useNavigate()
 
