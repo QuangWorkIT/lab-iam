@@ -1,16 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../configs/axios.js";
+import { toast } from "react-toastify";
 
 const initialState = {
-  users: [],
-  currentUser: null,
   userInfo: null,
   token: null,
-  isAuthenticated: false,
   loading: false,
-  error: null,
-  totalPages: 0,
-  totalElements: 0,
+  isBanned: null
 };
 
 export const logout = createAsyncThunk("user/logout", async (_, { rejectWithValue }) => {
@@ -35,11 +31,11 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(logout.fulfilled, (state, action) => {
-        console.log(action.payload)
+      .addCase(logout.fulfilled, (state) => {
         state.token = null
         state.userInfo = null
         localStorage.removeItem("token")
+        toast.success("Logout success")
       })
       .addCase(logout.rejected, (action) => {
         console.error(action.payload)
