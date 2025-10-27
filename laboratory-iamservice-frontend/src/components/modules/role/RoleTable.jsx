@@ -31,6 +31,14 @@ export default function RoleTable({
   // Sorting: only 'code' and 'name' are sortable alphabetically
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
+  // Lưu tiêu chí tìm kiếm để filter FE
+  const [searchCriteria, setSearchCriteria] = useState({
+    keyword: "",
+    fromDate: "",
+    toDate: "",
+    roleFilter: "",
+  });
+
   const sortRoles = (list) => {
     if (!sortConfig.key) return list;
     // Only allow sorting by code or name
@@ -45,24 +53,69 @@ export default function RoleTable({
     return sorted;
   };
 
+  const applyFilters = (list, criteria) => {
+    const { keyword, fromDate, toDate, roleFilter } = criteria;
+    const kw = (keyword || "").toLowerCase();
+
+    const toEndOfDay = (dateStr) => {
+      const d = new Date(dateStr);
+      d.setHours(23, 59, 59, 999);
+      return d;
+    };
+
+    return (list || []).filter((r) => {
+      // keyword trên code, name, description, privileges
+      const code = (r.code || "").toLowerCase();
+      const name = (r.name || "").toLowerCase();
+      const desc = (r.description || "").toLowerCase();
+      const priv = Array.isArray(r.privileges)
+        ? r.privileges.join(", ").toLowerCase()
+        : (r.privileges || "").toString().toLowerCase();
+
+      const matchKeyword =
+        !kw ||
+        code.includes(kw) ||
+        name.includes(kw) ||
+        desc.includes(kw) ||
+        priv.includes(kw);
+
+      // Lọc theo roleFilter: so sánh theo code để khớp với value của dropdown
+      const rf = (roleFilter || "").toLowerCase();
+      const matchRole = !rf || code === rf;
+
+      // Lọc theo ngày tạo
+      const created = r.createdAt ? new Date(r.createdAt) : null;
+      const matchFrom = !fromDate || (created && created >= new Date(fromDate));
+      const matchTo = !toDate || (created && created <= toEndOfDay(toDate));
+
+      return matchKeyword && matchRole && matchFrom && matchTo;
+    });
+  };
+
   useEffect(() => {
+    // Áp dụng filter trước
+    const filtered = applyFilters(roles, searchCriteria);
+
     // Nếu parent đang xử lý sort ở BE (onSort được cung cấp), không sort ở client
     if (onSort) {
-      setFilteredRoles(roles);
+      setFilteredRoles(filtered);
       return;
     }
 
     if (sortConfig.key) {
-      // Luôn sort dựa trên danh sách roles mới nhất
-      setFilteredRoles(sortRoles(roles));
+      // Luôn sort dựa trên danh sách mới nhất sau filter
+      setFilteredRoles(sortRoles(filtered));
     } else {
-      setFilteredRoles(roles); // giữ nguyên thứ tự backend
+      setFilteredRoles(filtered); // giữ nguyên thứ tự backend
     }
-  }, [roles, sortConfig, onSort]);
+  }, [roles, searchCriteria, sortConfig, onSort]);
 
-  const handleSearch = (keyword, fromDate, toDate) => {
+  const handleSearch = (keyword, fromDate, toDate, roleFilter) => {
+    // Lưu tiêu chí để filter FE
+    setSearchCriteria({ keyword, fromDate, toDate, roleFilter });
+    // Giữ tương thích: nếu cha có onSearch thì vẫn gọi
     if (onSearch) {
-      onSearch(keyword, fromDate, toDate);
+      onSearch(keyword, fromDate, toDate, roleFilter);
     }
   };
 
@@ -101,9 +154,11 @@ export default function RoleTable({
           alignItems: "center",
           marginBottom: "15px",
           width: "100%",
+          flexWrap: "wrap", // allow wrap so the button drops to next line if needed
+          gap: 10,
         }}
       >
-        <RoleSearchBar onSearch={handleSearch} />
+        <RoleSearchBar onSearch={handleSearch} roleOptions={roles} />
 
         <div className="add-new-button">
           <button
