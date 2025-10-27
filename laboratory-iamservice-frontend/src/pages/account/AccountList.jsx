@@ -20,6 +20,7 @@ export default function AccountList() {
         keyword: "",
         fromDate: "",
         toDate: "",
+        roleFilter: "",
     });
 
     // Fetch inactive accounts when component mounts
@@ -28,19 +29,15 @@ export default function AccountList() {
     }, [dispatch]);
 
     // Handlers for AccountTable
-    const handleSearch = (keyword, fromDate, toDate) => {
+    const handleSearch = (keyword, fromDate, toDate, roleFilter) => {
         setSearchParams({
             keyword,
             fromDate,
             toDate,
+            roleFilter,
         });
     };
 
-    // Handler for refreshing the list
-    const handleRefresh = () => {
-        dispatch(fetchInactiveAccounts());
-        toast.info("Refreshing inactive accounts list...");
-    };
 
     // Handler for viewing account details
     const handleViewAccount = (account) => {
@@ -112,7 +109,6 @@ export default function AccountList() {
                     onSearch={handleSearch}
                     onView={handleViewAccount}
                     onActivate={handleActivateAccount}
-                    onRefresh={handleRefresh}
                     searchParams={searchParams}
                 />
             </div>

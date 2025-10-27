@@ -22,6 +22,8 @@ export default function UserList() {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [viewingUser, setViewingUser] = useState(null);
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchTimeout, setSearchTimeout] = useState(null);
 
     // Local state for search and filter params
     const [searchParams, setSearchParams] = useState({
@@ -37,11 +39,44 @@ export default function UserList() {
 
     // Fetch users when component mounts or search params change
     useEffect(() => {
-        dispatch(fetchUsers(searchParams));
+        const fetchData = async () => {
+            try {
+                await dispatch(fetchUsers(searchParams));
+            } finally {
+                // Clear timeout and reset loading state
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                    setSearchTimeout(null);
+                }
+                setIsSearching(false);
+            }
+        };
+        fetchData();
     }, [dispatch, searchParams]);
 
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+        };
+    }, [searchTimeout]);
+
     // Handlers for UserTable
-    const handleSearch = (keyword, fromDate, toDate, roleFilter) => {
+    const handleSearch = async (keyword, fromDate, toDate, roleFilter) => {
+        // Clear existing timeout
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+
+        // Set loading state after a small delay to avoid flicker for fast searches
+        const timeout = setTimeout(() => {
+            setIsSearching(true);
+        }, 150); // 150ms delay
+
+        setSearchTimeout(timeout);
+
         setSearchParams((prev) => ({
             ...prev,
             keyword,
@@ -50,6 +85,7 @@ export default function UserList() {
             roleFilter,
             page: 0, // Reset về trang đầu khi tìm kiếm
         }));
+        // Loading state sẽ được reset khi fetchUsers hoàn thành
     };
 
     //Handle cho sort
@@ -152,17 +188,11 @@ export default function UserList() {
     // };
 
     // Handler cho việc lưu user từ AddUserModal
-    const handleSaveNewUser = (userData) => {
-        dispatch(createUser(userData))
-            .unwrap()
-            .then(() => {
-                setIsAddModalOpen(false);
-                dispatch(fetchUsers(searchParams));
-                toast.success("User created successfully!");
-            })
-            .catch((error) => {
-                toast.error(`Failed to create user: ${error}`);
-            });
+    const handleSaveNewUser = async (userData) => {
+        await dispatch(createUser(userData)).unwrap();
+        setIsAddModalOpen(false);
+        dispatch(fetchUsers(searchParams));
+        toast.success("User created successfully!");
     };
 
     // Handler for refresh user detail
@@ -196,7 +226,7 @@ export default function UserList() {
                 >
                     User Lists
                 </h2>
-                {loading ? (
+                {loading && !isSearching ? (
                     <div style={{ textAlign: "center", padding: "20px" }}>Loading...</div>
                 ) : error ? (
                     <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
@@ -217,6 +247,7 @@ export default function UserList() {
                         totalElements={totalElements}
                         pageSize={searchParams.size}
                         searchParams={searchParams}
+                        isSearching={isSearching}
                     />
                 )}
             </div>

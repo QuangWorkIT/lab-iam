@@ -139,7 +139,7 @@ export default function UserModal({ user, isOpen, onClose, onSave }) {
                             border: "none",
                             fontSize: "20px",
                             cursor: "pointer",
-                            color: "#666",
+                            color: "#9aa4b2",
                             padding: "4px",
                         }}
                     >
