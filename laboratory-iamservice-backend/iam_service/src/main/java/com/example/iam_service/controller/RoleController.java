@@ -2,6 +2,7 @@ package com.example.iam_service.controller;
 
 import com.example.iam_service.dto.RoleDTO;
 import com.example.iam_service.exception.DuplicateRoleException;
+import com.example.iam_service.exception.RoleNotFoundException;
 import com.example.iam_service.mapper.RoleMapper;
 import com.example.iam_service.entity.Role;
 import com.example.iam_service.service.RoleService;
@@ -140,6 +141,28 @@ public class RoleController {
         {
             log.error("Duplicate role error: {} at {}", e.getMessage(),this.getClass());
             return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+    }
+
+    @PutMapping("/update/{roleCodeOrName}")
+    public ResponseEntity<RoleDTO>updateRole(@RequestBody @Validated RoleDTO dto, @PathVariable  String roleCodeOrName)
+    {
+        log.info("Role update started. At class:{}",this.getClass());
+        if(roleCodeOrName.trim().isEmpty())
+        {
+            log.warn("Role update have bad request.. At class:{}",this.getClass());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        try{
+            Role mapped = roleMapper.toEntity(dto);
+            RoleDTO result = roleService.updateRole(mapped,roleCodeOrName);
+            return  ResponseEntity.status(HttpStatus.ACCEPTED).body(result);
+        }
+        catch (RoleNotFoundException e)
+        {
+            log.error("Role update started. At class:{}",this.getClass()+". But found no role with role code.");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 }

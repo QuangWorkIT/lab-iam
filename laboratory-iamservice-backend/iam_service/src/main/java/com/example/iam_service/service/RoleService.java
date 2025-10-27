@@ -22,7 +22,7 @@ public interface RoleService {
     public List<Role> getActiveRoles();
     public boolean isRoleCodeExists(String code);
     public RoleDTO createRole(Role role);
-    public Role updateRole(Role role);
+    public RoleDTO updateRole(Role role, String roleCode);
     public Role DeleteRole(Role role);
     Role softDeleteRole(Role role);
 }

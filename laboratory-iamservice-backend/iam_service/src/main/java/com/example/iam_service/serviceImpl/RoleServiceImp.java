@@ -4,6 +4,7 @@ import com.example.iam_service.dto.RoleDTO;
 import com.example.iam_service.entity.Enum.Privileges;
 import com.example.iam_service.entity.Role;
 import com.example.iam_service.exception.DuplicateRoleException;
+import com.example.iam_service.exception.RoleNotFoundException;
 import com.example.iam_service.mapper.RoleMapper;
 import com.example.iam_service.repository.RoleRepository;
 import com.example.iam_service.service.RoleService;
@@ -114,10 +115,9 @@ public class RoleServiceImp implements RoleService {
     public RoleDTO createRole(Role role) {
 
         String cleanName = role.getName()
-                .trim()                          // Remove leading/trailing spaces
-                .replaceAll("\\s+", "_")         // Replace one or more whitespace with single underscore
-                .toUpperCase();                  // Convert to uppercase
-
+                .trim()
+                .replaceAll("\\s+", "_")
+                .toUpperCase();
         role.setCode("ROLE_" + cleanName);
         if(isRoleCodeExists(role.getCode()))
         {
@@ -131,8 +131,25 @@ public class RoleServiceImp implements RoleService {
     }
 
     @Override
-    public Role updateRole(Role role) {
-        return null;
+    public RoleDTO updateRole(Role role, String roleCode) {
+        log.info("Updating role with code: {}", roleCode);
+        if(isRoleCodeExists(roleCode))
+        {
+            throw new RoleNotFoundException("Role with name '" + role.getName() + "' doesn't exists");
+        }
+    Role found = this.returnByCode(roleCode);
+    found.setCode(role.getCode());
+    found.setName(role.getName());
+    found.setDescription(role.getDescription());
+    found.setPrivileges(role.getPrivileges());
+    if(role.getPrivileges().isEmpty())
+    {
+        log.warn("Role privileges set empty adding READ_ONLY.");
+        found.addPrivilege(Privileges.READ_ONLY);
+    }
+    log.info("Role updated successfully with code: {}", roleCode);
+    found.setUpdatedAt(role.getUpdatedAt());
+    return mapper.toDto(roleRepository.save(found));
     }
 
     @Override
@@ -143,5 +160,12 @@ public class RoleServiceImp implements RoleService {
     @Override
     public Role softDeleteRole(Role role) {
         return null;
+    }
+
+    //Private helper class do not use outside of class.
+    private Role returnByCode(String roleCode)
+    {
+        Optional<Role> found = roleRepository.findById(roleCode);
+        return found.get();
     }
 }
