@@ -2,57 +2,59 @@ import React from "react";
 import { Button, Card } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { login, logout } from "../redux/features/userSlice";
+import api from "../configs/axios.js";
+import MainLayout from "../components/layout/MainLayout";
 
 export default function TestPages() {
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.user) || {};
-
+  const fetchRoles = async () => {
+    try {
+      const response = await api.get("/api/roles")
+      console.log(response.data)
+    } catch (error) {
+      console.log("get role failed", error)
+    }
+  }
   return (
-    <div
-      style={{
-        height: "100vh",
-        width: "100vw",
-        background: "linear-gradient(135deg, #f0f9ff, #cbebff)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "2rem",
-        justifyContent: "center",
-      }}
+    <MainLayout
+      pageTitle="Feature In Development"
+      pageDescription="This module is not yet available for your role."
     >
-      <Card
-        title="User Information"
+      <div
         style={{
-          width: 350,
-          textAlign: "center",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          marginBottom: "2rem",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "70vh",
+          flexDirection: "column",
         }}
       >
-        <p>
-          <strong>User:</strong> {user.userInfo?.userName || "Guest"}
-        </p>
-        <p>
-          <strong>Token:</strong> {user.token || "None"}
-        </p>
-        <Button
-          type="primary"
-          onClick={() =>
-            dispatch(
-              login({
-                token: "fake-token-123",
-                userInfo: { name: "Kim", role: "Student" },
-              })
-            )
-          }
-          style={{ marginRight: "1rem" }}
+        <Card
+          style={{
+            width: "400px",
+            textAlign: "center",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            padding: "20px",
+            borderRadius: "8px",
+          }}
         >
-          Login (fake)
-        </Button>
-        <Button danger onClick={() => dispatch(logout())}>
-          Logout
-        </Button>
-      </Card>
-    </div>
+          <h2
+            style={{
+              color: "#fe535b",
+              marginBottom: "10px",
+              fontWeight: "bold",
+            }}
+          >
+            🚧 Feature In Development
+          </h2>
+          <p style={{ color: "#555" }}>
+            The feature you’re trying to access is currently under construction.
+            Please check back later or contact an administrator for more info.
+          </p>
+
+          <Button onClick={() => fetchRoles()}>Get roles</Button>
+        </Card>
+      </div>
+    </MainLayout>
   );
 }

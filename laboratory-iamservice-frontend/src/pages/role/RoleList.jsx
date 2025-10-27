@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchRoles,
@@ -9,60 +9,124 @@ import {
 import RoleTable from "../../components/modules/role/RoleTable";
 import RoleModal from "../../components/modules/role/RoleModal";
 import MainLayout from "../../components/layout/MainLayout";
+import { toast } from "react-toastify";
 
 export default function RoleList() {
-  //Redux hooks
+  // Redux hooks
   const dispatch = useDispatch();
-  const { roles, loading, error, totalPages, currentPage } = useSelector(
-    (state) => state.roles
-  );
+  const { roles, loading, error } = useSelector((state) => state.roles);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [modalMode, setModalMode] = useState("create"); // 'create' | 'edit' | 'view'
 
-  // Local state for search and filter params
-  const [searchParams, setSearchParams] = useState({
-    keyword: "",
-    fromDate: "",
-    toDate: "",
-    page: 0,
-    size: 10,
-    sortBy: "name",
-    sortDir: "asc",
-  });
+  // Helper: chuyển error sang string an toàn
+  const errorText = useMemo(() => {
+    if (!error) return "";
+    if (typeof error === "string") return error;
+    if (error?.message) return error.message;
+    if (error?.response?.data?.message) return error.response.data.message;
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
+  }, [error]);
 
-  // Fetch roles when component mounts or search params change
+  // Local state cho search, sort, filter
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+
+  // Fetch roles 1 lần khi mount
   useEffect(() => {
-    dispatch(fetchRoles(searchParams));
-  }, [dispatch, searchParams]);
+    dispatch(fetchRoles());
+  }, [dispatch]);
 
-  // Handlers for RoleTable
-  const handleSearch = (keyword, fromDate, toDate) => {
-    setSearchParams((prev) => ({
-      ...prev,
-      keyword,
-      fromDate,
-      toDate,
-      page: 0, // Reset về trang đầu khi tìm kiếm
-    }));
+  // Xử lý search, sort, filter hoàn toàn ở FE
+  const filteredRoles = useMemo(() => {
+    let result = [...roles];
+    // Search
+    if (searchKeyword) {
+      const kw = searchKeyword.toLowerCase();
+      result = result.filter(
+        (r) =>
+          (r.name && r.name.toLowerCase().includes(kw)) ||
+          (r.code && r.code.toLowerCase().includes(kw))
+      );
+    }
+    // Filter by date
+    if (fromDate) {
+      result = result.filter((r) => r.createdAt && r.createdAt >= fromDate);
+    }
+    if (toDate) {
+      result = result.filter((r) => r.createdAt && r.createdAt <= toDate);
+    }
+    // Sort
+    if (sortConfig.key) {
+      result.sort((a, b) => {
+        const aVal = (a[sortConfig.key] || "").toString().toLowerCase();
+        const bVal = (b[sortConfig.key] || "").toString().toLowerCase();
+        if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+    return result;
+  }, [roles, searchKeyword, fromDate, toDate, sortConfig]);
+
+  const formatErr = (error) =>
+    error?.response?.data?.message ||
+    error?.message ||
+    (() => {
+      try {
+        return JSON.stringify(error);
+      } catch {
+        return String(error);
+      }
+    })();
+
+  const handleSaveRole = (roleData) => {
+    // Guard chống double submit
+    if (actionLoading) return;
+    setActionLoading(true);
+
+    if (editingRole) {
+      dispatch(updateRole({ code: editingRole.code, roleData }))
+        .unwrap()
+        .then(() => {
+          setIsModalOpen(false);
+          dispatch(fetchRoles());
+          toast.success("Role updated successfully!");
+        })
+        .catch((error) => {
+          toast.error(`Failed to update role: ${formatErr(error)}`);
+        })
+        .finally(() => setActionLoading(false));
+    } else {
+      dispatch(createRole(roleData))
+        .unwrap()
+        .then(() => {
+          setIsModalOpen(false);
+          dispatch(fetchRoles());
+          toast.success("Role created successfully!");
+        })
+        .catch((error) => {
+          toast.error(`Failed to create role: ${formatErr(error)}`);
+        })
+        .finally(() => setActionLoading(false));
+    }
   };
 
-  //Handle cho sort
+  // Handlers cho RoleTable
+  const handleSearch = (keyword, from, to) => {
+    setSearchKeyword(keyword);
+    setFromDate(from);
+    setToDate(to);
+  };
   const handleSort = (key, direction) => {
-    setSearchParams((prev) => ({
-      ...prev,
-      sortBy: key,
-      sortDir: direction,
-    }));
-  };
-
-  //Handler cho phân trang
-  const handlePageChange = (newPage) => {
-    setSearchParams((prev) => ({
-      ...prev,
-      page: newPage,
-    }));
+    setSortConfig({ key, direction });
   };
 
   // Handlers cho các action buttons
@@ -71,26 +135,23 @@ export default function RoleList() {
     setModalMode("view");
     setIsModalOpen(true);
   };
-
   const handleAddRole = () => {
-    setEditingRole(null); // null = thêm mới
+    setEditingRole(null);
     setModalMode("create");
     setIsModalOpen(true);
   };
-
   const handleEditRole = (role) => {
     setEditingRole(role);
     setModalMode("edit");
     setIsModalOpen(true);
   };
-
   const handleDelete = (code) => {
     if (window.confirm("Are you sure you want to delete this role?")) {
       setActionLoading(true);
       dispatch(deleteRole(code))
         .unwrap()
         .then(() => {
-          dispatch(fetchRoles(searchParams));
+          dispatch(fetchRoles());
           alert("Role deleted successfully");
         })
         .catch((error) => {
@@ -104,39 +165,6 @@ export default function RoleList() {
         })
         .finally(() => {
           setActionLoading(false);
-        });
-    }
-  };
-
-  // Handler cho việc lưu role (thêm hoặc sửa)
-  const handleSaveRole = (roleData) => {
-    // Nếu đang edit (có editingRole)
-    if (editingRole) {
-      dispatch(updateRole({ code: editingRole.code, roleData }))
-        .unwrap()
-        .then(() => {
-          setIsModalOpen(false);
-          dispatch(fetchRoles(searchParams));
-          alert("Role updated successfully!");
-        })
-        .catch((error) => {
-          alert(
-            `Failed to update role: ${
-              error.message || JSON.stringify(error) || "Unknown error"
-            }`
-          );
-        });
-    } else {
-      // Thêm mới
-      dispatch(createRole(roleData))
-        .unwrap()
-        .then(() => {
-          setIsModalOpen(false);
-          dispatch(fetchRoles(searchParams));
-          alert("Role created successfully!");
-        })
-        .catch((error) => {
-          alert(`Failed to create role: ${error}`);
         });
     }
   };
@@ -165,24 +193,20 @@ export default function RoleList() {
         >
           User Roles
         </h2>
-        {/* Always render the table to preserve search inputs; show loading or error inline */}
-        {error && (
+        {errorText && (
           <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
-            Error: {error}
+            Error: {errorText}
           </div>
         )}
 
         <RoleTable
-          roles={roles}
+          roles={filteredRoles}
           onSearch={handleSearch}
           onSort={handleSort}
-          onPageChange={handlePageChange}
           onView={handleViewRole}
           onEdit={handleEditRole}
           onDelete={handleDelete}
           onAdd={handleAddRole}
-          currentPage={currentPage ?? searchParams.page}
-          totalPages={totalPages}
         />
 
         {loading && (
@@ -197,6 +221,7 @@ export default function RoleList() {
         mode={modalMode}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveRole}
+        isSaving={actionLoading} // thêm prop để disable nút Save
       />
     </MainLayout>
   );

@@ -49,3 +49,16 @@ export const formatPrivileges = (privileges) => {
 
   return "N/A";
 };
+
+/**
+ * Format account banned date string to local format
+ */
+export const formatBannedDate = (dateStr) => {
+  if(!dateStr || dateStr === undefined || dateStr === "null") return "N/A"
+
+  const date = dateStr.split("T")[0]
+  const banTime = dateStr.split("T")[1]
+  const formatBanTime = banTime.split("+")[0].split(".")[0]
+
+  return formatBanTime +  ", " + date 
+}

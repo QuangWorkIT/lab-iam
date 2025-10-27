@@ -4,26 +4,27 @@ export default function RoleBadge({ roleName }) {
   let badgeStyle = {};
 
   switch (roleName.toLowerCase()) {
-    case "administrator":
+    case "admin":
       badgeStyle = {
         backgroundColor: "#00bf63", // Xanh lá
         color: "white",
       };
       break;
-    case "manager":
-    case "lab manager":
+    case "lab_user":
+    case "lab_manager":
+    case "service":
       badgeStyle = {
         backgroundColor: "#8c52ff", // Tím
         color: "white",
       };
       break;
-    case "lab user":
+    case "patient":
       badgeStyle = {
         backgroundColor: "#fe535b", // Đỏ
         color: "white",
       };
       break;
-    case "service user":
+    case "default":
       badgeStyle = {
         backgroundColor: "#5170ff", // Xanh dương
         color: "white",

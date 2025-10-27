@@ -45,7 +45,7 @@ export default function RoleSearchBar({ onSearch }) {
         <FaSearch style={{ color: "#888", marginRight: "8px" }} />
         <input
           type="text"
-          placeholder="Search by name, code, privileges"
+          placeholder="Search by name or code"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={handleInputKeyDown}

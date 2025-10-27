@@ -1,24 +1,33 @@
 package com.example.iam_service.controller;
 
 import com.example.iam_service.dto.RoleDTO;
+import com.example.iam_service.exception.DuplicateRoleException;
 import com.example.iam_service.mapper.RoleMapper;
 import com.example.iam_service.entity.Role;
 import com.example.iam_service.service.RoleService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/roles")
 @RequiredArgsConstructor
@@ -103,5 +112,34 @@ public class RoleController {
                 .map(roleMapper::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(roleDTOs);
+    }
+
+    @Operation(summary = "Role creation API")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Role created successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = RoleDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input - malformed JSON or validation error",
+                    content = @Content),
+            @ApiResponse(responseCode = "403", description = "Forbidden. Unauthorized or the api is being called from an unregistered account.",
+                    content = @Content),
+            @ApiResponse(responseCode = "409", description = "Role already exists (duplicate)",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content)
+    })
+    @PostMapping
+    public ResponseEntity<RoleDTO> createRole(@RequestBody @Validated RoleDTO dto)
+    {
+        log.info("Role creation started. At class:{}",this.getClass());
+        try {
+            RoleDTO roleResponseDTO = roleService.createRole(roleMapper.toEntity(dto));
+            log.info("Role created Successfully. Class: {}",this.getClass());
+            return ResponseEntity.status(HttpStatus.CREATED).body(roleResponseDTO);
+        }catch (DuplicateRoleException e)
+        {
+            log.error("Duplicate role error: {} at {}", e.getMessage(),this.getClass());
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
     }
 }

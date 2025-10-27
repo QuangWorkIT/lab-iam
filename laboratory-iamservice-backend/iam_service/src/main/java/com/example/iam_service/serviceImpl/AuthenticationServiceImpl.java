@@ -101,16 +101,15 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
                 insertUser.setBirthdate(null);
                 insertUser.setAge(null);
                 insertUser.setGender("MALE");
-                insertUser.setRoleCode("USER");
+                insertUser.setRoleCode("ROLE_PATIENT");
                 insertUser.setIsActive(true);
 
-                userRepository.save(insertUser);
-                return insertUser;
+                return userRepository.save(insertUser);
             }
 
             return optUser.get();
         } catch (RuntimeException e) {
-            System.out.println("error google login " + e);
+            System.out.println("Error google login " + e);
             return null;
         }
     }
@@ -140,8 +139,7 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
         refreshToken.setTokenId(UUID.randomUUID().toString());
         refreshToken.setExpiredAt(now.plusSeconds(expiration)); // expiration from refresh token service
 
-        refreshRepo.save(refreshToken);
-        return refreshToken;
+        return refreshRepo.save(refreshToken);
     }
 
     @Override

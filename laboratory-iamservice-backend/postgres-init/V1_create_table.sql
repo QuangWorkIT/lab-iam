@@ -14,19 +14,14 @@ END $$;
 -- IAM SERVICE TABLES
 -- ===========================================
 
-CREATE TABLE "Privileges" (
-  name VARCHAR(255) PRIMARY KEY,
-  description VARCHAR(255) NOT NULL
-);
-
 CREATE TABLE "Role" (
-  code VARCHAR(255) PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description VARCHAR(255) NOT NULL,
-  privileges VARCHAR(255) REFERENCES "Privileges"(name),
-  createdAt DATE,
-  lastUpdatedAt DATE,
-  isActive BOOLEAN
+    role_code VARCHAR(100) PRIMARY KEY,
+    created_at TIMESTAMP,
+    role_description VARCHAR(500),
+    role_is_active BOOLEAN,
+    role_name VARCHAR(255),
+    role_privileges VARCHAR(2000),
+    updated_at TIMESTAMP
 );
 
 CREATE TABLE "User" (
@@ -34,17 +29,16 @@ CREATE TABLE "User" (
   email VARCHAR(255) NOT NULL UNIQUE,
   phoneNumber VARCHAR(255),
   fullName VARCHAR(255) NOT NULL,
-  identityNumber VARCHAR(255),
-  gender VARCHAR(10) CHECK (gender IN ('MALE', 'FEMALE')),
+  identityNumber VARCHAR(255) NOT NULL,
+  gender VARCHAR(10) NOT NULL CHECK (gender IN ('MALE', 'FEMALE')),
   age INT,
   address VARCHAR(255),
   birthDate DATE,
   password VARCHAR(255) NOT NULL,
-  roleCode VARCHAR(255) REFERENCES "Role"(code),
+  roleCode VARCHAR(255) REFERENCES "Role"(role_code),
   isActive BOOLEAN,
   createdAt DATE
 );
-
 
 CREATE TABLE "Token" (
   id SERIAL PRIMARY KEY,
@@ -59,10 +53,29 @@ CREATE TABLE "Token" (
 -- INSERT FAKE DATA FOR "User" and "Role" TABLE
 -- ===========================================
 
-INSERT INTO "Role" (code, name, description, privileges, createdAt, lastUpdatedAt, isActive)
-VALUES
-('ADMIN', 'Administrator', 'Full system access', NULL, CURRENT_DATE, CURRENT_DATE, TRUE),
-('STAFF', 'Staff', 'Handles management tasks', NULL, CURRENT_DATE, CURRENT_DATE, TRUE),
-('MEMBER', 'Member', 'Regular registered user', NULL, CURRENT_DATE, CURRENT_DATE, TRUE),
-('USER', 'User', 'Basic access user', NULL, CURRENT_DATE, CURRENT_DATE, TRUE),
-('GUEST', 'Guest', 'Unregistered limited access', NULL, CURRENT_DATE, CURRENT_DATE, TRUE);
+INSERT INTO "Role" (role_code, created_at, role_description, role_is_active, role_name, role_privileges, updated_at) VALUES
+('ROLE_ADMIN', '2025-10-21 00:12:54.924656', 'Administrator role with full system access', TRUE, 'admin',
+ 'ACTIVATE_DEACTIVATE_INSTRUMENT,ADD_COMMENT,ADD_INSTRUMENT,ADD_REAGENTS,CREATE_CONFIGURATION,CREATE_ROLE,CREATE_TEST_ORDER,CREATE_USER,DELETE_COMMENT,DELETE_CONFIGURATION,DELETE_REAGENTS,DELETE_ROLE,DELETE_TEST_ORDER,DELETE_USER,EXECUTE_BLOOD_TESTING,LOCK_UNLOCK_USER,MODIFY_COMMENT,MODIFY_CONFIGURATION,MODIFY_REAGENTS,MODIFY_TEST_ORDER,MODIFY_USER,READ_ONLY,REVIEW_TEST_ORDER,UPDATE_ROLE,VIEW_CONFIGURATION,VIEW_EVENT_LOGS,VIEW_INSTRUMENT,VIEW_ROLE,VIEW_USER',
+ '2025-10-21 00:12:54.924707'),
+
+('ROLE_SERVICE', '2025-10-21 00:31:53.434822', 'Who are individuals authorized to interact with a system for operational and maintenance purposes. Their main responsibilities involve monitoring, managing, and maintaining the system to ensure optimal performance and reliability.', TRUE, 'service',
+ 'ACTIVATE_DEACTIVATE_INSTRUMENT,ADD_INSTRUMENT,ADD_REAGENTS,CREATE_CONFIGURATION,DELETE_CONFIGURATION,DELETE_REAGENTS,EXECUTE_BLOOD_TESTING,MODIFY_CONFIGURATION,MODIFY_REAGENTS,VIEW_CONFIGURATION,VIEW_EVENT_LOGS,VIEW_INSTRUMENT',
+ '2025-10-21 00:31:53.434836'),
+
+('ROLE_LAB_MANAGER', '2025-10-21 00:22:20.341159', 'Who manages the lab, lab users, service users, have right to view and monitor the system.', TRUE, 'lab_manager', 'ACTIVATE_DEACTIVATE_INSTRUMENT,ADD_INSTRUMENT,CREATE_ROLE,CREATE_USER,DELETE_REAGENTS,DELETE_ROLE,DELETE_USER,LOCK_UNLOCK_USER,MODIFY_USER,READ_ONLY,UPDATE_ROLE,VIEW_EVENT_LOGS,VIEW_INSTRUMENT,VIEW_ROLE,VIEW_USER',
+'2025-10-21 00:22:20.341173'),
+
+('ROLE_LAB_USER', '2025-10-21 00:38:54.346716', 'Who work within a laboratory setting and are responsible for conducting tests, analyzing samples, and managing various laboratory processes. Their roles are integral to the effective operation of clinical, research, or industrial laboratories.', TRUE, 'lab_user',
+'ACTIVATE_DEACTIVATE_INSTRUMENT,ADD_COMMENT,ADD_INSTRUMENT,ADD_REAGENTS,CREATE_TEST_ORDER,DELETE_COMMENT,DELETE_REAGENTS,DELETE_TEST_ORDER,EXECUTE_BLOOD_TESTING,MODIFY_COMMENT,MODIFY_REAGENTS,MODIFY_TEST_ORDER,REVIEW_TEST_ORDER,VIEW_EVENT_LOGS,VIEW_INSTRUMENT',
+'2025-10-21 00:38:54.346730'),
+
+('ROLE_PATIENT',
+ '2025-10-21 00:45:55.924656',
+ 'Represents a patient user who can view their own records, results, and limited system information but cannot modify or manage any data.',
+ TRUE,
+ 'patient',
+ 'READ_ONLY',
+ '2025-10-21 00:45:55.924707'),
+
+('ROLE_DEFAULT', '2025-10-21 00:40:22.384022', 'This is a default or placeholder role. When a user''s role is deleted or removed, this role will replace the previous role until further action by the admin.', TRUE, 'DEFAULT','READ_ONLY',
+'2025-10-21 00:40:22.384034');

@@ -1,12 +1,22 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "../../configs/axios.js";
+import { toast } from "react-toastify";
 
 const initialState = {
-  user: null,
-  isAuthenticated: false,
-  userRoles: [], // Khởi tạo mảng rỗng thay vì undefined
+  userInfo: null,
+  token: null,
   loading: false,
-  error: null,
+  isBanned: null
 };
+
+export const logout = createAsyncThunk("user/logout", async (_, { rejectWithValue }) => {
+  try {
+    await api.delete("/api/auth/logout")
+    return "Logout success"
+  } catch (error) {
+    return rejectWithValue(error.response.data?.message || "Logout failed")
+  }
+})
 
 const userSlice = createSlice({
   name: "user",
@@ -17,14 +27,21 @@ const userSlice = createSlice({
       state.token = token;
       state.userInfo = userInfo;
       localStorage.setItem("token", token);
-    },
-    logout: (state) => {
-      state.token = null;
-      state.userInfo = null;
-      localStorage.removeItem("token");
-    },
+    }
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(logout.fulfilled, (state) => {
+        state.token = null
+        state.userInfo = null
+        localStorage.removeItem("token")
+        toast.success("Logout success")
+      })
+      .addCase(logout.rejected, (action) => {
+        console.error(action.payload)
+      })
+  }
 });
 
-export const { login, logout } = userSlice.actions;
+export const { login } = userSlice.actions;
 export default userSlice.reducer;

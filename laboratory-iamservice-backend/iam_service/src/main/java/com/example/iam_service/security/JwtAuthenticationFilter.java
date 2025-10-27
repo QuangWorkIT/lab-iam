@@ -11,9 +11,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
@@ -48,13 +48,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
             // validate token
-            String validatedToken = jwtUtil.validate(header.substring(7));
-            User user = userRepository.findById(UUID.fromString(validatedToken))
+            String jwt = header.substring(7);
+            String userId = jwtUtil.validate(jwt);
+            User user = userRepository.findById(UUID.fromString(userId))
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-            List<GrantedAuthority> authorities = List.of(
-                    new SimpleGrantedAuthority(user.getRoleCode())
-            );
+            List<GrantedAuthority> authorities = jwtUtil.getUserAuthorities(jwt);
 
             // create authentication object
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -67,10 +66,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         } catch (JwtException | UsernameNotFoundException e) {
             // throw error if token validation fail
+            System.out.println("❌" + e.getMessage());
             SecurityContextHolder.clearContext();
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\": \"Unauthorized: " + e.getMessage() + "\"}");
+            response.getWriter().write("""
+                    {
+                      "message": "Unauthorized request",
+                      "error": "JWT invalid or expired"
+                    }
+                    """);
         }
     }
 }

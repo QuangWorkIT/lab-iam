@@ -1,7 +1,7 @@
 import { Button, Form, Input, ConfigProvider } from 'antd';
 import { Spin } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from "react-router";
 import { login } from '../../redux/features/userSlice.js';
@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import api from '../../configs/axios.js';
 import { parseClaims } from '../../utils/jwtUtil.js';
 import GoogleButton from './GoogleButton.jsx';
+import { formatBannedDate } from '../../utils/formatter.js';
 
 
 // custom input theme 
@@ -36,12 +37,6 @@ const emailRules = [
 // password validation
 const passwordRules = [
     { required: true, message: "Please enter password" },
-    { min: 8, message: "Password must be at least 8 characters" },
-    { max: 200, message: "Password cannot exceed 200 characters" },
-    {
-        pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        message: "Must contain uppercase, lowercase and number"
-    }
 ];
 
 
@@ -51,8 +46,26 @@ function LoginForm() {
     const [isPasswordExpanded, setIsPasswordExpanded] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isGoogleLogin, setIsGoogleLogin] = useState(false)
+    const [banUntil, setbanUntil] = useState(null)
     const dispatch = useDispatch()
     const nav = useNavigate()
+
+    // Load banUntil from localStorage once at mount
+    useEffect(() => {
+        const stored = localStorage.getItem("banUntil");
+        if (stored && stored !== "null") {
+            setbanUntil(stored);
+        }
+    }, []);
+
+    // Save banUntil to localStorage when it changes
+    useEffect(() => {
+        if (banUntil) {
+            localStorage.setItem("banUntil", banUntil);
+        } else {
+            localStorage.removeItem("banUntil");
+        }
+    }, [banUntil]);
 
     const onFinish = async (values) => {
         try {
@@ -75,11 +88,23 @@ function LoginForm() {
                     privileges: payload.privileges,
                 }
             }))
+            setbanUntil(null)
             toast.success("Login successfully!")
-            nav("/", {replace: true})
+            if (payload.role === "ROLE_ADMIN" || payload.role === "ROLE_LAB_MANAGER") {
+                nav("/roles", { replace: true });
+            } else {
+                nav("/home", { replace: true });
+            }
         } catch (error) {
             const errMess = error.response?.data?.message
-            if (errMess) toast.error(errMess)
+            if (errMess) {
+                if (error.response.status === 429 &&
+                    errMess.split(".")[0] === "Too many attempts"
+                ) {
+                    toast.error("Too many attempts!")
+                    setbanUntil(formatBannedDate(error.response.data.status))
+                } else toast.error("Invalid credentials!")
+            }
             else toast.error("Login failed!")
         } finally {
             form.resetFields()
@@ -93,7 +118,7 @@ function LoginForm() {
         <div className='flex flex-col items-center justify-center mt-7'>
             <p
                 className='text-xl md:text-3xl text-center font-bold'
-                style={{ marginBottom: "40px" }}
+                style={{ marginBottom: "35px" }}
             >
                 Lab Management
             </p>
@@ -133,7 +158,6 @@ function LoginForm() {
                         <div className={`m-auto transition-all duration-500 ease-in-out 
                         ${isPasswordExpanded ? "w-full" : "md:w-80"}`}>
                             <Input.Password
-                                // style={{ marginBottom: "20px" }}
                                 className="bg-transparent"
                                 prefix={<LockOutlined style={{ color: "#FE535B" }} />}
                                 placeholder="Password"
@@ -147,7 +171,12 @@ function LoginForm() {
                     </Form.Item>
                 </ConfigProvider>
 
-                <div className="mt-13">
+
+                <div className="mt-12">
+                    {banUntil !== null && (<h2 className="text-center italic text-red-500">
+                        Your account is locked! <br />
+                        Please try later at <span className='font-bold'>{banUntil}</span>
+                    </h2>)}
                     <Form.Item className='flex justify-center' style={{ margin: "0" }}>
                         <Button
                             className='md:w-[200px] w-20 hover:bg-[#fca9ad]'
@@ -155,6 +184,7 @@ function LoginForm() {
                             variant='solid'
                             htmlType='submit'
                             loading={isSubmitting}
+                            disabled={banUntil !== null}
                         >
                             Login
                         </Button>
@@ -170,7 +200,10 @@ function LoginForm() {
                         {isGoogleLogin ? (
                             <Spin size='large' />
                         ) : (
-                            <div className="opacity-100 hover:opacity-70 transition">
+                            <div className={`hover:opacity-70 transition 
+                            ${banUntil !== null
+                                    ? "pointer-events-none opacity-50"
+                                    : "opacity-100 cursor-pointer"}`}>
                                 <GoogleButton setIsGoogleLogin={setIsGoogleLogin} />
                             </div>
                         )}

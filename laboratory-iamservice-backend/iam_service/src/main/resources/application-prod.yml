@@ -1,14 +1,15 @@
 server:
-  port: 8081
+  port: 8089
+  address: ${ALLOWED_PORT}   # <== Listen on all interfaces (NOT just localhost)
 
 spring:
   application:
     name: iam-service
   datasource:
-      url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
-      username: ${POSTGRES_USER}
-      password: ${POSTGRES_PASSWORD}
-      driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,17 +18,22 @@ spring:
       hibernate:
         format_sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    username: ${MAIL_USERNAME:no-reply@dummy.local}
+    password: ${MAIL_PASSWORD:dummy-password}
 
 google:
   web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
 eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
   instance:
     prefer-ip-address: true
+    ip-address: ${SERVICE_IP}    # <== this must be your laptop's reachable IP
+    instance-id: ${spring.application.name}:${server.port}
+    leaseRenewalIntervalInSeconds: 10
+    leaseExpirationDurationInSeconds: 30
+  client:
+    service-url:
+      defaultZone: https://discovery-server-zsph.onrender.com/eureka/
 
 management:
   endpoints:
@@ -46,3 +52,7 @@ logging:
     root: INFO
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
+
+app:
+  email:
+    from: "no-reply@lab-iam.local"
