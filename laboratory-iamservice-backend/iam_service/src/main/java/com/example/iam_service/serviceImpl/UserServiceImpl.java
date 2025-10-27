@@ -21,6 +21,7 @@ import java.time.OffsetDateTime;
 import java.time.Period;
 import java.util.Optional;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -103,6 +104,26 @@ public class UserServiceImpl implements UserService {
                 .details("User account activated by admin")
                 .build());
     }
+
+    public Optional<User> getUserById(UUID id) {
+        return userRepository.findById(id);
+    }
+
+    @Transactional
+    public User updateUser(UUID id, User userDTO) {
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 👇 Example of selective updates (you can tweak as needed)
+        if (userDTO.getFullName() != null) existing.setFullName(userDTO.getFullName());
+        if (userDTO.getPhoneNumber() != null) existing.setPhoneNumber(userDTO.getPhoneNumber());
+        if (userDTO.getAddress() != null) existing.setAddress(userDTO.getAddress());
+        if (userDTO.getBirthdate() != null) existing.setBirthdate(userDTO.getBirthdate());
+        if (userDTO.getGender() != null) existing.setGender(userDTO.getGender());
+
+        return userRepository.save(existing);
+    }
+
 
     // ================= PRIVATE HELPERS =================
 

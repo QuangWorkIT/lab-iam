@@ -13,6 +13,7 @@ import com.example.iam_service.mapper.UserMapper;
 
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users") // all routes start with /api/users
@@ -63,4 +64,24 @@ public class UserController {
         userService.activateUserByEmail(email);
         return ResponseEntity.ok("User with email " + email + " has been activated successfully.");
     }
+
+    @PreAuthorize("hasAuthority('VIEW_USER') or hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDTO> getUserById(@PathVariable UUID id) {
+        return userService.getUserById(id)
+                .map(user -> ResponseEntity.ok(userMapper.toDto(user)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PreAuthorize("hasAuthority('UPDATE_USER') or hasAuthority('ROLE_ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<UserDTO> updateUser(
+            @PathVariable UUID id,
+            @Valid @RequestBody User userDTO) {
+
+        User updatedUser = userService.updateUser(id, userDTO);
+        return ResponseEntity.ok(userMapper.toDto(updatedUser));
+    }
+
+
 }
