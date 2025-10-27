@@ -1,4 +1,4 @@
-import { Button, Form, Input, ConfigProvider } from 'antd';
+import { Button, Form, Input, ConfigProvider, Checkbox } from 'antd';
 import { Spin } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
@@ -13,7 +13,7 @@ import { formatBannedDate } from '../../utils/formatter.js';
 
 
 // custom input theme 
-const theme = {
+export const theme = {
     components: {
         Input: {
             colorPrimary: '#FE535B',
@@ -40,7 +40,7 @@ const passwordRules = [
 ];
 
 
-function LoginForm() {
+function LoginForm({setIsResetPassWord}) {
     const [form] = Form.useForm();
     const [isEmailExpanded, setIsEmailExpanded] = useState(false);
     const [isPasswordExpanded, setIsPasswordExpanded] = useState(false);
@@ -115,7 +115,7 @@ function LoginForm() {
     }
 
     return (
-        <div className='flex flex-col items-center justify-center mt-7'>
+        <div className='flex flex-col items-center justify-center h-full mt-3'>
             <p
                 className='text-xl md:text-3xl text-center font-bold'
                 style={{ marginBottom: "35px" }}
@@ -171,8 +171,19 @@ function LoginForm() {
                     </Form.Item>
                 </ConfigProvider>
 
+                <div className="flex justify-between px-5 mb-10">
+                    <div className="text-[14px]">
+                        <Checkbox className="font-semibold">Remember me</Checkbox>
+                    </div>
+                    <p 
+                    onClick={() => setIsResetPassWord(true)}
+                    className="italic text-[#5170ff] font-semibold hover:cursor-pointer 
+                    hover:text-[#a3b4ff] transition-all duration-300">
+                        Forget password?
+                    </p>
+                </div>
 
-                <div className="mt-12">
+                <div className="mt-13">
                     {banUntil !== null && (<h2 className="text-center italic text-red-500">
                         Your account is locked! <br />
                         Please try later at <span className='font-bold'>{banUntil}</span>
