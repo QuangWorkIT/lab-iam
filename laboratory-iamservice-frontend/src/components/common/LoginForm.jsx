@@ -37,12 +37,6 @@ const emailRules = [
 // password validation
 const passwordRules = [
     { required: true, message: "Please enter password" },
-    { min: 8, message: "Password must be at least 8 characters" },
-    { max: 200, message: "Password cannot exceed 200 characters" },
-    {
-        pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        message: "Must contain uppercase, lowercase and number"
-    }
 ];
 
 
@@ -99,7 +93,7 @@ function LoginForm() {
             if (payload.role === "ROLE_ADMIN" || payload.role === "ROLE_LAB_MANAGER") {
                 nav("/roles", { replace: true });
             } else {
-                nav("/test", { replace: true });
+                nav("/home", { replace: true });
             }
         } catch (error) {
             const errMess = error.response?.data?.message
@@ -124,7 +118,7 @@ function LoginForm() {
         <div className='flex flex-col items-center justify-center mt-7'>
             <p
                 className='text-xl md:text-3xl text-center font-bold'
-                style={{ marginBottom: "40px" }}
+                style={{ marginBottom: "35px" }}
             >
                 Lab Management
             </p>
@@ -178,10 +172,10 @@ function LoginForm() {
                 </ConfigProvider>
 
 
-                <div className="mt-13">
+                <div className="mt-12">
                     {banUntil !== null && (<h2 className="text-center italic text-red-500">
                         Your account is locked! <br />
-                        Please try later at {banUntil}
+                        Please try later at <span className='font-bold'>{banUntil}</span>
                     </h2>)}
                     <Form.Item className='flex justify-center' style={{ margin: "0" }}>
                         <Button
