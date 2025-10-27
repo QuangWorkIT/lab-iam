@@ -188,17 +188,11 @@ export default function UserList() {
     // };
 
     // Handler cho việc lưu user từ AddUserModal
-    const handleSaveNewUser = (userData) => {
-        dispatch(createUser(userData))
-            .unwrap()
-            .then(() => {
-                setIsAddModalOpen(false);
-                dispatch(fetchUsers(searchParams));
-                toast.success("User created successfully!");
-            })
-            .catch((error) => {
-                toast.error(`Failed to create user: ${error}`);
-            });
+    const handleSaveNewUser = async (userData) => {
+        await dispatch(createUser(userData)).unwrap();
+        setIsAddModalOpen(false);
+        dispatch(fetchUsers(searchParams));
+        toast.success("User created successfully!");
     };
 
     // Handler for refresh user detail

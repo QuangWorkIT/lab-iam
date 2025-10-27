@@ -33,6 +33,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const [isPasswordGenerated, setIsPasswordGenerated] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const steps = [
         { id: 1, title: "Basic Infor", label: "Basic Infor" },
@@ -93,6 +94,52 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
             }));
         }
 
+        // Real-time email validation
+        if (name === "email" && value.trim()) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                setErrors(prev => ({
+                    ...prev,
+                    [name]: "Please enter a valid email address (e.g., user@example.com)"
+                }));
+            } else {
+                setErrors(prev => ({
+                    ...prev,
+                    [name]: ""
+                }));
+            }
+        }
+
+        // Real-time identity number validation - only numbers
+        if (name === "identityNumber" && value.trim()) {
+            if (!/^\d+$/.test(value)) {
+                setErrors(prev => ({
+                    ...prev,
+                    [name]: "Identity Number must contain only numbers (0-9)"
+                }));
+            } else {
+                setErrors(prev => ({
+                    ...prev,
+                    [name]: ""
+                }));
+            }
+        }
+
+        // Real-time phone number validation - only numbers
+        if (name === "phoneNumber" && value.trim()) {
+            if (!/^\d+$/.test(value)) {
+                setErrors(prev => ({
+                    ...prev,
+                    [name]: "Phone Number must contain only numbers (0-9)"
+                }));
+            } else {
+                setErrors(prev => ({
+                    ...prev,
+                    [name]: ""
+                }));
+            }
+        }
+
         // Check password strength in real-time
         if (name === "password") {
             const strength = {
@@ -108,12 +155,26 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         const newErrors = {};
 
         if (!formData.fullName.trim()) newErrors.fullName = "Full Name is required";
-        if (!formData.identityNumber.trim()) newErrors.identityNumber = "Identity Number is required";
-        if (!formData.phoneNumber.trim()) newErrors.phoneNumber = "Phone Number is required";
+
+        if (!formData.identityNumber.trim()) {
+            newErrors.identityNumber = "Identity Number is required";
+        } else if (!/^\d+$/.test(formData.identityNumber)) {
+            newErrors.identityNumber = "Identity Number must contain only numbers (0-9)";
+        }
+
+        if (!formData.phoneNumber.trim()) {
+            newErrors.phoneNumber = "Phone Number is required";
+        } else if (!/^\d+$/.test(formData.phoneNumber)) {
+            newErrors.phoneNumber = "Phone Number must contain only numbers (0-9)";
+        }
+
         if (!formData.email.trim()) {
             newErrors.email = "Email is required";
-        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            newErrors.email = "Email is invalid";
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                newErrors.email = "Please enter a valid email address (e.g., user@example.com)";
+            }
         }
         if (!formData.birthdate) newErrors.birthdate = "Birthdate is required";
         if (!formData.address.trim()) newErrors.address = "Address is required";
@@ -159,9 +220,10 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (validateStep2()) {
+            setIsSubmitting(true);
             const isPatientRole = formData.roleCode &&
                 formData.roleCode.toString().toUpperCase().includes("PATIENT");
 
@@ -185,7 +247,32 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
             }
 
             console.log('📤 Submitting user data:', { ...userData, password: userData.password ? '***hidden***' : 'not included' });
-            onSave(userData);
+
+            try {
+                await onSave(userData);
+            } catch (error) {
+                // Handle backend errors
+                console.error('❌ Error creating user:', error);
+                const errorMessage = error?.response?.data?.message || error?.message || "Failed to create user";
+
+                // Check if error is related to email
+                if (errorMessage.toLowerCase().includes('email')) {
+                    setErrors(prev => ({
+                        ...prev,
+                        email: errorMessage
+                    }));
+                    // Go back to step 1 to show email error
+                    setCurrentStep(1);
+                } else {
+                    // For other errors, show general error
+                    setErrors(prev => ({
+                        ...prev,
+                        general: errorMessage
+                    }));
+                }
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -208,6 +295,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         setIsPasswordGenerated(false);
         setShowPassword(false);
         setPasswordStrength({});
+        setIsSubmitting(false);
         onClose();
     };
 
@@ -340,6 +428,21 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                     ))}
                 </div>
 
+                {/* General Error Display */}
+                {errors.general && (
+                    <div style={{
+                        marginBottom: "20px",
+                        padding: "12px",
+                        backgroundColor: "#fee",
+                        border: "1px solid #fcc",
+                        borderRadius: "4px",
+                        color: "#c33",
+                        fontSize: "14px"
+                    }}>
+                        {errors.general}
+                    </div>
+                )}
+
                 {/* Form Content */}
                 <form onSubmit={handleSubmit}>
                     {currentStep === 1 && (
@@ -399,7 +502,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             color: "#333",
                                         }}
                                     >
-                                        Identify Number <span style={{ color: "#ff5a5f" }}>*</span>
+                                        Identity Number <span style={{ color: "#ff5a5f" }}>*</span>
                                     </label>
                                     <input
                                         type="text"
@@ -409,7 +512,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         style={{
                                             width: "100%",
                                             padding: "12px",
-                                            border: `1px solid ${errors.identifyNumber ? "#dc3545" : "#ddd"}`,
+                                            border: `1px solid ${errors.identityNumber ? "#dc3545" : "#ddd"}`,
                                             borderRadius: "4px",
                                             fontSize: "14px",
                                             boxSizing: "border-box",
@@ -417,11 +520,11 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             backgroundColor: "white",
                                             color: "#333",
                                         }}
-                                        placeholder="Enter identify number"
+                                        placeholder="Enter identity number"
                                     />
-                                    {errors.identifyNumber && (
+                                    {errors.identityNumber && (
                                         <span style={{ color: "#dc3545", fontSize: "12px" }}>
-                                            {errors.identifyNumber}
+                                            {errors.identityNumber}
                                         </span>
                                     )}
                                 </div>
@@ -1071,18 +1174,20 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                         ) : (
                             <button
                                 type="submit"
+                                disabled={isSubmitting}
                                 style={{
                                     padding: "12px 24px",
                                     border: "none",
                                     borderRadius: "6px",
-                                    backgroundColor: "#ff5a5f",
+                                    backgroundColor: isSubmitting ? "#ccc" : "#ff5a5f",
                                     color: "white",
-                                    cursor: "pointer",
+                                    cursor: isSubmitting ? "not-allowed" : "pointer",
                                     fontSize: "14px",
                                     fontWeight: "500",
+                                    opacity: isSubmitting ? 0.6 : 1,
                                 }}
                             >
-                                Create
+                                {isSubmitting ? "Creating..." : "Create"}
                             </button>
                         )}
                     </div>
