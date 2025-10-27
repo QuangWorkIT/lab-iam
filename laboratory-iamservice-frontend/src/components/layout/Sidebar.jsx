@@ -1,6 +1,7 @@
-import React from "react";
+import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { motion } from "motion/react"
 import {
   FaHome,
   FaUsers,
@@ -14,26 +15,15 @@ import {
 } from "react-icons/fa";
 
 // Inline component
-function SidebarIcon({ icon, active, to = "#" }) {
-  const iconStyle = {
-    width: "40px",
-    height: "40px",
-    borderRadius: "5px",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    margin: "5px 0",
-    backgroundColor: active ? "rgba(255,255,255,0.2)" : "transparent",
-    cursor: "pointer",
-  };
-
-  if (to === "#") {
-    return <div style={iconStyle}>{icon}</div>;
-  }
-
+function SidebarIcon({ icon, active, to = "#", isSideBarOpen }) {
   return (
-    <Link to={to} style={{ textDecoration: "none", color: "inherit" }}>
-      <div style={iconStyle}>{icon}</div>
+    <Link to={to}>
+      <div className={`w-10 h-10 rounded-[5px] flex justify-center items-center my-[5px] cursor-pointer transition-all duration-300 ease-in-out
+      ${active ? "bg-[#FFFFFF33]" : "bg-transparent"}
+      ${!isSideBarOpen && "hover:bg-[#FFFFFF33]"}`}
+      >
+        {icon}
+      </div>
     </Link>
   );
 }
@@ -41,6 +31,22 @@ function SidebarIcon({ icon, active, to = "#" }) {
 export default function Sidebar() {
   const location = useLocation();
   const { userInfo } = useSelector((state) => state.user);
+  const [rotation, setRotation] = useState(0);
+  const [isSideBarOpen, setIsSideBarOpen] = useState(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      const parsed = JSON.parse(savedTheme);
+      return parsed.isSideBarOpen ?? false;
+    }
+    return false;
+  })
+
+  const handleRotate = () => {
+    setRotation((prev) => prev + 360);
+    setIsSideBarOpen(!isSideBarOpen);
+    const theme = { isSideBarOpen: !isSideBarOpen }
+    localStorage.setItem("theme", JSON.stringify(theme));
+  }
 
   // Demo data - sử dụng dữ liệu giả lập thay vì lấy từ Redux
   // const demoUserRoles = ["ADMIN", "USER"]; // Giả lập quyền admin
@@ -54,49 +60,42 @@ export default function Sidebar() {
 
   // Định nghĩa menu items
   const menuItems = [
-    { path: "/home", icon: <FaHome size={20} />, roles: [] },
-    { path: "/roles", icon: <FaUsers size={20} />, roles: ["ROLE_ADMIN"] },
-    { path: "/users", icon: <FaUserCog size={20} />, roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER"] }, // User management
-    { path: "/accounts", icon: <FaUserCheck size={20} />, roles: ["ROLE_ADMIN"] }, // Account status management
+    { path: "/home", icon: <FaHome size={20} />, roles: [], desc: "Home" },
+    { path: "/roles", icon: <FaUsers size={20} />, roles: ["ROLE_ADMIN"], desc: "Role management" },
+    { path: "/users", icon: <FaUserCog size={20} />, roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER"], desc: "User management" }, // User management
+    { path: "/accounts", icon: <FaUserCheck size={20} />, roles: ["ROLE_ADMIN"], desc: "Account management" }, // Account status management
     {
       path: "/test",
       icon: <FaFlask size={20} />,
       roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER"],
+      desc: "Laboratory test"
     },
     {
       path: "/test",
       icon: <FaTools size={20} />,
       roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER", "ROLE_TECHNICIAN"],
+      desc: "Laboratory test"
     },
-    { path: "/test", icon: <FaShieldAlt size={20} />, roles: ["ROLE_ADMIN"] },
+    { path: "/test", icon: <FaShieldAlt size={20} />, roles: ["ROLE_ADMIN"], desc: "Laboratory test" },
     {
       path: "/test",
       icon: <FaCalendarAlt size={20} />,
       roles: ["ROLE_LAB_MANAGER"],
+      desc: "Laboratory test"
     },
     {
       path: "/test",
       icon: <FaChartLine size={20} />,
       roles: ["ROLE_ADMIN", "ROLE_LAB_MANAGER"],
+      desc: "Laboratory test"
     },
   ];
 
   return (
     <div
-      style={{
-        width: "60px",
-        backgroundColor: "#ff5a5f",
-        color: "white",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        paddingTop: "20px",
-        position: "fixed",
-        left: 0,
-        top: 0,
-        bottom: 0,
-        zIndex: 100,
-      }}
+      className={`bg-[#ff5a5f] text-white flex flex-col items-center pt-[20px]
+          z-[100] transition-all duration-200 ease-in-out
+        ${isSideBarOpen ? "w-[250px] " : "w-[100px]"}`}
     >
       <div
         style={{
@@ -108,18 +107,41 @@ export default function Sidebar() {
           marginBottom: "20px",
         }}
       >
-        <FaBars style={{ fontSize: "24px" }} />
+        <motion.div
+          animate={{ rotate: rotation }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          <FaBars
+            onClick={handleRotate}
+            className="text-[24px] hover:cursor-pointer hover:scale-120 transition-all duration-200"
+          />
+        </motion.div>
       </div>
 
       {menuItems.map(
         (item, index) =>
           hasAccess(item.roles) && (
-            <SidebarIcon
-              key={index}
-              icon={item.icon}
-              active={location.pathname === item.path}
+            <Link
               to={item.path}
-            />
+              key={index}
+              className={`flex items-center w-full px-2 mb-3 transition-all duration-200 ease-in-out hover:cursor-pointer
+                  ${isSideBarOpen ? " hover:bg-white/20 rounded-r-full " : "bg-transparent hover:bg-transparent"}
+                  ${isSideBarOpen && location.pathname === item.path && "bg-[#FFFFFF33]"}`}
+            >
+              <div className="pl-5">
+                <SidebarIcon
+                  icon={item.icon}
+                  to={item.path}
+                  active={!isSideBarOpen && location.pathname === item.path}
+                  isSideBarOpen={isSideBarOpen}
+                />
+              </div>
+              {isSideBarOpen && (
+                <span className="whitespace-nowrap text-[14px] transition-all duration-300 ease-in-out hover:cursor-pointer">
+                  {item.desc}
+                </span>
+              )}
+            </Link>
           )
       )}
     </div>
