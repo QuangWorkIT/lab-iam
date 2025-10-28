@@ -16,7 +16,7 @@ export default function MainLayout({ children, pageTitle, pageDescription }) {
     >
       <Sidebar />
 
-      <div style={{ flex: 1, width: "calc(100% - 60px)" }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <Header pageTitle={pageTitle} />
 
         <div
