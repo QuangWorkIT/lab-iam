@@ -30,6 +30,8 @@ export default function RoleTable({
   const [filteredRoles, setFilteredRoles] = useState(roles);
   // Sorting: only 'code' and 'name' are sortable alphabetically
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  // Confirm delete dialog state
+  const [confirmState, setConfirmState] = useState({ open: false, role: null });
 
   // Lưu tiêu chí tìm kiếm để filter FE
   const [searchCriteria, setSearchCriteria] = useState({
@@ -118,6 +120,14 @@ export default function RoleTable({
       onSearch(keyword, fromDate, toDate, roleFilter);
     }
   };
+
+  // Open custom confirm dialog (replace window.confirm)
+  const requestDelete = (role) => setConfirmState({ open: true, role });
+  const handleConfirmDelete = () => {
+    if (confirmState.role && onDelete) onDelete(confirmState.role);
+    setConfirmState({ open: false, role: null });
+  };
+  const handleCancelDelete = () => setConfirmState({ open: false, role: null });
 
   // Chuẩn hóa trạng thái active từ nhiều kiểu dữ liệu trả về
   const normalizeActive = (r) => {
@@ -403,16 +413,25 @@ export default function RoleTable({
                     style={{
                       padding: "12px 15px",
                       borderBottom: "1px solid #eaeaea",
+                      maxWidth: "200px",
                       color: "#555",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
                     }}
                   >
-                    {Array.isArray(role.privileges)
-                      ? role.privileges.slice(0, 2).join(", ") +
-                        (role.privileges.length > 2 ? "..." : "")
-                      : typeof role.privileges === "string"
-                      ? role.privileges.split(",").slice(0, 2).join(", ") +
-                        (role.privileges.split(",").length > 2 ? "..." : "")
-                      : "N/A"}
+                    {(() => {
+                      const privText = Array.isArray(role.privileges)
+                        ? role.privileges.join(", ")
+                        : typeof role.privileges === "string"
+                        ? role.privileges
+                        : "";
+                      const display = privText || "N/A";
+                      // Cắt giống Description để đồng bộ UX
+                      return display.length > 30
+                        ? `${display.substring(0, 30)}...`
+                        : display;
+                    })()}
                   </td>
                   <td
                     style={{
@@ -444,7 +463,7 @@ export default function RoleTable({
                     <ActionButtons
                       onView={onView}
                       onEdit={onEdit}
-                      onDelete={onDelete}
+                      onDelete={requestDelete}
                       item={role}
                     />
                   </td>
@@ -461,6 +480,121 @@ export default function RoleTable({
         totalPages={totalPages}
         onPageChange={onPageChange}
       />
+
+      {/* Confirm delete dialog */}
+      {confirmState.open && (
+        <ConfirmDialog
+          title="Delete Role"
+          message={`Are you sure you want to delete role "${
+            confirmState.role?.name || confirmState.role?.code || "this role"
+          }"?`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
+      )}
+    </div>
+  );
+}
+
+// Simple confirm dialog with overlay, styled to match app modals
+function ConfirmDialog({
+  title = "Confirm",
+  message,
+  confirmText = "OK",
+  cancelText = "Cancel",
+  onConfirm,
+  onCancel,
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1100,
+      }}
+      onMouseDown={(e) => {
+        if (e.currentTarget === e.target) onCancel?.();
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 12,
+          boxShadow: "0 12px 30px rgba(0,0,0,0.18)",
+          width: 420,
+          maxWidth: "92%",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            padding: "16px 20px",
+            borderBottom: "1px solid #f0f2f5",
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 800,
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              fontSize: 14,
+              color: "#e11d48",
+            }}
+          >
+            {title}
+          </div>
+        </div>
+        <div style={{ padding: "16px 20px", color: "#404553", fontSize: 14 }}>
+          {message}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 10,
+            padding: "12px 16px",
+            borderTop: "1px solid #f0f2f5",
+          }}
+        >
+          <button
+            type="button"
+            onClick={onCancel}
+            style={{
+              padding: "8px 14px",
+              border: "1px solid #e1e7ef",
+              borderRadius: 8,
+              backgroundColor: "#ffffff",
+              color: "#404553",
+              cursor: "pointer",
+            }}
+          >
+            {cancelText}
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            style={{
+              padding: "8px 16px",
+              border: "none",
+              borderRadius: 8,
+              backgroundColor: "#fe535b",
+              color: "#fff",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            {confirmText}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
