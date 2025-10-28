@@ -1,12 +1,16 @@
 package com.example.iam_service.controller;
 
-import com.example.iam_service.dto.UserDTO;
+import com.example.iam_service.dto.user.AdminUpdateUserDTO;
+import com.example.iam_service.dto.user.UpdateUserProfileDTO;
+import com.example.iam_service.dto.user.UserDTO;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 import com.example.iam_service.mapper.UserMapper;
@@ -73,13 +77,28 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PreAuthorize("hasAuthority('UPDATE_USER') or hasAuthority('ROLE_ADMIN')")
-    @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(
+    @PutMapping("/{id}/profile")
+    public ResponseEntity<UserDTO> updateOwnProfile(
             @PathVariable UUID id,
-            @Valid @RequestBody User userDTO) {
+            @Valid @RequestBody UpdateUserProfileDTO dto) {
 
-        User updatedUser = userService.updateUser(id, userDTO);
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!currentUser.getUserId().equals(id)) {
+            throw new AccessDeniedException("You can only update your own profile!");
+        }
+
+        User updatedUser = userService.updateOwnProfile(id, dto);
+        return ResponseEntity.ok(userMapper.toDto(updatedUser));
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<UserDTO> updateUserByAdmin(
+            @PathVariable UUID id,
+            @Valid @RequestBody AdminUpdateUserDTO dto) {
+
+        User updatedUser = userService.adminUpdateUser(id, dto);
         return ResponseEntity.ok(userMapper.toDto(updatedUser));
     }
 

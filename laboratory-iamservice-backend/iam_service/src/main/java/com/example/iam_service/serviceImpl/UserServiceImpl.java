@@ -2,8 +2,11 @@ package com.example.iam_service.serviceImpl;
 
 import com.example.iam_service.audit.AuditEvent;
 import com.example.iam_service.audit.AuditPublisher;
+import com.example.iam_service.dto.user.AdminUpdateUserDTO;
+import com.example.iam_service.dto.user.UpdateUserProfileDTO;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.external.PatientVerificationService;
+import com.example.iam_service.mapper.UserMapper;
 import com.example.iam_service.repository.UserRepository;
 import com.example.iam_service.service.EmailService;
 import com.example.iam_service.service.UserService;
@@ -28,6 +31,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final AuditPublisher auditPublisher;
@@ -123,6 +127,36 @@ public class UserServiceImpl implements UserService {
 
         return userRepository.save(existing);
     }
+
+    @Override
+    public User updateOwnProfile(UUID id, UpdateUserProfileDTO dto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+
+        userMapper.updateUserFromProfileDto(dto, user);
+
+        // auto-update age if birthdate changed
+        if (dto.getBirthdate() != null) {
+            user.setAge(calculateAge(dto.getBirthdate()));
+        }
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User adminUpdateUser(UUID id, AdminUpdateUserDTO dto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+
+        userMapper.updateUserFromAdminDto(dto, user);
+
+        if (dto.getBirthdate() != null) {
+            user.setAge(calculateAge(dto.getBirthdate()));
+        }
+
+        return userRepository.save(user);
+    }
+
 
 
     // ================= PRIVATE HELPERS =================
