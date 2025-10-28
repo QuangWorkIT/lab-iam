@@ -29,10 +29,10 @@ function LoginPage() {
                                     initial={{ opacity: 0, rotate: 540 }}
                                     animate={{ rotate: isResetPassWord ? 540 : 0, opacity: 1 }}
                                     whileHover={!isResetPassWord ? { rotate: -360 } : {}}
-                                    transition={{ duration: 0.6, ease: "easeInOut" }}
-                                    onClick={()=>setIsResetPassWord(false)}
+                                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                                    onClick={() => setIsResetPassWord(false)}
                                 >
-                                    <ForwardOutlined style={{ fontSize: "38px", marginLeft: "7px"}} />
+                                    <ForwardOutlined style={{ fontSize: "38px", marginLeft: "7px" }} />
                                 </motion.div>
                             </div>
                         </div>
@@ -92,7 +92,7 @@ function LoginPage() {
                                 transition={{ duration: 0.5, ease: "easeInOut" }}
                                 className="w-full"
                             >
-                                <ForgetPassForm setIsResetPassWord = {setIsResetPassWord}></ForgetPassForm>
+                                <ForgetPassForm setIsResetPassWord={setIsResetPassWord}></ForgetPassForm>
                             </motion.div>
                         ) : (
                             <motion.div

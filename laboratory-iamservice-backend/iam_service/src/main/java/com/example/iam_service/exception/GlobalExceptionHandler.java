@@ -1,5 +1,6 @@
 package com.example.iam_service.exception;
 
+import com.example.iam_service.dto.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -33,5 +34,12 @@ public class GlobalExceptionHandler {
         Map<String, String> error = new HashMap<>();
         error.put("error", "Unexpected error: " + ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler(InvalidOtpException.class)
+    public ResponseEntity<ApiResponse<String>> handleOtpException(InvalidOtpException ex) {
+        return ResponseEntity
+                .badRequest()
+                .body(new ApiResponse<>("Error", ex.getMessage()));
     }
 }
