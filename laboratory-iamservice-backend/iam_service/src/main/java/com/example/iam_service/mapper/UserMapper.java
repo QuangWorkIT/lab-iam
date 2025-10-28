@@ -1,6 +1,7 @@
 package com.example.iam_service.mapper;
 
 import com.example.iam_service.dto.user.AdminUpdateUserDTO;
+import com.example.iam_service.dto.user.DetailUserDTO;
 import com.example.iam_service.dto.user.UpdateUserProfileDTO;
 import com.example.iam_service.dto.user.UserDTO;
 import com.example.iam_service.entity.User;
@@ -16,6 +17,8 @@ public interface UserMapper {
 
     UserDTO toDto(User user);
     User toEntity(UserDTO dto);
+    DetailUserDTO toDetailDto(User user);
+
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateUserFromProfileDto(UpdateUserProfileDTO dto, @MappingTarget User user);

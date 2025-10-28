@@ -8,7 +8,6 @@ import lombok.Setter;
 @Setter
 public class AdminUpdateUserDTO {
     private String fullName;
-    private String email;
     private String phoneNumber;
     private String identityNumber;
     private String gender;

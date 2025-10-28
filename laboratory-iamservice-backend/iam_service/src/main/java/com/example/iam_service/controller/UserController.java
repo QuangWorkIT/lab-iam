@@ -1,6 +1,7 @@
 package com.example.iam_service.controller;
 
 import com.example.iam_service.dto.user.AdminUpdateUserDTO;
+import com.example.iam_service.dto.user.DetailUserDTO;
 import com.example.iam_service.dto.user.UpdateUserProfileDTO;
 import com.example.iam_service.dto.user.UserDTO;
 import com.example.iam_service.entity.User;
@@ -69,7 +70,7 @@ public class UserController {
         return ResponseEntity.ok("User with email " + email + " has been activated successfully.");
     }
 
-    @PreAuthorize("hasAuthority('VIEW_USER') or hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('VIEW_USER') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_LAB_MANAGER')")
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable UUID id) {
         return userService.getUserById(id)
@@ -92,7 +93,7 @@ public class UserController {
         return ResponseEntity.ok(userMapper.toDto(updatedUser));
     }
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('MODIFY_USER') or hasAuthority('ROLE_LAB_MANAGER')")
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> updateUserByAdmin(
             @PathVariable UUID id,
@@ -102,5 +103,11 @@ public class UserController {
         return ResponseEntity.ok(userMapper.toDto(updatedUser));
     }
 
+    @GetMapping("/{id}/profile")
+    public ResponseEntity<DetailUserDTO> viewDetailedInformation (@PathVariable UUID id) {
+        return userService.getUserById(id)
+                .map(user -> ResponseEntity.ok(userMapper.toDetailDto(user)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
 }
