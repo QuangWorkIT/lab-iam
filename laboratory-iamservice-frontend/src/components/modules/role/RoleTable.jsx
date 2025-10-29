@@ -1,19 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  FaPlus,
-  FaSort,
-  FaSortAlphaDown,
-  FaSortAlphaUp,
-  FaEye,
-  FaEdit,
-  FaTrash,
-} from "react-icons/fa";
+import { FaPlus } from "react-icons/fa";
 import RoleSearchBar from "./RoleSearchBar";
 import Pagination from "../../common/Pagination";
 import StatusBadge from "../../common/StatusBadge";
 import RoleBadge from "./RoleBadge";
 import ActionButtons from "./ActionButtons";
-import { formatDate, formatPrivileges } from "../../../utils/formatter";
+import { formatDate } from "../../../utils/formatter";
 
 export default function RoleTable({
   roles,
@@ -108,7 +100,13 @@ export default function RoleTable({
       // Luôn sort dựa trên danh sách mới nhất sau filter
       setFilteredRoles(sortRoles(filtered));
     } else {
-      setFilteredRoles(filtered); // giữ nguyên thứ tự backend
+      // Mặc định: sắp xếp theo Created At tăng dần để item mới nằm về phía dưới
+      const toMs = (d) => {
+        const t = new Date(d).getTime();
+        return Number.isFinite(t) ? t : 0; // item không có createdAt coi như cũ nhất
+      };
+      const byCreatedAsc = (a, b) => toMs(a.createdAt) - toMs(b.createdAt);
+      setFilteredRoles([...filtered].sort(byCreatedAsc));
     }
   }, [roles, searchCriteria, sortConfig, onSort]);
 
@@ -140,19 +138,7 @@ export default function RoleTable({
   };
 
   // Toggle sorting for allowed keys (only 'code' and 'name')
-  const toggleSort = (key) => {
-    if (key !== "code" && key !== "name") return;
-    const direction =
-      sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc";
-    setSortConfig({ key, direction });
-
-    if (onSort) {
-      // Nếu có callback, báo cáo sự thay đổi lên cha
-      onSort(key, direction);
-    } else {
-      setSortConfig({ key, direction: "asc" });
-    }
-  };
+  // Removed toggleSort and related UI to disable sorting controls without affecting other features
 
   return (
     <div className="role-table-container" style={{ width: "100%" }}>
@@ -205,13 +191,13 @@ export default function RoleTable({
           }}
         >
           <thead>
-            <tr style={{ backgroundColor: "#f8f9fa" }}>
+            <tr style={{ backgroundColor: "#fe535b" }}>
               <th
                 style={{
                   padding: "12px 15px",
                   textAlign: "left",
-                  borderBottom: "1px solid #eaeaea",
-                  color: "#666",
+                  borderBottom: "none",
+                  color: "#fff",
                   fontWeight: "600",
                   fontSize: "14px",
                   minWidth: "160px",
@@ -219,41 +205,14 @@ export default function RoleTable({
                   verticalAlign: "middle",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ whiteSpace: "nowrap" }}>Role Code</span>
-
-                  <button
-                    type="button"
-                    onClick={() => toggleSort("code")}
-                    title="Sort by Role Code"
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: 4,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {sortConfig.key === "code" ? (
-                      sortConfig.direction === "asc" ? (
-                        <FaSortAlphaDown style={{ color: "#fe535b" }} />
-                      ) : (
-                        <FaSortAlphaUp style={{ color: "#fe535b" }} />
-                      )
-                    ) : (
-                      <FaSort style={{ color: "#aaa" }} />
-                    )}
-                  </button>
-                </div>
+                <span style={{ whiteSpace: "nowrap" }}>Role Code</span>
               </th>
               <th
                 style={{
                   padding: "12px 15px",
                   textAlign: "left",
-                  borderBottom: "1px solid #eaeaea",
-                  color: "#666",
+                  borderBottom: "none",
+                  color: "#fff",
                   fontWeight: "600",
                   fontSize: "14px",
                   minWidth: "160px",
@@ -261,65 +220,14 @@ export default function RoleTable({
                   verticalAlign: "middle",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ whiteSpace: "nowrap" }}>Role Name</span>
-
-                  <button
-                    type="button"
-                    onClick={() => toggleSort("name")}
-                    title="Sort by Role Name"
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: 4,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {sortConfig.key === "name" ? (
-                      sortConfig.direction === "asc" ? (
-                        <FaSortAlphaDown style={{ color: "#fe535b" }} />
-                      ) : (
-                        <FaSortAlphaUp style={{ color: "#fe535b" }} />
-                      )
-                    ) : (
-                      <FaSort style={{ color: "#aaa" }} />
-                    )}
-                  </button>
-                </div>
+                <span style={{ whiteSpace: "nowrap" }}>Role Name</span>
               </th>
               <th
                 style={{
                   padding: "12px 15px",
                   textAlign: "left",
-                  borderBottom: "1px solid #eaeaea",
-                  color: "#666",
-                  fontWeight: "600",
-                  fontSize: "14px",
-                }}
-              >
-                Description
-              </th>
-              <th
-                style={{
-                  padding: "12px 15px",
-                  textAlign: "left",
-                  borderBottom: "1px solid #eaeaea",
-                  color: "#666",
-                  fontWeight: "600",
-                  fontSize: "14px",
-                }}
-              >
-                Privileges
-              </th>
-              <th
-                style={{
-                  padding: "12px 15px",
-                  textAlign: "left",
-                  borderBottom: "1px solid #eaeaea",
-                  color: "#666",
+                  borderBottom: "none",
+                  color: "#fff",
                   fontWeight: "600",
                   fontSize: "14px",
                 }}
@@ -330,8 +238,8 @@ export default function RoleTable({
                 style={{
                   padding: "12px 15px",
                   textAlign: "left",
-                  borderBottom: "1px solid #eaeaea",
-                  color: "#666",
+                  borderBottom: "none",
+                  color: "#fff",
                   fontWeight: "600",
                   fontSize: "14px",
                 }}
@@ -342,8 +250,8 @@ export default function RoleTable({
                 style={{
                   padding: "12px 15px",
                   textAlign: "center",
-                  borderBottom: "1px solid #eaeaea",
-                  color: "#666",
+                  borderBottom: "none",
+                  color: "#fff",
                   fontWeight: "600",
                   fontSize: "14px",
                   width: "120px",
@@ -357,7 +265,7 @@ export default function RoleTable({
             {filteredRoles.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={5}
                   style={{
                     textAlign: "center",
                     color: "#888",
@@ -393,45 +301,6 @@ export default function RoleTable({
                     }}
                   >
                     <RoleBadge roleName={role.name} />
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                      borderBottom: "1px solid #eaeaea",
-                      maxWidth: "200px",
-                      color: "#555",
-                      whiteSpace: "nowrap", // Thêm dòng này để không xuống dòng
-                      overflow: "hidden", // Ẩn phần vượt quá
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {role.description && role.description.length > 30
-                      ? `${role.description.substring(0, 30)}...`
-                      : role.description}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                      borderBottom: "1px solid #eaeaea",
-                      maxWidth: "200px",
-                      color: "#555",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {(() => {
-                      const privText = Array.isArray(role.privileges)
-                        ? role.privileges.join(", ")
-                        : typeof role.privileges === "string"
-                        ? role.privileges
-                        : "";
-                      const display = privText || "N/A";
-                      // Cắt giống Description để đồng bộ UX
-                      return display.length > 30
-                        ? `${display.substring(0, 30)}...`
-                        : display;
-                    })()}
                   </td>
                   <td
                     style={{
