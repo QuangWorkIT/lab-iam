@@ -7,6 +7,7 @@ import com.example.iam_service.repository.UserRepository;
 import com.example.iam_service.service.authen.GoogleService;
 import com.example.iam_service.service.authen.LoginService;
 import com.example.iam_service.service.authen.RefreshTokenService;
+import com.example.iam_service.service.authen.ResetPassWordService;
 import com.example.iam_service.util.JwtUtil;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -25,7 +26,7 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
-public class AuthenticationServiceImpl implements LoginService, GoogleService, RefreshTokenService {
+public class AuthenticationServiceImpl implements LoginService, GoogleService, RefreshTokenService, ResetPassWordService {
     private final BCryptPasswordEncoder encoder;
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshRepo;
@@ -151,5 +152,24 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
         }
 
         return tokenFound;
+    }
+
+    @Override
+    public User findUserByEmailOrPhone(String option, String data) {
+        return switch (option) {
+            case "email" -> userRepository.findByEmail(data).orElse(null);
+            case "phone" -> userRepository.findByPhoneNumber(data).orElse(null);
+            default -> throw new RuntimeException("Find user by option not found");
+        };
+    }
+
+    @Transactional
+    @Override
+    public User updateUserPassword(String userid, String password) {
+        User user = userRepository.findById(UUID.fromString(userid)).orElseThrow(
+                () -> new RuntimeException("User not found")
+        );
+        user.setPassword(encoder.encode(password));
+        return userRepository.save(user);
     }
 }

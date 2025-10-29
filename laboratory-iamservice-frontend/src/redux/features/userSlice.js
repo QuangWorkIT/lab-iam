@@ -37,7 +37,10 @@ const userSlice = createSlice({
         localStorage.removeItem("token")
         toast.success("Logout success")
       })
-      .addCase(logout.rejected, (action) => {
+      .addCase(logout.rejected, (state, action) => {
+        state.token = null
+        state.userInfo = null
+        localStorage.removeItem("token")
         console.error(action.payload)
       })
   }

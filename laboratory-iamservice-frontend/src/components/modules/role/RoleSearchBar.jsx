@@ -1,16 +1,33 @@
-import React, { useState } from "react";
-import { FaSearch, FaCalendarAlt } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { FaSearch } from "react-icons/fa";
 
-export default function RoleSearchBar({ onSearch }) {
-  const [search, setSearch] = useState("");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+export default function RoleSearchBar({
+  onSearch,
+  initialKeyword = "",
+  initialFromDate = "",
+  initialToDate = "",
+  initialRoleFilter = "",
+  roleOptions = [],
+}) {
+  const [search, setSearch] = useState(initialKeyword);
+  const [fromDate, setFromDate] = useState(initialFromDate);
+  const [toDate, setToDate] = useState(initialToDate);
+  const [roleFilter, setRoleFilter] = useState(initialRoleFilter);
+
+  // Đồng bộ khi props initial thay đổi
+  useEffect(() => {
+    setSearch(initialKeyword);
+    setFromDate(initialFromDate);
+    setToDate(initialToDate);
+    setRoleFilter(initialRoleFilter);
+  }, [initialKeyword, initialFromDate, initialToDate, initialRoleFilter]);
 
   const handleSearch = (e) => {
     // Ngăn chặn hành vi mặc định của form để tránh reload trang
     if (e) e.preventDefault();
-
-    onSearch(search.trim().toLowerCase(), fromDate, toDate);
+    const searchKeyword =
+      search.trim() === "" ? "" : search.trim().toLowerCase();
+    onSearch(searchKeyword, fromDate, toDate, roleFilter);
   };
 
   const handleInputKeyDown = (e) => {
@@ -21,12 +38,28 @@ export default function RoleSearchBar({ onSearch }) {
     }
   };
 
+  const handleRoleChange = (e) => {
+    const newRole = e.target.value;
+    setRoleFilter(newRole);
+    // Tự động search khi đổi role
+    const searchKeyword =
+      search.trim() === "" ? "" : search.trim().toLowerCase();
+    onSearch(searchKeyword, fromDate, toDate, newRole);
+  };
+
   return (
     // Wrap trong form và xử lý onSubmit (Enter). Nút Search dùng onClick để tránh submit mặc định.
     <form
       onSubmit={handleSearch}
       className="search-container"
-      style={{ display: "flex", alignItems: "center", gap: 8 }}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        flexWrap: "wrap", // allow wrapping to avoid horizontal overflow
+        rowGap: 8, // space between wrapped rows
+        maxWidth: "100%",
+      }}
       role="search"
       aria-label="Role search"
     >
@@ -35,11 +68,13 @@ export default function RoleSearchBar({ onSearch }) {
           position: "relative",
           display: "flex",
           alignItems: "center",
-          border: "1px solid #e1e7ef",
+          border: "1px solid #e0e0e0",
           borderRadius: "4px",
           padding: "5px 10px",
           width: "200px",
-          backgroundColor: "#e1e7ef",
+          minWidth: 160, // allow shrink but keep reasonable min
+          flexShrink: 1, // let it shrink on small widths
+          backgroundColor: "#f0f0f0",
         }}
       >
         <FaSearch style={{ color: "#888", marginRight: "8px" }} />
@@ -63,9 +98,41 @@ export default function RoleSearchBar({ onSearch }) {
           autoComplete="off"
         />
       </div>
-      <span style={{ color: "#333" }}>Created Date:</span>
 
-      <div style={{ position: "relative", display: "inline-block" }}>
+      {/* Ô lọc Role */}
+      <span style={{ color: "#333", marginLeft: "8px" }}>Role:</span>
+      <select
+        value={roleFilter}
+        onChange={handleRoleChange}
+        style={{
+          padding: "5px 8px",
+          border: "1px solid #e1e7ef",
+          borderRadius: "4px",
+          fontSize: "14px",
+          backgroundColor: "#fff",
+          color: "#333",
+          marginLeft: "8px",
+          cursor: "pointer",
+          flexShrink: 1,
+        }}
+        aria-label="Role filter"
+        name="roleFilter"
+      >
+        <option value="">All Roles</option>
+        {(roleOptions || []).map((r) => {
+          const value = r.code || r.roleCode || "";
+          const label = r.name || r.roleName || value;
+          return (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          );
+        })}
+      </select>
+
+      <span style={{ color: "#333", marginLeft: "16px" }}>Created Date:</span>
+
+      <div style={{ display: "inline-block" }}>
         <input
           type="date"
           value={fromDate}
@@ -73,54 +140,36 @@ export default function RoleSearchBar({ onSearch }) {
           style={{
             marginLeft: 8,
             padding: "5px 8px",
-            border: "1px solid #e1e7ef",
+            border: "1px solid #e0e0e0",
             borderRadius: "4px",
             fontSize: "14px",
             backgroundColor: "#fff",
             color: "#333",
+            cursor: "pointer",
           }}
           aria-label="From date"
           name="fromDate"
-        />
-        <FaCalendarAlt
-          style={{
-            position: "absolute",
-            right: 8,
-            top: "50%",
-            transform: "translateY(-50%)",
-            color: "#666",
-            pointerEvents: "none",
-          }}
         />
       </div>
 
       <span style={{ margin: "0 4px", color: "#888" }}>-</span>
 
-      <div style={{ position: "relative", display: "inline-block" }}>
+      <div style={{ display: "inline-block" }}>
         <input
           type="date"
           value={toDate}
           onChange={(e) => setToDate(e.target.value)}
           style={{
             padding: "5px 8px",
-            border: "1px solid #e1e7ef",
+            border: "1px solid #e0e0e0",
             borderRadius: "4px",
             fontSize: "14px",
             backgroundColor: "#fff",
             color: "#333",
+            cursor: "pointer",
           }}
           aria-label="To date"
           name="toDate"
-        />
-        <FaCalendarAlt
-          style={{
-            position: "absolute",
-            right: 8,
-            top: "50%",
-            transform: "translateY(-50%)",
-            color: "#666",
-            pointerEvents: "none",
-          }}
         />
       </div>
 
@@ -134,8 +183,10 @@ export default function RoleSearchBar({ onSearch }) {
           padding: "5px 10px",
           marginLeft: "10px",
           cursor: "pointer",
+          flexShrink: 0,
         }}
         aria-label="Search"
+        title="Search"
       >
         <FaSearch style={{ fontSize: "14px", color: "#666" }} />
       </button>
