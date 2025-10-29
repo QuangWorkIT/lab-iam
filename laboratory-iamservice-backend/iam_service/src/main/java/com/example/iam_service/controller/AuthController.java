@@ -209,7 +209,7 @@ public class AuthController {
                     .body(new ApiResponse<>("Error", "Email is required"));
         }
 
-        emailService.sentOtp(email);
+        emailService.sendOtp(email);
         return ResponseEntity
                 .ok()
                 .body(new ApiResponse<>(

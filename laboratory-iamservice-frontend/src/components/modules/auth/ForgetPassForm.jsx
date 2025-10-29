@@ -3,205 +3,15 @@ import { Segmented } from "antd";
 import { useState } from "react";
 import { MailOutlined, PhoneOutlined, CheckOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { motion, AnimatePresence } from "motion/react";
-import { theme } from "./LoginForm.jsx";
-import publicApi from "../../configs/publicAxios.js";
+import { theme } from "../../common/LoginForm.jsx";
+import publicApi from "../../../configs/publicAxios.js";
 import { toast } from "react-toastify";
+import VerifyOpt from "./VerifyOtpForm.jsx";
+import ResetPassWord from "./ResetPassWordForm.jsx";
 
-const ResetPassWord = ({ setIsResetPassWord, userId }) => {
-    const [resetPassWordState, setResetPassWordState] = useState(null)
-
-    const resetPassWord = async (values) => {
-        try {
-            setResetPassWordState("reseting")
-            await publicApi.put("/api/auth/password-reset", {
-                userid: userId,
-                password: values.password
-            })
-            setResetPassWordState("success")
-            setTimeout(() => {
-                setIsResetPassWord(false)
-                toast.success("Reset password successfully!")
-            }, 1000);
-
-        } catch (error) {
-            console.log("Error reset password", error)
-            toast.error("Error reset password")
-            setResetPassWordState(null)
-        }
-    }
-
-    return (
-        <div className="flex flex-col h-full items-center justify-center">
-            <Form
-                name="resetPassword"
-                initialValues={{ remember: true }}
-                onFinish={resetPassWord}
-                autoComplete="off"
-                className="w-[300px]"
-            >
-                <Form.Item
-                    name="password"
-                    rules={[{ required: true, message: "Please enter new password" }]}
-                >
-                    <Input.Password visibilityToggle={false} placeholder="Enter new password" />
-                </Form.Item>
-
-                <Form.Item
-                    name="confirm"
-                    dependencies={["password"]}
-                    validateTrigger="onBlur"
-                    rules={[{ required: true, message: "Please confirm your password" },
-                    ({ getFieldValue }) => ({
-                        validator(_, value) {
-                            if (getFieldValue("password") !== value) {
-                                return Promise.reject(new Error("Password does not match"))
-                            }
-                            return Promise.resolve()
-                        }
-                    })
-                    ]}
-                >
-                    <Input.Password visibilityToggle={false} placeholder="Confirm new password" />
-                </Form.Item>
-
-                <Form.Item
-                    label={null}
-                    className="flex justify-center"
-                    style={{ marginTop: "40px" }}
-                >
-                    <Button
-                        className={`hover:bg-[#fca9ad] transition-all duration-300 ease-in-out 
-                        ${resetPassWordState === "success" ? "w-50" : "w-30"}`}
-                        color="danger"
-                        variant="solid"
-                        htmlType="submit"
-                        loading={resetPassWordState === "reseting"}
-                    >
-                        <AnimatePresence mode="wait">
-                            {resetPassWordState === "success" ? (
-                                <motion.div
-                                    key="success"
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                                    className="flex items-center justify-center gap-1"
-                                >
-                                    <CheckOutlined /> Password changed
-                                </motion.div>
-                            ) : (
-                                <motion.span
-                                    key="reset"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    Reset
-                                </motion.span>
-                            )}
-                        </AnimatePresence>
-                    </Button>
-                </Form.Item>
-            </Form>
-        </div>
-    )
-}
-
-const VerifyOpt = ({ data, setIsResetPassWordOpen }) => {
-    const [otpVerifyState, setOtpVerifyState] = useState("")
-    const handleVerifyOtp = async (value) => {
-        try {
-            setOtpVerifyState("verifying")
-            await publicApi.post("/api/auth/otp-verification", {
-                otp: value.otp,
-                email: data
-            })
-
-            setOtpVerifyState("success")
-            setTimeout(() => {
-                setIsResetPassWordOpen(true)
-            }, 1000);
-        } catch (error) {
-            console.error("Error verify OTP", error)
-            if (error.response.data?.message) toast.error(error.response.data.message)
-            else toast.error("Error verify OTP")
-            setOtpVerifyState(null)
-        }
-    }
-
-    return (
-        <div className="flex flex-col h-full items-center justify-center">
-            <p style={{ marginBottom: "20px" }}>
-                Enter the OTP code we sent to <span className="font-bold">{data}</span>
-            </p>
-
-            <Form
-                name="verfiyOtp"
-                initialValues={{ remember: true }}
-                onFinish={handleVerifyOtp}
-                autoComplete="off">
-                <Form.Item
-                    name="otp"
-                    rules={[{ required: true, message: "Please enter the OTP code" }]}
-                >
-                    <Input.OTP />
-                </Form.Item>
-
-                <Form.Item
-                    label={null}
-                    className="flex justify-center"
-                    style={{ marginTop: "40px" }}
-                >
-                    <AnimatePresence mode="wait">
-                        {otpVerifyState === "verifying" && (
-                            <motion.div
-                                key="verifying"
-                            >
-                                <Spin size="large" />
-                            </motion.div>
-                        )}
-
-                        {otpVerifyState === "success" && (
-                            <motion.div
-                                key="success"
-                                initial={{ opacity: 0, scale: 0.5 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.5 }}
-                                transition={{ duration: 0.3, ease: "easeOut" }}
-                                className="flex flex-col items-center"
-                            >
-                                <CheckCircleOutlined style={{ fontSize: "48px", color: "#00bf63" }} />
-                                <p className="mt-2 text-green-600 font-semibold">Verified!</p>
-                            </motion.div>
-                        )}
-
-                        {!otpVerifyState && (
-                            <motion.div
-                                key="button"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <Button
-                                    className="w-25 hover:bg-[#fca9ad]"
-                                    color="danger"
-                                    variant="solid"
-                                    htmlType="submit"
-                                >
-                                    Verify
-                                </Button>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </Form.Item>
-            </Form>
-        </div>
-    )
-}
 
 function ForgetPassForm({ setIsResetPassWord }) {
+    const [form] = Form.useForm();
     const [option, setOption] = useState("email");
     const [isOptOpen, setIsOptOpen] = useState(false)
     const [isResetPassWordOpen, setIsResetPassWordOpen] = useState(false)
@@ -222,10 +32,14 @@ function ForgetPassForm({ setIsResetPassWord }) {
             setTimeout(() => {
                 setIsOptOpen(true)
             }, 700);
+            form.resetFields([option])
         } catch (error) {
-            toast.error("Error verify email or phone")
             console.error("Error verify email or phone", error)
             setVerifyingEmailOrPhone(null)
+            form.resetFields([option])
+            const errMess = error.response?.data?.message
+            if (errMess && errMess === "User not found") toast.error(option === "email" ? "Email not found!" : "Phone not found!")
+            else toast.error("Error verify email or phone")
         }
     };
 
@@ -264,7 +78,7 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                     animate={{ opacity: 1, x: 0, y: 0 }}
                                     exit={{ opacity: 0, x: -10, y: 10 }}
                                     transition={{ duration: 0.5, ease: "easeInOut" }}
-                                    className="flex flex-col gap-7 items-center justify-center h-full min-w-[300px]">
+                                    className="flex flex-col gap-5 items-center justify-center h-full min-w-[300px]">
                                     <div className="text-center">
                                         <p className="text-[30px]" style={{ marginBottom: "15px" }}>Forget your password?</p>
                                         <p>Please enter your email or phone</p>
@@ -297,6 +111,7 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                     </div>
 
                                     <Form
+                                        form={form}
                                         name="verifyEmailOrPhone"
                                         initialValues={{ remember: true }}
                                         onFinish={verifyEmailOrPhone}
@@ -324,6 +139,7 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                                                 prefix={<MailOutlined />}
                                                                 type="email"
                                                                 placeholder="Enter your email"
+                                                                style={{width: "320px"}}
                                                             />
                                                         </Form.Item>
                                                     </ConfigProvider>
