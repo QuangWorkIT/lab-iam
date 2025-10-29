@@ -1,12 +1,15 @@
 package com.example.iam_service.mapper;
 
 import com.example.iam_service.dto.RoleDTO;
+import com.example.iam_service.dto.request.RoleUpdateRequestDto;
+import com.example.iam_service.entity.Enum.Privileges;
 import com.example.iam_service.entity.Role;
 import com.example.iam_service.util.PrivilegesConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -67,18 +70,20 @@ public class RoleMapper {
                 .build();
     }
 
-    public void updateEntityFromDto(RoleDTO dto, Role role) {
-        if (dto == null || role == null) {
-            return;
-        }
-
+    //This method will take RoleUpdateRequest which only permits user to update any other fields but name or roleCode
+    public Role updateEntityFromDto(RoleUpdateRequestDto dto, Role role) {
+        log.info("Begin role update mapping with role: {}", role.getName());
         role.setName(dto.getName());
         role.setDescription(dto.getDescription());
         role.setPrivileges(privilegesConverter.convertToEntityAttribute(dto.getPrivileges()));
-        role.setActive(dto.getIsActive());
-        // Không cập nhật code vì đó là ID
-        // Không cập nhật createdAt để giữ nguyên ngày tạo ban đầu
-        // lastUpdatedAt sẽ được cập nhật tự động bởi @PreUpdate
+        if(role.getPrivileges().isEmpty())
+        {
+            log.warn("Role privileges set empty adding READ_ONLY.");
+            role.addPrivilege(Privileges.READ_ONLY);
+        }
+        role.setUpdatedAt(LocalDate.now());
+        log.info("Finish role mapping with role: {}", role.getName());
+        return role;
     }
 
     public List<RoleDTO> toDtoList(List<Role> roleList)

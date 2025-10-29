@@ -1,5 +1,6 @@
 package com.example.iam_service.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoleDTO {
+    @JsonIgnore
     private String code;
 
     @Pattern(regexp = "^[a-zA-Z0-9_]*$")
@@ -27,6 +29,7 @@ public class RoleDTO {
 
     @Schema(description = "Role's privileges", example = "READ_ONLY,CREATE_ROLE")
     private String privileges;
+
 
     @Schema(description = "Role's create date")
     private LocalDate createdAt;

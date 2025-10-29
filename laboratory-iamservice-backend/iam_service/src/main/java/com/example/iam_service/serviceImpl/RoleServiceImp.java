@@ -1,6 +1,7 @@
 package com.example.iam_service.serviceImpl;
 
 import com.example.iam_service.dto.RoleDTO;
+import com.example.iam_service.dto.request.RoleUpdateRequestDto;
 import com.example.iam_service.entity.Enum.Privileges;
 import com.example.iam_service.entity.Role;
 import com.example.iam_service.exception.DuplicateRoleException;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -114,6 +116,7 @@ public class RoleServiceImp implements RoleService {
     @Override
     public RoleDTO createRole(Role role) {
 
+        log.info("Role create called on role: {} at {}", role.getName(), LocalDateTime.now());
         String cleanName = role.getName()
                 .trim()
                 .replaceAll("\\s+", "_")
@@ -127,29 +130,22 @@ public class RoleServiceImp implements RoleService {
         {
             role.addPrivileges(Privileges.READ_ONLY);
         }
+        log.info("Role creation successful on role: {} at {}", role.getName(), LocalDateTime.now());
         return  mapper.toDto(roleRepository.save(role));
     }
 
     @Override
-    public RoleDTO updateRole(Role role, String roleCode) {
-        log.info("Updating role with code: {}", roleCode);
-        if(isRoleCodeExists(roleCode))
+    public RoleDTO updateRole(RoleUpdateRequestDto dto, String roleCode) {
+        log.info("Role update called on role: {} at {}", dto.getName(), LocalDateTime.now());
+        if(!isRoleCodeExists(roleCode))
         {
-            throw new RoleNotFoundException("Role with name '" + role.getName() + "' doesn't exists");
+            throw new RoleNotFoundException("Role with code: '" + roleCode + " 'doesn't exists");
         }
-    Role found = this.returnByCode(roleCode);
-    found.setCode(role.getCode());
-    found.setName(role.getName());
-    found.setDescription(role.getDescription());
-    found.setPrivileges(role.getPrivileges());
-    if(role.getPrivileges().isEmpty())
-    {
-        log.warn("Role privileges set empty adding READ_ONLY.");
-        found.addPrivilege(Privileges.READ_ONLY);
-    }
-    log.info("Role updated successfully with code: {}", roleCode);
-    found.setUpdatedAt(role.getUpdatedAt());
-    return mapper.toDto(roleRepository.save(found));
+        //Use mapper class for all update mapping with RoleRequestUpdateDto
+        //Privileges is also mapped in mapper
+   Role result = mapper.updateEntityFromDto(dto,this.returnByCode(roleCode));
+        log.info("Role update successful on role: {} at {}", dto.getName(), LocalDateTime.now());
+    return mapper.toDto(roleRepository.save(result));
     }
 
     @Override

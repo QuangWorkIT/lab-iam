@@ -1,6 +1,7 @@
 package com.example.iam_service.controller;
 
 import com.example.iam_service.dto.RoleDTO;
+import com.example.iam_service.dto.request.RoleUpdateRequestDto;
 import com.example.iam_service.exception.DuplicateRoleException;
 import com.example.iam_service.exception.RoleNotFoundException;
 import com.example.iam_service.mapper.RoleMapper;
@@ -144,20 +145,18 @@ public class RoleController {
         }
     }
 
-    @PutMapping("/update/{roleCodeOrName}")
-    public ResponseEntity<RoleDTO>updateRole(@RequestBody @Validated RoleDTO dto, @PathVariable  String roleCodeOrName)
+    @PutMapping("/update/{roleCode}")
+    public ResponseEntity<RoleDTO>updateRole(@RequestBody @Validated RoleUpdateRequestDto dto, @PathVariable  String roleCode)
     {
         log.info("Role update started. At class:{}",this.getClass());
-        if(roleCodeOrName.trim().isEmpty())
+        if(roleCode.trim().isEmpty() || dto==null)
         {
             log.warn("Role update have bad request.. At class:{}",this.getClass());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
         try{
-            Role mapped = roleMapper.toEntity(dto);
-            RoleDTO result = roleService.updateRole(mapped,roleCodeOrName);
-            return  ResponseEntity.status(HttpStatus.ACCEPTED).body(result);
+            return  ResponseEntity.status(HttpStatus.ACCEPTED).body(roleService.updateRole(dto,roleCode));
         }
         catch (RoleNotFoundException e)
         {
