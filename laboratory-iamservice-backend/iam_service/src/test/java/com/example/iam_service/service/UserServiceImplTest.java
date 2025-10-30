@@ -2,6 +2,8 @@ package com.example.iam_service.service;
 
 import com.example.iam_service.audit.AuditEvent;
 import com.example.iam_service.audit.AuditPublisher;
+import com.example.iam_service.dto.user.AdminUpdateUserDTO;
+import com.example.iam_service.dto.user.UpdateUserProfileDTO;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.external.PatientVerificationService;
 import com.example.iam_service.repository.UserRepository;
@@ -23,6 +25,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -35,6 +38,7 @@ class UserServiceImplTest {
     @Mock private EmailService emailService;
     @Mock private AuditPublisher auditPublisher;
     @Mock private PatientVerificationService patientVerificationService;
+    @Mock private com.example.iam_service.mapper.UserMapper userMapper;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -176,6 +180,143 @@ class UserServiceImplTest {
         Authentication auth = mock(Authentication.class);
         lenient().when(auth.isAuthenticated()).thenReturn(true);
         lenient().doReturn((Collection) List.of(new SimpleGrantedAuthority("ROLE_LAB_MANAGER"))).when(auth).getAuthorities();
+
+        SecurityContext ctx = mock(SecurityContext.class);
+        lenient().when(ctx.getAuthentication()).thenReturn(auth);
+        SecurityContextHolder.setContext(ctx);
+    }
+
+    @Test
+    void createUser_ShouldSetActive_WhenAdminCreatesNonPatient() {
+        // simulate admin (not lab manager)
+        mockNonLabManagerAuth();
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        User result = userService.createUser(doctorUser);
+
+        assertTrue(result.getIsActive());
+        verify(auditPublisher, never()).publish(argThat(
+                e -> e.getEventType().equals("ACCOUNT_PENDING_APPROVAL")
+        ));
+    }
+
+    @Test
+    void validatePassword_ShouldPass_WhenPasswordStrong() {
+        // indirectly tested via successful non-patient creation
+        mockNonLabManagerAuth();
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        User result = userService.createUser(doctorUser);
+        assertNotNull(result);
+    }
+
+    @Test
+    void getUserById_ShouldReturnOptionalUser() {
+        when(userRepository.findById(any())).thenReturn(Optional.of(doctorUser));
+        Optional<User> found = userService.getUserById(UUID.randomUUID());
+        assertTrue(found.isPresent());
+    }
+
+    @Test
+    void getAllUsers_ShouldReturnList() {
+        when(userRepository.findAll()).thenReturn(List.of(doctorUser, patientUser));
+        List<User> list = userService.getAllUsers();
+        assertEquals(2, list.size());
+    }
+
+    @Test
+    void getInactiveUsers_ShouldReturnList() {
+        when(userRepository.findByIsActiveFalse()).thenReturn(List.of(patientUser));
+        List<User> list = userService.getInactiveUsers();
+        assertEquals(1, list.size());
+    }
+
+    @Test
+    void updateUser_ShouldModifyOnlyProvidedFields() {
+        UUID id = UUID.randomUUID();
+        User existing = new User();
+        existing.setFullName("Old");
+        existing.setPhoneNumber("123");
+
+        User patch = new User();
+        patch.setFullName("NewName");
+        patch.setAddress("NewAddress");
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        User result = userService.updateUser(id, patch);
+        assertEquals("NewName", result.getFullName());
+        assertEquals("NewAddress", result.getAddress());
+        assertEquals("123", result.getPhoneNumber());
+    }
+
+    @Test
+    void updateOwnProfile_ShouldUpdateAndRecalculateAge() {
+        UUID id = UUID.randomUUID();
+        UpdateUserProfileDTO dto = new UpdateUserProfileDTO();
+        dto.setBirthdate(LocalDate.of(2000, 1, 1));
+
+        User existing = new User();
+        existing.setUserId(id);
+        existing.setEmail("test@x.com");
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        User result = userService.updateOwnProfile(id, dto);
+        verify(userMapper).updateUserFromProfileDto(eq(dto), eq(existing));
+        assertNotNull(result.getAge());
+    }
+
+    @Test
+    void adminUpdateUser_ShouldUpdateAndRecalculateAge() {
+        UUID id = UUID.randomUUID();
+        AdminUpdateUserDTO dto = new AdminUpdateUserDTO();
+        dto.setBirthdate(LocalDate.of(1995, 5, 5));
+
+        User existing = new User();
+        existing.setUserId(id);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        User result = userService.adminUpdateUser(id, dto);
+        verify(userMapper).updateUserFromAdminDto(eq(dto), eq(existing));
+        assertNotNull(result.getAge());
+    }
+
+    @Test
+    void updateUser_ShouldThrow_WhenUserNotFound() {
+        when(userRepository.findById(any())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> userService.updateUser(UUID.randomUUID(), new User()));
+    }
+
+    @Test
+    void isCreatedByLabManager_ShouldReturnFalse_WhenNotAuthenticated() {
+        SecurityContextHolder.clearContext();
+        assertFalse(invokeIsCreatedByLabManager());
+    }
+
+    // 🔧 helper to call private method using reflection
+    private boolean invokeIsCreatedByLabManager() {
+        try {
+            var method = UserServiceImpl.class.getDeclaredMethod("isCreatedByLabManager");
+            method.setAccessible(true);
+            return (boolean) method.invoke(userService);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void mockNonLabManagerAuth() {
+        Authentication auth = mock(Authentication.class);
+        lenient().when(auth.isAuthenticated()).thenReturn(true);
+        lenient().doReturn((Collection) List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))).when(auth).getAuthorities();
 
         SecurityContext ctx = mock(SecurityContext.class);
         lenient().when(ctx.getAuthentication()).thenReturn(auth);
