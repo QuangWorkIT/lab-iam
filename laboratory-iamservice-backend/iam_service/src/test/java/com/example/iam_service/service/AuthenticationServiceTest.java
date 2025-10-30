@@ -437,4 +437,113 @@ public class AuthenticationServiceTest {
             assertTrue(exception.getMessage().contains("JWT validation failed"));
         }
     }
+
+    @Nested
+    class ForgetPasswordTestGroup {
+        @Test
+        void findUserByEmail_ShouldReturnUser() {
+            String option = "email";
+            String data = "admin@example.com";
+
+            User mockUser = new User();
+            mockUser.setEmail(data);
+            when(userRepository.findByEmail(data)).thenReturn(Optional.of(mockUser));
+
+            User userFound = authenticationService.findUserByEmailOrPhone(option, data);
+
+            assertNotNull(userFound);
+            assertEquals(mockUser.getEmail(), userFound.getEmail());
+            verify(userRepository, times(1)).findByEmail(data);
+            verify(userRepository, times(0)).findByPhoneNumber(data);
+        }
+
+        @Test
+        void findUserByPhone_ShouldReturnUser() {
+            String option = "phone";
+            String data = "0123456789";
+
+            User mockUser = new User();
+            mockUser.setPhoneNumber(data);
+            when(userRepository.findByPhoneNumber(data)).thenReturn(Optional.of(mockUser));
+
+            User userFound = authenticationService.findUserByEmailOrPhone(option, data);
+
+            assertNotNull(userFound);
+            assertEquals(mockUser.getPhoneNumber(), userFound.getPhoneNumber());
+            verify(userRepository, times(0)).findByEmail(data);
+            verify(userRepository, times(1)).findByPhoneNumber(data);
+        }
+
+        @Test
+        void findUserByInvalidOption_ShouldThrowException() {
+            String option = "phoneOrEmail";
+            String data = "invalidData";
+
+            RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                    authenticationService.findUserByEmailOrPhone(option, data));
+
+            assertEquals("Find user by option not found", ex.getMessage());
+        }
+
+        @Test
+        void updatePassword_ValidUser_ShouldSaveNewPassword() {
+            String userid = UUID.randomUUID().toString();
+            String password = "newPassWord";
+
+            User mockUser = new User();
+            mockUser.setUserId(UUID.fromString(userid));
+            mockUser.setPassword("oldPasswordm");
+
+            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));
+            when(encoder.encode(password)).thenReturn(password);
+            when(userRepository.save(mockUser)).thenReturn(mockUser);
+
+            User userUpdated = authenticationService.updateUserPassword(userid, password);
+
+            assertNotNull(userUpdated);
+            assertEquals(password, userUpdated.getPassword());
+            assertEquals(userid, userUpdated.getUserId().toString());
+            verify(userRepository, times(1)).findById(UUID.fromString(userid));
+            verify(userRepository, times(1)).save(mockUser);
+        }
+
+        @Test
+        void updatePassword_UserNotFound_ShouldThrowException() {
+            String userid = UUID.randomUUID().toString();
+            String password = "newPassword";
+
+            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.empty());
+
+            RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                    authenticationService.updateUserPassword(userid, password)
+            );
+
+            assertEquals("User not found", ex.getMessage());
+            verify(userRepository, times(1)).findById(UUID.fromString(userid));
+            verify(userRepository, never()).save(any(User.class));
+        }
+
+        @Test
+        void updatePassword_SaveFails_ShouldThrowException() {
+            String userid = UUID.randomUUID().toString();
+            String password = "newPassword";
+
+            User mockUser = new User();
+            mockUser.setUserId(UUID.fromString(userid));
+            mockUser.setPassword("oldPassword");
+
+            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));
+            when(encoder.encode(password)).thenReturn(password);
+            when(userRepository.save(any(User.class)))
+                    .thenThrow(new RuntimeException("Database connection failed"));
+
+            RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                    authenticationService.updateUserPassword(userid, password)
+            );
+
+            assertTrue(ex.getMessage().contains("Database connection failed"));
+            verify(userRepository, times(1)).findById(UUID.fromString(userid));
+            verify(userRepository, times(1)).save(any(User.class));
+        }
+    }
 }

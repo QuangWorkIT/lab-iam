@@ -6,6 +6,7 @@ import {
 } from "../../redux/features/accountSlice";
 import AccountTable from "../../components/modules/account/AccountTable";
 import MainLayout from "../../components/layout/MainLayout";
+import UserDetailModal from "../../components/common/UserDetailModal";
 import { toast } from 'react-toastify';
 
 export default function AccountList() {
@@ -14,6 +15,10 @@ export default function AccountList() {
     const { accounts, loading, error } = useSelector(
         (state) => state.accounts
     );
+
+    // State for detail modal
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [viewingAccount, setViewingAccount] = useState(null);
 
     // Local state for search params (simplified - no pagination/status filter needed)
     const [searchParams, setSearchParams] = useState({
@@ -41,9 +46,15 @@ export default function AccountList() {
 
     // Handler for viewing account details
     const handleViewAccount = (account) => {
-        // For now, just show an alert with account details
-        // In the future, you could open a modal with detailed information
-        alert(`Account Details:\n\nName: ${account.name}\nEmail: ${account.email}\nRole: ${account.role}\nStatus: ${account.isActive ? 'Active' : 'Inactive'}\nCreated: ${account.createdAt}`);
+        setViewingAccount(account);
+        setIsDetailModalOpen(true);
+    };
+
+    // Handler for refresh account detail
+    const handleRefreshAccount = () => {
+        if (viewingAccount) {
+            dispatch(fetchInactiveAccounts());
+        }
     };
 
     // Handler for activating account (only inactive accounts can be activated)
@@ -112,6 +123,14 @@ export default function AccountList() {
                     searchParams={searchParams}
                 />
             </div>
+
+            {/* User Detail Modal */}
+            <UserDetailModal
+                user={viewingAccount}
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                onRefresh={handleRefreshAccount}
+            />
         </MainLayout>
     );
 }
