@@ -68,7 +68,7 @@ public class Role {
             accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDate updatedAt;
 
-    @Column(name = "deletable")
+    @Column(name = "role_deletable", nullable = false, columnDefinition = "boolean default false")
     @Schema(description = "Indicates whether the role deletable",
             example = "false")
     private boolean deletable;

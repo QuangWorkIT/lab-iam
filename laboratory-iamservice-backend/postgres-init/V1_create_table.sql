@@ -27,18 +27,19 @@ CREATE TABLE "Role" (
 
 CREATE TABLE "User" (
   userId UUID PRIMARY KEY,
-  email VARCHAR(255) NOT NULL UNIQUE,
-  phoneNumber VARCHAR(255),
-  fullName VARCHAR(255) NOT NULL,
-  identityNumber VARCHAR(255) NOT NULL,
-  gender VARCHAR(10) NOT NULL CHECK (gender IN ('MALE', 'FEMALE')),
-  age INT,
-  address VARCHAR(255),
-  birthDate DATE,
-  password VARCHAR(255) NOT NULL,
-  roleCode VARCHAR(255) REFERENCES "Role"(role_code),
-  isActive BOOLEAN,
-  createdAt DATE
+   email VARCHAR(255) NOT NULL UNIQUE,
+   phoneNumber VARCHAR(255),
+   fullName VARCHAR(255) NOT NULL,
+   identityNumber VARCHAR(255) NOT NULL,
+   gender VARCHAR(10) NOT NULL CHECK (gender IN ('MALE', 'FEMALE')),
+   age INT,
+   address VARCHAR(255),
+   birthdate DATE,
+   password VARCHAR(255) NOT NULL,
+   roleCode VARCHAR(255) REFERENCES "Role"(role_code),
+   isActive BOOLEAN,
+   createdAt DATE,
+   version BIGINT DEFAULT 0
 );
 
 CREATE TABLE "Token" (

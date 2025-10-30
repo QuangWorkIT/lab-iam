@@ -5,10 +5,14 @@ import com.example.iam_service.dto.request.RoleUpdateRequestDto;
 import com.example.iam_service.entity.Enum.Privileges;
 import com.example.iam_service.entity.Role;
 import com.example.iam_service.exception.DuplicateRoleException;
+import com.example.iam_service.exception.RoleDeletionException;
+import com.example.iam_service.exception.RoleIsFixedException;
 import com.example.iam_service.exception.RoleNotFoundException;
 import com.example.iam_service.mapper.RoleMapper;
 import com.example.iam_service.repository.RoleRepository;
+import com.example.iam_service.repository.UserRepository;
 import com.example.iam_service.service.RoleService;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +38,11 @@ public class RoleServiceImp implements RoleService {
     @Autowired
     private RoleMapper mapper;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private EntityManager entityManager;
     @Transactional(readOnly = true)
     @Override
     public List<Role> getAllRoles() {
@@ -134,6 +143,7 @@ public class RoleServiceImp implements RoleService {
         return  mapper.toDto(roleRepository.save(role));
     }
 
+    @Transactional
     @Override
     public RoleDTO updateRole(RoleUpdateRequestDto dto, String roleCode) {
         log.info("Role update called on role: {} at {}", dto.getName(), LocalDateTime.now());
@@ -148,16 +158,50 @@ public class RoleServiceImp implements RoleService {
     return mapper.toDto(roleRepository.save(result));
     }
 
+    @Transactional
     @Override
     public void DeleteRole(String roleCode) {
+        log.info("Starting role deletion for {}", roleCode);
+        if(!isRoleCodeExists(roleCode))
+        {
+            throw new RoleNotFoundException("Role with code: '" + roleCode + " 'doesn't exists");
+        }
+        if(!isRoleDeletable(roleCode))
+        {
+            throw new RoleIsFixedException("Role with code: '" + roleCode + " ' is not deletable");
+        }
+        log.info("Starting roleCode update from {} to {}", "ROLE_DEFAULT", roleCode);
 
+        int updatedCount = userRepository.batchUpdateUser("ROLE_DEFAULT", roleCode);
+
+        log.info("RoleCode update completed successfully. Total records updated: {}", updatedCount);
+
+        entityManager.flush();
+        entityManager.clear();
+        roleRepository.delete(returnByCode(roleCode));
+        if(!isRoleCodeExists(roleCode))
+        {
+            log.info("Role deletion successful for role with code: {}",roleCode);
+        }
+        else
+        {
+            log.error("Role deletion failed for role with code: {}",roleCode);
+            throw new RoleDeletionException("Role deletion failed for role with code:"+roleCode);
+        }
     }
 
 
+
+
+    private boolean isRoleDeletable(String roleCode)
+    {
+        return returnByCode(roleCode).isDeletable();
+    }
     //Private helper class do not use outside of class.
     private Role returnByCode(String roleCode)
     {
         Optional<Role> found = roleRepository.findById(roleCode);
         return found.get();
     }
+
 }

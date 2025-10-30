@@ -31,10 +31,6 @@ public class RoleSpecification {
         return ((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("code"),formattedCode));
     }
 
-    public static Specification<User>getByRole(String roleCode)
-    {
-        return ((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("roleCode"),roleCode));
-    }
 
   }
 
