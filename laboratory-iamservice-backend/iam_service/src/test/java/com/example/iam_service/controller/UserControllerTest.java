@@ -1,6 +1,6 @@
 package com.example.iam_service.controller;
 
-import com.example.iam_service.dto.UserDTO;
+import com.example.iam_service.dto.user.UserDTO;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.mapper.UserMapper;
 import com.example.iam_service.service.UserService;

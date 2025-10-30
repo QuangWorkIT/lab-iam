@@ -2,8 +2,11 @@ package com.example.iam_service.serviceImpl;
 
 import com.example.iam_service.audit.AuditEvent;
 import com.example.iam_service.audit.AuditPublisher;
+import com.example.iam_service.dto.user.AdminUpdateUserDTO;
+import com.example.iam_service.dto.user.UpdateUserProfileDTO;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.external.PatientVerificationService;
+import com.example.iam_service.mapper.UserMapper;
 import com.example.iam_service.repository.UserRepository;
 import com.example.iam_service.service.EmailService;
 import com.example.iam_service.service.UserService;
@@ -21,12 +24,14 @@ import java.time.OffsetDateTime;
 import java.time.Period;
 import java.util.Optional;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final AuditPublisher auditPublisher;
@@ -103,6 +108,56 @@ public class UserServiceImpl implements UserService {
                 .details("User account activated by admin")
                 .build());
     }
+
+    public Optional<User> getUserById(UUID id) {
+        return userRepository.findById(id);
+    }
+
+    @Transactional
+    public User updateUser(UUID id, User userDTO) {
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 👇 Example of selective updates (you can tweak as needed)
+        if (userDTO.getFullName() != null) existing.setFullName(userDTO.getFullName());
+        if (userDTO.getPhoneNumber() != null) existing.setPhoneNumber(userDTO.getPhoneNumber());
+        if (userDTO.getAddress() != null) existing.setAddress(userDTO.getAddress());
+        if (userDTO.getBirthdate() != null) existing.setBirthdate(userDTO.getBirthdate());
+        if (userDTO.getGender() != null) existing.setGender(userDTO.getGender());
+
+        return userRepository.save(existing);
+    }
+
+    @Override
+    public User updateOwnProfile(UUID id, UpdateUserProfileDTO dto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+
+        userMapper.updateUserFromProfileDto(dto, user);
+
+        // auto-update age if birthdate changed
+        if (dto.getBirthdate() != null) {
+            user.setAge(calculateAge(dto.getBirthdate()));
+        }
+
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User adminUpdateUser(UUID id, AdminUpdateUserDTO dto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+
+        userMapper.updateUserFromAdminDto(dto, user);
+
+        if (dto.getBirthdate() != null) {
+            user.setAge(calculateAge(dto.getBirthdate()));
+        }
+
+        return userRepository.save(user);
+    }
+
+
 
     // ================= PRIVATE HELPERS =================
 
