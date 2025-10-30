@@ -1,12 +1,10 @@
 import LoginForm from "../../components/common/LoginForm"
 import {
-    ForwardOutlined,
-    LeftCircleOutlined
+    ArrowRightOutlined
 } from '@ant-design/icons';
 import { motion, AnimatePresence } from "motion/react"
 import { useState } from "react";
-import { Button } from "antd";
-import ForgetPassForm from "../../components/common/ForgetPassForm";
+import ForgetPassForm from "../../components/modules/auth/ForgetPassForm";
 function LoginPage() {
     const welcomeText = "Welcome Back"
     const sentence1 = "To keep connected with us, please login with your personal info"
@@ -22,17 +20,18 @@ function LoginPage() {
                         transition={{ duration: 0.5 }}
                         className="flex absolute left-25 -translate-y-20 w-[38rem] h-[42rem] bg-[#FE535B] flex-col justify-center text-white px-10">
                         <div className="absolute p-4 top-1/2 -translate-y-1/2 right-[-10px] h-25 w-25 rounded-full bg-white">
-                            <div className="w-full h-full rounded-full bg-[#FE535B] flex justify-center items-center 
-                                            hover:cursor-pointer hover:scale-115 hover:bg-[#fca9ad] 
-                                            transition-all duration-300 ease-in-out">
+                            <div className={`w-full h-full rounded-full flex justify-center items-center 
+                                            hover:cursor-pointer
+                                            transition-all duration-300 ease-in-out
+                                            ${isResetPassWord? "bg-white hover:bg-[#e1e7ef]": "bg-[#FE535B] hover:bg-[#fca9ad] shadow-[0_4px_15px_rgba(254,83,91,0.4)]"}`}>
                                 <motion.div
                                     initial={{ opacity: 0, rotate: 540 }}
                                     animate={{ rotate: isResetPassWord ? 540 : 0, opacity: 1 }}
-                                    whileHover={!isResetPassWord ? { rotate: -360 } : {}}
-                                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                    whileHover={{scale: 1.1}}
                                     onClick={() => setIsResetPassWord(false)}
                                 >
-                                    <ForwardOutlined style={{ fontSize: "38px", marginLeft: "7px" }} />
+                                    <ArrowRightOutlined style={{ fontSize: "30px", marginLeft: "3px", color: isResetPassWord ? "black" :""}} />
                                 </motion.div>
                             </div>
                         </div>
@@ -89,7 +88,7 @@ function LoginPage() {
                                 initial={{ opacity: 0, x: 10, y: -10 }}
                                 animate={{ opacity: 1, x: 0, y: 0 }}
                                 exit={{ opacity: 0, x: -10, y: 10 }}
-                                transition={{ duration: 0.5, ease: "easeInOut" }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
                                 className="w-full"
                             >
                                 <ForgetPassForm setIsResetPassWord={setIsResetPassWord}></ForgetPassForm>
