@@ -139,7 +139,7 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                                                 prefix={<MailOutlined />}
                                                                 type="email"
                                                                 placeholder="Enter your email"
-                                                                style={{width: "320px"}}
+                                                                style={{ width: "320px" }}
                                                             />
                                                         </Form.Item>
                                                     </ConfigProvider>
@@ -164,6 +164,7 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                                             <Input
                                                                 prefix={<PhoneOutlined />}
                                                                 placeholder="Enter phone number"
+                                                                style={{ width: "320px" }}
                                                             />
                                                         </Form.Item>
                                                     </ConfigProvider>
