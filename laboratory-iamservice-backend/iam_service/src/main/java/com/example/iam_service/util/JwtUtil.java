@@ -29,10 +29,8 @@ public class JwtUtil {
     public String generateToken(User user) {
         Date now = new Date();
         Date expired = new Date(now.getTime() + expiration);
-        Map<String, String> payload = new HashMap<>();
-        payload.put("userName", user.getFullName());
-        payload.put("role", user.getRoleCode());
-        payload.put("email", user.getEmail());
+        Map<String, String> payload = setClaims(user);
+
         List<GrantedAuthority> authorities = grantAuthority.getAuthorityByUser(user);
 
         // transfer authority object to string name
@@ -60,7 +58,7 @@ public class JwtUtil {
         List<String> authorities = (List<String>) payload.get("privileges");
 
         List<GrantedAuthority> userAuthorities = new ArrayList<>();
-        if(authorities == null) return userAuthorities;
+        if (authorities == null) return userAuthorities;
 
         // convert authority string to granted authority object
         authorities.forEach(p -> {
@@ -84,5 +82,20 @@ public class JwtUtil {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    private Map<String, String> setClaims(User user) {
+        Map<String, String> payload = new HashMap<>();
+        payload.put("userName", user.getFullName());
+        payload.put("role", user.getRoleCode());
+        payload.put("email", user.getEmail());
+        payload.put("gender", user.getGender());
+        payload.put("identifyNumber", user.getIdentityNumber());
+        payload.put("age", user.getAge() != null ? user.getAge().toString() : null);
+        payload.put("dob", user.getBirthdate() != null ? user.getBirthdate().toString() : null);
+        payload.put("address", user.getAddress());
+        payload.put("phone", user.getPhoneNumber());
+
+        return payload;
     }
 }

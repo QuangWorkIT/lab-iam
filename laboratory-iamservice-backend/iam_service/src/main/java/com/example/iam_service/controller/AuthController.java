@@ -235,8 +235,19 @@ public class AuthController {
 
     @PutMapping("/password-reset")
     public ResponseEntity<ApiResponse<UserDTO>> resetPassWord(
-            @RequestBody ResetPassWordRequest request) {
-        User updatedUser = authService.updateUserPassword(request.getUserid(), request.getPassword());
+            @Valid @RequestBody ResetPassWordRequest request) {
+        if (request.getOption().equals("change") && request.getCurrentPassword() == null) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new ApiResponse<>("Error", "Current password is missing for change password process"));
+        }
+
+        User updatedUser = authService.updateUserPassword(
+                request.getUserid(),
+                request.getPassword(),
+                request.getCurrentPassword(),
+                request.getOption()
+        );
         return ResponseEntity
                 .ok()
                 .body(new ApiResponse<>(

@@ -19,10 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -165,10 +162,16 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
 
     @Transactional
     @Override
-    public User updateUserPassword(String userid, String password) {
+    public User updateUserPassword(String userid, String password, String currentPassword, String option) {
         User user = userRepository.findById(UUID.fromString(userid)).orElseThrow(
                 () -> new RuntimeException("User not found")
         );
+        if(currentPassword != null && !encoder.matches(currentPassword, user.getPassword()))
+            throw new IllegalArgumentException("Current password does not match");
+
+        if (option.equals("change") && encoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("Password must be different from the old one");
+        }
         user.setPassword(encoder.encode(password));
         return userRepository.save(user);
     }

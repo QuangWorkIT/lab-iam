@@ -74,3 +74,12 @@ export const truncateId = (id, maxLength = 8) => {
 
   return idString.substring(0, maxLength) + "...";
 };
+
+/**
+ * Format user role
+ */
+export const getRoleName = (role) => {
+  if(!role) return null;
+
+  return role.substring(5)
+}

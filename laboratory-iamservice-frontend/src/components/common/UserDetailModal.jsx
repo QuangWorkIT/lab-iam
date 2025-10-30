@@ -1,6 +1,9 @@
-import React from "react";
 import { FaUser, FaTimes, FaSyncAlt } from "react-icons/fa";
-
+import { Button, Tooltip } from "antd";
+import { CheckCircleTwoTone, EditOutlined, ArrowLeftOutlined, ExclamationCircleTwoTone } from '@ant-design/icons';
+import ResetPassWord from "../modules/auth/ResetPassWordForm.jsx";
+import { useState } from "react"
+import { getRoleName } from "../../utils/formatter.js"
 /**
  * User Detail Modal - Reusable modal component for displaying user/account details
  * 
@@ -11,36 +14,78 @@ import { FaUser, FaTimes, FaSyncAlt } from "react-icons/fa";
  */
 
 // Left Panel Component - Avatar, Name, Role
-function LeftPanel({ user, getRoleName }) {
+function LeftPanel({ user, statusColor, statusText }) {
+    const activeClass = `shadow-[0_4px_10px_rgba(82,196,26,0.4)] 
+                        hover:shadow-[0_6px_14px_rgba(82,196,26,0.6)]
+                        bg-[${statusColor}]`
+
+    const inActiveClass = `shadow-[0_4px_10px_rgba(220,53,69,0.4)]
+                        hover:shadow-[0_6px_14px_rgba(220,53,69,0.6)]
+                        bg-[${statusColor}]`;
     return (
         <div
             style={{
                 backgroundColor: "#ff5a5f",
-                width: "180px",
                 minWidth: "180px",
+                width: "250px",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "center",
                 padding: "30px 15px",
-                borderRadius: "12px 0 0 12px",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
+                height: "75%",
+                position: "relative",
+                top: "50%",
+                transform: "translateY(-50%)",
+                left: "-80%",
+                zIndex: 2000,
             }}
         >
+            <div
+                className={`absolute top-3 right-3 flex items-center justify-center 
+                            rounded-full text-white group transition-all
+                            duration-250 ease-in-out overflow-hidden w-[28px] hover:w-[90px] px-[10px] py-[5px]
+                            hover:cursor-pointer 
+                ${statusText === "Active" ? activeClass : inActiveClass}`}
+            >
+
+                {
+                    statusText === "Active" ? (
+                        <CheckCircleTwoTone
+                            twoToneColor={statusColor}
+                            style={{ fontSize: "18px" }}
+                        />)
+                        : (
+                            <ExclamationCircleTwoTone
+                                twoToneColor={statusColor}
+                                style={{ fontSize: "18px" }} />
+                        )
+                }
+
+                <span
+                    className="hidden group-hover:block ml-[5px] text-[13px] font-semibold 
+                    transition-opacity duration-600 whitespace-nowrap"
+                >
+                    {statusText}
+                </span>
+            </div>
+
             {/* User Avatar */}
             <div
                 style={{
-                    width: "70px",
-                    height: "70px",
+                    width: "100px",
+                    height: "100px",
                     backgroundColor: "white",
                     borderRadius: "50%",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    marginBottom: "15px",
+                    marginBottom: "20px",
+                    marginTop: "10px"
                 }}
             >
-                <FaUser style={{ fontSize: "35px", color: "#ff5a5f" }} />
+                <FaUser style={{ fontSize: "50px", color: "#ff5a5f" }} />
             </div>
 
             {/* User Name */}
@@ -49,7 +94,7 @@ function LeftPanel({ user, getRoleName }) {
                     color: "white",
                     fontSize: "16px",
                     fontWeight: "bold",
-                    margin: "0 0 5px 0",
+                    margin: "0 0 10px 0",
                     textAlign: "center",
                 }}
             >
@@ -60,71 +105,77 @@ function LeftPanel({ user, getRoleName }) {
             <p
                 style={{
                     color: "white",
-                    fontSize: "11px",
+                    fontSize: "12px",
                     fontWeight: "500",
                     margin: 0,
                     textTransform: "uppercase",
                     textAlign: "center",
                 }}
             >
-                {getRoleName ? getRoleName(user?.role) : (user?.role || "N/A")}
+                {getRoleName(user?.role) || "N/A"}
             </p>
         </div>
     );
 }
 
 // Right Panel Component - Detailed Information
-function RightPanel({ user, onRefresh, formatDate, getGenderText, getStatusColor, getStatusText }) {
+function RightPanel({ user, onRefresh, formatDate, getGenderText, setIsResetPassWordOpen }) {
     // Helper function to render an information field
     const renderField = (label, value, isStatus = false) => (
         <div style={{ marginBottom: "15px" }}>
             <div
                 style={{
                     display: "flex",
-                    alignItems: isStatus ? "center" : "flex-start",
-                    marginBottom: "5px",
+                    alignItems: "flex-start",
+                    marginBottom: "30px",
                 }}
             >
                 <div
                     style={{
-                        width: "3px",
+                        width: "4px",
                         height: "35px",
                         backgroundColor: "#ff5a5f",
                         marginRight: "10px",
                         borderRadius: "2px",
                     }}
                 />
-                <div style={isStatus ? { display: "flex", alignItems: "center" } : {}}>
-                    {isStatus && (
-                        <div
-                            style={{
-                                width: "6px",
-                                height: "6px",
-                                borderRadius: "50%",
-                                backgroundColor: getStatusColor?.(user?.isActive),
-                                marginRight: "6px",
-                            }}
-                        />
-                    )}
-                    {!isStatus && (
-                        <p
-                            style={{
-                                color: "#6f42c1",
-                                fontSize: "11px",
-                                fontWeight: "500",
-                                margin: "0 0 3px 0",
-                                textTransform: "uppercase",
-                            }}
-                        >
-                            {label}
-                        </p>
-                    )}
+                <div>
+                    <p
+                        style={{
+                            fontSize: "13px",
+                            fontWeight: "600",
+                            margin: "0 0 5px 0",
+                            textTransform: "uppercase",
+                            cursor: "default",
+                            position: "relative"
+                        }}
+                        className="text-[#5170ff] hover:text-[#748cfc] transition-all duration-300 ease"
+                    >
+                        {label}
+                        {label === "Password" &&
+                            <Tooltip placement="top" title={"Change password"} >
+                                <button
+                                    onClick={() => setIsResetPassWordOpen(true)}
+                                    className="absolute top-[-10px] p-2
+                                    transition-all duration-200 ease-in-out
+                                    !text-[#0f0f0f] hover:text-[#5170ff]
+                                    rounded-full cursor-pointer hover:bg-[#e1e7ef]"
+                                    aria-label="Edit password"
+                                >
+                                    <EditOutlined className="text-[16px]" />
+                                </button>
+                            </Tooltip>
+                        }
+                    </p>
                     <p
                         style={{
                             color: "#333",
                             fontSize: "13px",
                             fontWeight: "500",
-                            margin: 0,
+                            marginTop: "5px",
+                            wordBreak: "break-word",
+                            overflowWrap: "break-word",
+                            whiteSpace: "normal",
                         }}
                     >
                         {value}
@@ -191,8 +242,13 @@ function RightPanel({ user, onRefresh, formatDate, getGenderText, getStatusColor
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
                     gap: "20px",
-                    marginTop: "10px",
-                    paddingBottom: onRefresh ? "60px" : "10px",
+                    marginTop: "20px",
+                    // paddingBottom: onRefresh ? "60px" : "10px",
+                    wordBreak: "break-word",
+                    overflowWrap: "break-word",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100%",
                 }}
             >
                 {/* Left Column */}
@@ -208,12 +264,8 @@ function RightPanel({ user, onRefresh, formatDate, getGenderText, getStatusColor
                     {renderField("Date of Birth", formatDate ? formatDate(user?.dateOfBirth) : (user?.dateOfBirth || "N/A"))}
                     {renderField("Age", user?.age !== undefined && user?.age !== null ? `${user.age} years old` : "N/A")}
                     {renderField("Address", user?.address || "N/A")}
-                    {renderField("Created At", formatDate ? formatDate(user?.createdAt) : (user?.createdAt || "N/A"))}
-                    {renderField(
-                        "Status",
-                        getStatusText ? getStatusText(user?.isActive) : (user?.isActive ? "Active" : "Inactive"),
-                        true
-                    )}
+                    {renderField("Password", "*********")}
+
                 </div>
             </div>
         </div>
@@ -223,6 +275,7 @@ function RightPanel({ user, onRefresh, formatDate, getGenderText, getStatusColor
 // Main Modal Component
 export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
     if (!isOpen || !user) return null;
+    const [isResetPassWordOpen, setIsResetPassWordOpen] = useState(false)
 
     // Helper functions
     const formatDate = (dateString) => {
@@ -232,11 +285,11 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
     };
 
     const getGenderText = (gender) => {
-        return gender === "M" ? "Male" : gender === "F" ? "Female" : "N/A";
+        return gender === "MALE" ? "Male" : gender === "FEMALE" ? "Female" : "N/A";
     };
 
     const getStatusColor = (isActive) => {
-        return isActive ? "#28a745" : "#dc3545";
+        return isActive ? "#52c41a" : "#dc3545";
     };
 
     const getStatusText = (isActive) => {
@@ -251,7 +304,7 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                backgroundColor: "rgba(0, 0, 0, 0.8)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -262,65 +315,61 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                 style={{
                     backgroundColor: "white",
                     borderRadius: "12px",
-                    width: "90%",
-                    maxWidth: "700px",
+                    width: "650px",
+                    maxWidth: "800px",
                     minHeight: "400px",
+                    height: "450px",
                     maxHeight: "85vh",
-                    overflow: "hidden",
                     boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
                     display: "flex",
                     position: "relative",
+                    left: "100px"
                 }}
             >
                 {/* Left Panel */}
-                <LeftPanel user={user} />
+                <div style={{ position: "relative", width: "150px" }}>
+                    <LeftPanel
+                        user={user}
+                        statusColor={getStatusColor(user.isActive)}
+                        statusText={getStatusText(user.isActive)} />
+                </div>
 
                 {/* Right Panel */}
-                <RightPanel
-                    user={user}
-                    onRefresh={onRefresh}
-                    formatDate={formatDate}
-                    getGenderText={getGenderText}
-                    getStatusColor={getStatusColor}
-                    getStatusText={getStatusText}
-                />
+                {isResetPassWordOpen ? (
+                    <div className="ml-[70px]">
+                        <ResetPassWord
+                            setIsResetPassWord={setIsResetPassWordOpen}
+                            userId={user.id}
+                            updateOption={"change"}
+                        />
+                    </div>)
+                    : (
+                        <RightPanel
+                            user={user}
+                            onRefresh={onRefresh}
+                            formatDate={formatDate}
+                            getGenderText={getGenderText}
+                            setIsResetPassWordOpen={setIsResetPassWordOpen}
+                        />
+                    )}
 
                 {/* Close Button */}
                 <button
-                    onClick={onClose}
-                    style={{
-                        position: "absolute",
-                        top: "20px",
-                        right: "20px",
-                        width: "auto",
-                        height: "auto",
-                        border: "none",
-                        borderRadius: "0",
-                        backgroundColor: "transparent",
-                        color: "#ff5a5f",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "none",
-                        fontSize: "20px",
-                        fontWeight: "bold",
-                        transition: "all 0.2s ease",
-                        zIndex: 9999,
-                        padding: "8px",
-                        outline: "none",
-                    }}
-                    onMouseEnter={(e) => {
-                        e.target.style.color = "#dc3545";
-                        e.target.style.transform = "scale(1.2)";
-                    }}
-                    onMouseLeave={(e) => {
-                        e.target.style.color = "#ff5a5f";
-                        e.target.style.transform = "scale(1)";
-                    }}
+                    onClick={isResetPassWordOpen ? () => setIsResetPassWordOpen(false) : onClose}
+                    className={`absolute ${isResetPassWordOpen ? "top-10 right-10" : "top-5 right-5"}
+                    text-white hover:text-[#dc3545] hover:scale-120
+                    flex items-center justify-center
+                    cursor-pointer font-bold text-[20px]
+                    transition-all duration-200 ease-in-out z-[9999] p-2`}
                     aria-label="Close"
                 >
-                    <FaTimes />
+                    {isResetPassWordOpen ? (
+                        <ArrowLeftOutlined
+                            className="!text-[#ff5a5f] font-bold group-hover:text-[#dc3545] text-[20px]" />
+                    ) : (
+                        <FaTimes className="text-[#ff5a5f] group-hover:text-[#dc3545] text-[20px]" />
+                    )}
+
                 </button>
             </div>
         </div>
