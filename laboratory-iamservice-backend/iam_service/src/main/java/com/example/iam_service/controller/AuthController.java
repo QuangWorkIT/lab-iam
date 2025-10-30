@@ -1,6 +1,6 @@
 package com.example.iam_service.controller;
 
-import com.example.iam_service.dto.UserDTO;
+import com.example.iam_service.dto.user.UserDTO;
 import com.example.iam_service.dto.request.*;
 import com.example.iam_service.dto.response.ApiResponse;
 import com.example.iam_service.dto.response.auth.TokenResponse;
@@ -209,7 +209,7 @@ public class AuthController {
                     .body(new ApiResponse<>("Error", "Email is required"));
         }
 
-        emailService.sentOtp(email);
+        emailService.sendOtp(email);
         return ResponseEntity
                 .ok()
                 .body(new ApiResponse<>(

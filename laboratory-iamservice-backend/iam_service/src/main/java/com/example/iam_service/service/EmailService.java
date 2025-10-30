@@ -35,7 +35,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sentOtp(String email) {
+    public void sendOtp(String email) {
         String otp = generateOtp();
         storeOtp.storeOtp(email, otp);
 

@@ -7,7 +7,7 @@ import {
 import UserTable from "../../components/modules/user/UserTable";
 import UserModal from "../../components/modules/user/UserModal";
 import AddUserModal from "../../components/modules/user/AddUserModal";
-import UserDetailModal from "../../components/modules/user/UserDetailModal";
+import UserDetailModal from "../../components/common/UserDetailModal";
 import MainLayout from "../../components/layout/MainLayout";
 import { toast } from "react-toastify";
 

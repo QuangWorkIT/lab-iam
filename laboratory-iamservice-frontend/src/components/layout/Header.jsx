@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FaHeartbeat, FaCog, FaSignOutAlt } from "react-icons/fa";
 import { logout } from "../../redux/features/userSlice";
+import UserDetailModal from "../common/UserDetailModal";
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
@@ -10,6 +11,9 @@ export default function Header({ pageTitle }) {
   // Confirm modal state
   const [showConfirm, setShowConfirm] = useState(false);
   const confirmBtnRef = useRef(null);
+
+  // User detail modal state
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const handleLogout = () => {
     // Mở popup confirm thay vì window.confirm
@@ -22,6 +26,36 @@ export default function Header({ pageTitle }) {
   };
 
   const closeConfirm = () => setShowConfirm(false);
+
+  // Handler for viewing user detail from settings icon
+  const handleViewUserDetail = () => {
+    setIsDetailModalOpen(true);
+  };
+
+  // Handler for refresh user detail
+  const handleRefreshUser = () => {
+    // Can add refresh logic here if needed
+    // For now, just refresh the page or fetch user info again
+  };
+
+  // Convert userInfo to the format expected by UserDetailModal
+  const getUserDetailData = () => {
+    if (!userInfo) return null;
+
+    return {
+      name: userInfo.userName || userInfo.name || "N/A",
+      role: userInfo.role || "N/A",
+      email: userInfo.email || "N/A",
+      identifyNumber: userInfo.identifyNumber || userInfo.identityNumber || "N/A",
+      phoneNumber: userInfo.phoneNumber || userInfo.phone || "N/A",
+      gender: userInfo.gender || "N/A",
+      dateOfBirth: userInfo.dateOfBirth || userInfo.dob || null,
+      age: userInfo.age !== undefined ? userInfo.age : null,
+      address: userInfo.address || "N/A",
+      createdAt: userInfo.createdAt || userInfo.created_at || null,
+      isActive: userInfo.isActive !== undefined ? userInfo.isActive : true,
+    };
+  };
 
   // Focus nút "Đăng xuất" và hỗ trợ phím Esc để đóng
   useEffect(() => {
@@ -148,7 +182,8 @@ export default function Header({ pageTitle }) {
           <div style={{ display: "flex", gap: "15px" }}>
             <FaCog
               style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
-              title="Settings"
+              title="View User Details"
+              onClick={handleViewUserDetail}
             />
             <FaSignOutAlt
               style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
@@ -203,6 +238,14 @@ export default function Header({ pageTitle }) {
           </div>
         </div>
       )}
+
+      {/* User Detail Modal */}
+      <UserDetailModal
+        user={getUserDetailData()}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        onRefresh={handleRefreshUser}
+      />
     </>
   );
 }
