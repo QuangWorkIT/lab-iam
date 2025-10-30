@@ -3,8 +3,8 @@ package com.example.iam_service.exception;
 import lombok.Getter;
 
 @Getter
-public class RoleNotFoundException extends RuntimeException {
-    public RoleNotFoundException(String message) {
+public class RoleIsFixedException extends RuntimeException {
+    public RoleIsFixedException(String message) {
         super(message);
     }
 }

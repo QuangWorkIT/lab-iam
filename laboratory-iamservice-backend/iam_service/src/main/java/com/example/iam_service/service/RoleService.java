@@ -24,6 +24,5 @@ public interface RoleService {
     public boolean isRoleCodeExists(String code);
     public RoleDTO createRole(Role role);
     public RoleDTO updateRole(RoleUpdateRequestDto dto, String roleCode);
-    public Role DeleteRole(Role role);
-    Role softDeleteRole(Role role);
+    public void DeleteRole( String roleCode);
 }

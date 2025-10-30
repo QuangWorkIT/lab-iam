@@ -31,19 +31,17 @@ public class RoleMapper {
             }
 
             log.debug("Role privileges: {}", role.getPrivileges());
-
-            String privilegesString = privilegesConverter.convertToDatabaseColumn(role.getPrivileges());
-            log.debug("Converted privileges: {}", privilegesString);
-
             RoleDTO dto = RoleDTO.builder()
                     .code(role.getCode())
                     .name(role.getName())
                     .description(role.getDescription())
-                    .privileges(privilegesString)
+                    .privileges(privilegesConverter.convertToDatabaseColumn(role.getPrivileges()))
                     .createdAt(role.getCreatedAt())
                     .lastUpdatedAt(role.getUpdatedAt())
+                    .deletable(role.isDeletable())
                     .isActive(role.isActive())
                     .build();
+            log.debug("Converted privileges: {}", privilegesConverter.convertToDatabaseColumn(role.getPrivileges()));
 
             log.info("Successfully converted role: {}", dto.getCode());
             return dto;
@@ -66,6 +64,7 @@ public class RoleMapper {
                 .privileges(privilegesConverter.convertToEntityAttribute(dto.getPrivileges()))
                 .createdAt(dto.getCreatedAt())
                 .updatedAt(dto.getLastUpdatedAt())
+                .deletable(dto.getDeletable())
                 .isActive(dto.getIsActive())
                 .build();
     }
@@ -88,7 +87,7 @@ public class RoleMapper {
 
     public List<RoleDTO> toDtoList(List<Role> roleList)
     {
-        log.info("Role list: " + roleList);
+        log.info("Role list: {}", roleList);
         if (roleList == null || roleList.isEmpty()) {
             return Collections.emptyList();
         }

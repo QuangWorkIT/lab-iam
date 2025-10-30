@@ -149,14 +149,10 @@ public class RoleServiceImp implements RoleService {
     }
 
     @Override
-    public Role DeleteRole(Role role) {
-        return null;
+    public void DeleteRole(String roleCode) {
+
     }
 
-    @Override
-    public Role softDeleteRole(Role role) {
-        return null;
-    }
 
     //Private helper class do not use outside of class.
     private Role returnByCode(String roleCode)

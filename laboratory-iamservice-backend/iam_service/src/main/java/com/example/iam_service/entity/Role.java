@@ -68,6 +68,11 @@ public class Role {
             accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDate updatedAt;
 
+    @Column(name = "deletable")
+    @Schema(description = "Indicates whether the role deletable",
+            example = "false")
+    private boolean deletable;
+
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDate.now();
