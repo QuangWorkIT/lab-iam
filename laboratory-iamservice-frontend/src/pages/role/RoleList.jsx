@@ -188,7 +188,7 @@ export default function RoleList() {
             fontSize: "18px",
             marginBottom: "20px",
             color: "#fe535b",
-            fontWeight: "normal",
+            fontWeight: "600",
           }}
         >
           User Roles

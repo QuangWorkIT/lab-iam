@@ -1,56 +1,45 @@
 import React from "react";
-import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import { FiEye, FiEdit, FiTrash2 } from "react-icons/fi";
 
 export default function ActionButtons({ onView, onEdit, onDelete, item }) {
+  const iconColor = "#fe535b";
+
+  const btnStyle = {
+    background: "transparent",
+    color: iconColor,
+    border: "none",
+    padding: "4px",
+    cursor: "pointer",
+  };
+
   return (
-    <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+    <div style={{ display: "flex", justifyContent: "center", gap: "16px" }}>
       <button
-        style={{
-          backgroundColor: "#5170ff",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          padding: "5px 10px",
-          cursor: "pointer",
-          boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
-          transition: "all 0.2s ease",
-        }}
+        type="button"
+        style={btnStyle}
         title="View"
+        aria-label="View"
         onClick={() => onView(item)}
       >
-        <FaEye />
+        <FiEye size={18} />
       </button>
       <button
-        style={{
-          backgroundColor: "#ffbf0d",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          padding: "5px 10px",
-          cursor: "pointer",
-          boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
-          transition: "all 0.2s ease",
-        }}
+        type="button"
+        style={btnStyle}
         title="Edit"
+        aria-label="Edit"
         onClick={() => onEdit(item)}
       >
-        <FaEdit />
+        <FiEdit size={18} />
       </button>
       <button
-        style={{
-          backgroundColor: "#fe535b",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          padding: "5px 10px",
-          cursor: "pointer",
-          boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
-          transition: "all 0.2s ease",
-        }}
+        type="button"
+        style={btnStyle}
         title="Delete"
+        aria-label="Delete"
         onClick={() => onDelete(item.code)}
       >
-        <FaTrash />
+        <FiTrash2 size={18} />
       </button>
     </div>
   );

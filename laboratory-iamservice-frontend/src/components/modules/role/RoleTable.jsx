@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
-import RoleSearchBar from "./RoleSearchBar";
+import SearchBar from "../../common/SearchBar";
 import Pagination from "../../common/Pagination";
 import StatusBadge from "../../common/StatusBadge";
 import RoleBadge from "./RoleBadge";
@@ -154,7 +154,13 @@ export default function RoleTable({
           gap: 10,
         }}
       >
-        <RoleSearchBar onSearch={handleSearch} roleOptions={roles} />
+        <SearchBar
+          onSearch={handleSearch}
+          roleOptions={roles}
+          placeholder="Search by name or code"
+          allRolesLabel="All Roles"
+          autoSearchOnRoleChange={true}
+        />
 
         <div className="add-new-button">
           <button
@@ -281,13 +287,13 @@ export default function RoleTable({
                 <tr
                   key={role.code}
                   style={{
-                    backgroundColor: index % 2 === 0 ? "#fff" : "#f9f9f9",
+                    backgroundColor: "#fff",
                   }}
                 >
                   <td
                     style={{
                       padding: "12px 15px",
-                      borderBottom: "1px solid #eaeaea",
+                      borderBottom: "none",
                       fontWeight: "500",
                       color: "#333",
                     }}
@@ -297,7 +303,7 @@ export default function RoleTable({
                   <td
                     style={{
                       padding: "12px 15px",
-                      borderBottom: "1px solid #eaeaea",
+                      borderBottom: "none",
                     }}
                   >
                     <RoleBadge roleName={role.name} />
@@ -305,7 +311,7 @@ export default function RoleTable({
                   <td
                     style={{
                       padding: "12px 15px",
-                      borderBottom: "1px solid #eaeaea",
+                      borderBottom: "none",
                       color: "#555",
                     }}
                   >
@@ -314,7 +320,7 @@ export default function RoleTable({
                   <td
                     style={{
                       padding: "12px 15px",
-                      borderBottom: "1px solid #eaeaea",
+                      borderBottom: "none",
                       color: "#555",
                     }}
                   >
@@ -323,7 +329,7 @@ export default function RoleTable({
                   <td
                     style={{
                       padding: "12px 15px",
-                      borderBottom: "1px solid #eaeaea",
+                      borderBottom: "none",
                       display: "flex",
                       justifyContent: "center",
                       gap: "10px",
