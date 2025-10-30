@@ -1,7 +1,7 @@
 package com.example.iam_service.controller;
 
 
-import com.example.iam_service.dto.UserDTO;
+import com.example.iam_service.dto.user.UserDTO;
 import com.example.iam_service.dto.request.*;
 import com.example.iam_service.dto.response.ApiResponse;
 import com.example.iam_service.dto.response.auth.TokenResponse;
