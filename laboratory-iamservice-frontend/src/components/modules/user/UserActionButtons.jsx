@@ -6,14 +6,13 @@ export default function UserActionButtons({ onView, onEdit, onDelete, user }) {
         <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
             <button
                 style={{
-                    backgroundColor: "#5170ff",
-                    color: "white",
+                    backgroundColor: "transparent",
+                    color: "#ff5a5f",
                     border: "none",
-                    borderRadius: "4px",
-                    padding: "5px 10px",
+                    padding: "5px",
                     cursor: "pointer",
-                    boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
                     transition: "all 0.2s ease",
+                    fontSize: "18px",
                 }}
                 title="View"
                 onClick={() => onView(user)}
@@ -22,14 +21,13 @@ export default function UserActionButtons({ onView, onEdit, onDelete, user }) {
             </button>
             <button
                 style={{
-                    backgroundColor: "#ffbf0d",
-                    color: "white",
+                    backgroundColor: "transparent",
+                    color: "#ff5a5f",
                     border: "none",
-                    borderRadius: "4px",
-                    padding: "5px 10px",
+                    padding: "5px",
                     cursor: "pointer",
-                    boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
                     transition: "all 0.2s ease",
+                    fontSize: "18px",
                 }}
                 title="Edit"
                 onClick={() => onEdit(user)}
@@ -38,14 +36,13 @@ export default function UserActionButtons({ onView, onEdit, onDelete, user }) {
             </button>
             <button
                 style={{
-                    backgroundColor: "#fe535b",
-                    color: "white",
+                    backgroundColor: "transparent",
+                    color: "#ff5a5f",
                     border: "none",
-                    borderRadius: "4px",
-                    padding: "5px 10px",
+                    padding: "5px",
                     cursor: "pointer",
-                    boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
                     transition: "all 0.2s ease",
+                    fontSize: "18px",
                 }}
                 title="Delete"
                 onClick={() => onDelete(user.id)}

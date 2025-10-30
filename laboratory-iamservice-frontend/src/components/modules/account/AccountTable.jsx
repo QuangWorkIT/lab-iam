@@ -95,16 +95,17 @@ export default function AccountTable({
                         borderRadius: "4px",
                         overflow: "hidden",
                         minWidth: "800px",
+                        fontFamily: "Arial, Helvetica, sans-serif",
                     }}
                 >
                     <thead>
-                        <tr style={{ backgroundColor: "#f8f9fa" }}>
+                        <tr style={{ backgroundColor: "#ff5a5f" }}>
                             <th
                                 style={{
                                     padding: "12px 15px",
                                     textAlign: "left",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                     minWidth: "80px",
@@ -118,8 +119,8 @@ export default function AccountTable({
                                 style={{
                                     padding: "12px 15px",
                                     textAlign: "left",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                     minWidth: "160px",
@@ -133,8 +134,8 @@ export default function AccountTable({
                                 style={{
                                     padding: "12px 15px",
                                     textAlign: "left",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                     minWidth: "160px",
@@ -146,10 +147,10 @@ export default function AccountTable({
                             </th>
                             <th
                                 style={{
-                                    padding: "12px 15px",
+                                    padding: "12px 15px 12px 22px",
                                     textAlign: "left",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                     minWidth: "120px",
@@ -163,8 +164,8 @@ export default function AccountTable({
                                 style={{
                                     padding: "12px 15px",
                                     textAlign: "center",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                     minWidth: "100px",
@@ -178,8 +179,8 @@ export default function AccountTable({
                                 style={{
                                     padding: "12px 15px",
                                     textAlign: "left",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                     minWidth: "120px",
@@ -193,8 +194,8 @@ export default function AccountTable({
                                 style={{
                                     padding: "12px 15px",
                                     textAlign: "center",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                 }}
@@ -280,19 +281,19 @@ export default function AccountTable({
                                 </td>
                             </tr>
                         ) : (
-                            filteredAccounts.map((account, index) => (
+                            filteredAccounts.map((account) => (
                                 <tr
                                     key={account.id}
                                     style={{
-                                        backgroundColor: index % 2 === 0 ? "#fff" : "#f9f9f9",
+                                        backgroundColor: "#fff",
                                     }}
                                 >
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
+                                            borderBottom: "none",
                                             fontWeight: "500",
-                                            color: "#333",
+                                            color: "#000",
                                         }}
                                         title={account.id}
                                     >
@@ -301,9 +302,9 @@ export default function AccountTable({
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
+                                            borderBottom: "none",
                                             fontWeight: "500",
-                                            color: "#333",
+                                            color: "#000",
                                         }}
                                     >
                                         {account.name}
@@ -311,8 +312,8 @@ export default function AccountTable({
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
-                                            color: "#555",
+                                            borderBottom: "none",
+                                            color: "#000",
                                         }}
                                     >
                                         {account.email}
@@ -320,7 +321,7 @@ export default function AccountTable({
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
+                                            borderBottom: "none",
                                         }}
                                     >
                                         <UserBadge roleName={account.role} />
@@ -328,7 +329,7 @@ export default function AccountTable({
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
+                                            borderBottom: "none",
                                             textAlign: "center",
                                         }}
                                     >
@@ -337,8 +338,8 @@ export default function AccountTable({
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
-                                            color: "#555",
+                                            borderBottom: "none",
+                                            color: "#000",
                                         }}
                                     >
                                         {formatDate(account.createdAt)}
@@ -346,7 +347,7 @@ export default function AccountTable({
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
+                                            borderBottom: "none",
                                             display: "flex",
                                             justifyContent: "center",
                                             alignItems: "center",
@@ -356,23 +357,18 @@ export default function AccountTable({
                                         <button
                                             onClick={() => onView && onView(account)}
                                             style={{
-                                                backgroundColor: "#5a67d8",
-                                                color: "white",
+                                                backgroundColor: "transparent",
+                                                color: "#ff5a5f",
                                                 border: "none",
-                                                borderRadius: "6px",
-                                                padding: "8px 10px",
+                                                padding: "5px",
                                                 cursor: "pointer",
-                                                fontSize: "14px",
+                                                fontSize: "18px",
                                                 display: "flex",
                                                 alignItems: "center",
                                                 justifyContent: "center",
-                                                minWidth: "36px",
-                                                minHeight: "36px",
                                                 transition: "all 0.2s ease",
                                             }}
                                             title="View Details"
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#4c51bf"}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#5a67d8"}
                                         >
                                             <FaEye />
                                         </button>

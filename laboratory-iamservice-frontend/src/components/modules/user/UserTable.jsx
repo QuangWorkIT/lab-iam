@@ -175,16 +175,17 @@ export default function UserTable({
                         borderRadius: "4px",
                         overflow: "hidden",
                         minWidth: "800px",
+                        fontFamily: "Arial, Helvetica, sans-serif",
                     }}
                 >
                     <thead>
-                        <tr style={{ backgroundColor: "#f8f9fa" }}>
+                        <tr style={{ backgroundColor: "#ff5a5f" }}>
                             <th
                                 style={{
                                     padding: "12px 15px 12px 18px",
                                     textAlign: "left",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                     minWidth: "80px",
@@ -198,8 +199,8 @@ export default function UserTable({
                                 style={{
                                     padding: "12px 15px 12px 18px",
                                     textAlign: "left",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                     minWidth: "160px",
@@ -213,8 +214,8 @@ export default function UserTable({
                                 style={{
                                     padding: "12px 15px 12px 18px",
                                     textAlign: "left",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                     minWidth: "160px",
@@ -226,10 +227,10 @@ export default function UserTable({
                             </th>
                             <th
                                 style={{
-                                    padding: "12px 15px 12px 18px",
+                                    padding: "12px 15px 12px 25px",
                                     textAlign: "left",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                     minWidth: "120px",
@@ -243,8 +244,8 @@ export default function UserTable({
                                 style={{
                                     padding: "12px 12px",
                                     textAlign: "left",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                     minWidth: "120px",
@@ -258,8 +259,8 @@ export default function UserTable({
                                 style={{
                                     padding: "12px 15px 12px 16px",
                                     textAlign: "left",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                 }}
@@ -270,8 +271,8 @@ export default function UserTable({
                                 style={{
                                     padding: "12px 15px",
                                     textAlign: "center",
-                                    borderBottom: "1px solid #eaeaea",
-                                    color: "#666",
+                                    borderBottom: "none",
+                                    color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
                                 }}
@@ -363,19 +364,19 @@ export default function UserTable({
                                 </td>
                             </tr>
                         ) : (
-                            usersToRender.map((user, index) => (
+                            usersToRender.map((user) => (
                                 <tr
                                     key={user.id}
                                     style={{
-                                        backgroundColor: index % 2 === 0 ? "#fff" : "#f9f9f9",
+                                        backgroundColor: "#fff",
                                     }}
                                 >
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
+                                            borderBottom: "none",
                                             fontWeight: "500",
-                                            color: "#333",
+                                            color: "#000",
                                         }}
                                         title={user.id}
                                     >
@@ -384,9 +385,9 @@ export default function UserTable({
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
+                                            borderBottom: "none",
                                             fontWeight: "500",
-                                            color: "#333",
+                                            color: "#000",
                                         }}
                                     >
                                         {user.name}
@@ -394,8 +395,8 @@ export default function UserTable({
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
-                                            color: "#555",
+                                            borderBottom: "none",
+                                            color: "#000",
                                         }}
                                     >
                                         {user.email}
@@ -403,7 +404,7 @@ export default function UserTable({
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
+                                            borderBottom: "none",
                                         }}
                                     >
                                         <UserBadge roleName={user.role} />
@@ -411,8 +412,8 @@ export default function UserTable({
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
-                                            color: "#555",
+                                            borderBottom: "none",
+                                            color: "#000",
                                         }}
                                     >
                                         {formatDate(user.createdAt)}
@@ -420,8 +421,8 @@ export default function UserTable({
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
-                                            color: "#555",
+                                            borderBottom: "none",
+                                            color: "#000",
                                         }}
                                     >
                                         <StatusBadge active={normalizeActive(user)} />
@@ -429,7 +430,7 @@ export default function UserTable({
                                     <td
                                         style={{
                                             padding: "12px 15px",
-                                            borderBottom: "1px solid #eaeaea",
+                                            borderBottom: "none",
                                         }}
                                     >
                                         <UserActionButtons

@@ -13,7 +13,7 @@ import Pagination from "../../common/Pagination";
 import StatusBadge from "../../common/StatusBadge";
 import RoleBadge from "./RoleBadge";
 import ActionButtons from "./ActionButtons";
-import { formatDate, formatPrivileges } from "../../../utils/formatter";
+import { formatDate } from "../../../utils/formatter";
 
 export default function RoleTable({
   roles,
@@ -424,8 +424,8 @@ export default function RoleTable({
                       const privText = Array.isArray(role.privileges)
                         ? role.privileges.join(", ")
                         : typeof role.privileges === "string"
-                        ? role.privileges
-                        : "";
+                          ? role.privileges
+                          : "";
                       const display = privText || "N/A";
                       // Cắt giống Description để đồng bộ UX
                       return display.length > 30
@@ -485,9 +485,8 @@ export default function RoleTable({
       {confirmState.open && (
         <ConfirmDialog
           title="Delete Role"
-          message={`Are you sure you want to delete role "${
-            confirmState.role?.name || confirmState.role?.code || "this role"
-          }"?`}
+          message={`Are you sure you want to delete role "${confirmState.role?.name || confirmState.role?.code || "this role"
+            }"?`}
           confirmText="Delete"
           cancelText="Cancel"
           onConfirm={handleConfirmDelete}
