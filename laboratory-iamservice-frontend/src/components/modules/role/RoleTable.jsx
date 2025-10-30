@@ -137,9 +137,6 @@ export default function RoleTable({
     return false;
   };
 
-  // Toggle sorting for allowed keys (only 'code' and 'name')
-  // Removed toggleSort and related UI to disable sorting controls without affecting other features
-
   return (
     <div className="role-table-container" style={{ width: "100%" }}>
       {/* Toolbar & Search */}
@@ -150,7 +147,7 @@ export default function RoleTable({
           alignItems: "center",
           marginBottom: "15px",
           width: "100%",
-          flexWrap: "wrap", // allow wrap so the button drops to next line if needed
+          flexWrap: "wrap",
           gap: 10,
         }}
       >
