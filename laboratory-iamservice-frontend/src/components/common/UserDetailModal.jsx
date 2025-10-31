@@ -2,9 +2,10 @@ import { FaUser, FaTimes, FaSyncAlt } from "react-icons/fa";
 import { Button, Tooltip } from "antd";
 import { CheckCircleTwoTone, EditOutlined, ArrowLeftOutlined, ExclamationCircleTwoTone } from '@ant-design/icons';
 import ResetPassWord from "../modules/auth/ResetPassWordForm.jsx";
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { getRoleName } from "../../utils/formatter.js"
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchUserById } from "../../redux/features/userManagementSlice";
 
 /**
  * User Detail Modal - Reusable modal component for displaying user/account details
@@ -121,8 +122,19 @@ function LeftPanel({ user, statusColor, statusText }) {
 }
 
 // Right Panel Component - Detailed Information
-function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsResetPassWordOpen }) {
+function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsResetPassWordOpen, userId }) {
     const { userInfo } = useSelector((state) => state.user)
+    const dispatch = useDispatch();
+
+    // Handle refresh - re-fetch user from API
+    const handleRefresh = () => {
+        if (userId || propUser?.id) {
+            dispatch(fetchUserById(userId || propUser.id));
+        }
+        if (onRefresh) {
+            onRefresh();
+        }
+    };
 
     // Helper function to render an information field
     const renderField = (label, value) => (
@@ -201,44 +213,42 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
             }}
         >
             {/* Refresh Button */}
-            {onRefresh && (
-                <button
-                    onClick={onRefresh}
-                    style={{
-                        position: "absolute",
-                        bottom: "20px",
-                        right: "20px",
-                        width: "auto",
-                        height: "auto",
-                        border: "none",
-                        borderRadius: "0",
-                        backgroundColor: "transparent",
-                        color: "#6f42c1",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "none",
-                        fontSize: "18px",
-                        fontWeight: "bold",
-                        transition: "all 0.2s ease",
-                        zIndex: 9999,
-                        padding: "8px",
-                        outline: "none",
-                    }}
-                    onMouseEnter={(e) => {
-                        e.target.style.color = "#4c3398";
-                        e.target.style.transform = "scale(1.2)";
-                    }}
-                    onMouseLeave={(e) => {
-                        e.target.style.color = "#6f42c1";
-                        e.target.style.transform = "scale(1)";
-                    }}
-                    aria-label="Refresh"
-                >
-                    <FaSyncAlt />
-                </button>
-            )}
+            <button
+                onClick={handleRefresh}
+                style={{
+                    position: "absolute",
+                    bottom: "20px",
+                    right: "20px",
+                    width: "auto",
+                    height: "auto",
+                    border: "none",
+                    borderRadius: "0",
+                    backgroundColor: "transparent",
+                    color: "#6f42c1",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "none",
+                    fontSize: "18px",
+                    fontWeight: "bold",
+                    transition: "all 0.2s ease",
+                    zIndex: 9999,
+                    padding: "8px",
+                    outline: "none",
+                }}
+                onMouseEnter={(e) => {
+                    e.target.style.color = "#4c3398";
+                    e.target.style.transform = "scale(1.2)";
+                }}
+                onMouseLeave={(e) => {
+                    e.target.style.color = "#6f42c1";
+                    e.target.style.transform = "scale(1)";
+                }}
+                aria-label="Refresh"
+            >
+                <FaSyncAlt />
+            </button>
 
             {/* User Information Grid */}
             <div
@@ -276,9 +286,103 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
 }
 
 // Main Modal Component
-export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
-    if (!isOpen || !user) return null;
-    const [isResetPassWordOpen, setIsResetPassWordOpen] = useState(false)
+export default function UserDetailModal({ user, userId, isOpen, onClose, onRefresh }) {
+    const dispatch = useDispatch();
+    const [isResetPassWordOpen, setIsResetPassWordOpen] = useState(false);
+
+    // Get user detail from Redux store or use passed user prop
+    const { userDetail, userDetailLoading, error } = useSelector((state) => state.users);
+
+    // Determine the user ID to fetch
+    const targetUserId = userId || user?.id;
+
+    // Fetch user detail when modal opens and we have a userId
+    useEffect(() => {
+        if (isOpen && targetUserId) {
+            // Always fetch from API to get full user details
+            dispatch(fetchUserById(targetUserId));
+        }
+    }, [isOpen, targetUserId, dispatch]);
+
+    // Use fetched user detail (from API) or passed user prop as fallback
+    const displayUser = userDetail || user;
+
+    // Show loading state
+    if (isOpen && !displayUser && userDetailLoading) {
+        return (
+            <div
+                style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: "rgba(0, 0, 0, 0.8)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 1000,
+                }}
+            >
+                <div
+                    style={{
+                        backgroundColor: "white",
+                        borderRadius: "12px",
+                        padding: "40px",
+                        textAlign: "center",
+                    }}
+                >
+                    <div>Loading user details...</div>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state
+    if (isOpen && error && !displayUser) {
+        return (
+            <div
+                style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: "rgba(0, 0, 0, 0.8)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 1000,
+                }}
+            >
+                <div
+                    style={{
+                        backgroundColor: "white",
+                        borderRadius: "12px",
+                        padding: "40px",
+                        textAlign: "center",
+                    }}
+                >
+                    <div style={{ color: "red", marginBottom: "20px" }}>Error: {error}</div>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            padding: "10px 20px",
+                            backgroundColor: "#ff5a5f",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "5px",
+                            cursor: "pointer",
+                        }}
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (!isOpen || !displayUser) return null;
 
     // Helper functions
     const formatDate = (dateString) => {
@@ -332,9 +436,9 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                 {/* Left Panel */}
                 <div style={{ position: "relative", width: "150px" }}>
                     <LeftPanel
-                        user={user}
-                        statusColor={getStatusColor(user.isActive)}
-                        statusText={getStatusText(user.isActive)} />
+                        user={displayUser}
+                        statusColor={getStatusColor(displayUser.isActive)}
+                        statusText={getStatusText(displayUser.isActive)} />
                 </div>
 
                 {/* Right Panel */}
@@ -342,17 +446,18 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                     <div className="ml-[70px]">
                         <ResetPassWord
                             setIsResetPassWord={setIsResetPassWordOpen}
-                            userId={user.id}
+                            userId={displayUser.id}
                             updateOption={"change"}
                         />
                     </div>)
                     : (
                         <RightPanel
-                            propUser={user}
+                            propUser={displayUser}
                             onRefresh={onRefresh}
                             formatDate={formatDate}
                             getGenderText={getGenderText}
                             setIsResetPassWordOpen={setIsResetPassWordOpen}
+                            userId={targetUserId}
                         />
                     )}
 
