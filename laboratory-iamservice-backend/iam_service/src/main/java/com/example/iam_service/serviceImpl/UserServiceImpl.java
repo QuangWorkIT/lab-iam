@@ -2,13 +2,19 @@ package com.example.iam_service.serviceImpl;
 
 import com.example.iam_service.audit.AuditEvent;
 import com.example.iam_service.audit.AuditPublisher;
+import com.example.iam_service.dto.user.AdminUpdateUserDTO;
+import com.example.iam_service.dto.user.UpdateUserProfileDTO;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.external.PatientVerificationService;
+import com.example.iam_service.mapper.UserMapper;
 import com.example.iam_service.repository.UserRepository;
 import com.example.iam_service.service.EmailService;
 import com.example.iam_service.service.UserService;
+import com.example.iam_service.util.AuditDiffUtil;
 import com.example.iam_service.util.PasswordGenerator;
+import com.example.iam_service.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
@@ -21,20 +27,24 @@ import java.time.OffsetDateTime;
 import java.time.Period;
 import java.util.Optional;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final AuditPublisher auditPublisher;
     private final PatientVerificationService patientVerificationService;
+    private final SecurityUtil securityUtil;
 
     @Override
     @Transactional
     public User createUser(User user) {
+        User actor = securityUtil.getCurrentUser();
         validateUniqueEmail(user.getEmail());
 
         // Automatically calculate age if not provided
@@ -56,7 +66,7 @@ public class UserServiceImpl implements UserService {
             emailService.sendPasswordEmail(savedUser.getEmail(), plainPassword);
             auditPublisher.publish(AuditEvent.builder()
                     .eventType("PATIENT_CREATED")
-                    .actor("SYSTEM")
+                    .actor(actor.getEmail() + " (" + actor.getRoleCode() + ")")
                     .target(savedUser.getEmail())
                     .role(savedUser.getRoleCode())
                     .timestamp(OffsetDateTime.now())
@@ -89,20 +99,104 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void activateUserByEmail(String email) {
-        int updated = userRepository.activateUserByEmail(email);
+        User actor = securityUtil.getCurrentUser();
 
-        if (updated == 0) {
-            throw new IllegalArgumentException("User not found or already active: " + email);
+        User target = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + email));
+
+        if (Boolean.TRUE.equals(target.getIsActive())) {
+            throw new IllegalArgumentException("User already active: " + email);
         }
+
+//        if (Boolean.TRUE.equals(target.getIsDeleted())) {
+//            throw new IllegalStateException("Cannot activate a deleted user: " + email);
+//        }
+
+        target.setIsActive(true);
+        userRepository.save(target);
 
         auditPublisher.publish(AuditEvent.builder()
                 .eventType("ACCOUNT_ACTIVATED")
-                .actor("ADMIN")
-                .target(email)
+                .actor(actor.getEmail() + " (" + actor.getRoleCode() + ")")
+                .target(target.getEmail())
+                .role(target.getRoleCode()) // <— now populated properly
                 .timestamp(OffsetDateTime.now())
-                .details("User account activated by admin")
+                .details("User account activated")
                 .build());
     }
+
+    public Optional<User> getUserById(UUID id) {
+        return userRepository.findById(id);
+    }
+
+    @Override
+    public User updateOwnProfile(UUID id, UpdateUserProfileDTO dto) {
+        User actor = securityUtil.getCurrentUser();
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+
+        // snapshot old state
+        User beforeUpdate = new User();
+        BeanUtils.copyProperties(user, beforeUpdate);
+
+        // apply updates
+        userMapper.updateUserFromProfileDto(dto, user);
+        if (dto.getBirthdate() != null) {
+            user.setAge(calculateAge(dto.getBirthdate()));
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        // build human-readable diff string
+        String diffDetails = AuditDiffUtil.generateDiff(beforeUpdate, updatedUser);
+
+        // publish the audit log
+        auditPublisher.publish(AuditEvent.builder()
+                .eventType("SELF_PROFILE_UPDATED")
+                .actor(actor.getEmail() + " (" + actor.getRoleCode() + ")")
+                .target(user.getEmail())
+                .role(actor.getRoleCode())
+                .timestamp(OffsetDateTime.now())
+                .details(diffDetails)
+                .build());
+
+        return updatedUser;
+    }
+
+
+    @Override
+    public User adminUpdateUser(UUID id, AdminUpdateUserDTO dto) {
+        User actor = securityUtil.getCurrentUser();
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+
+        User beforeUpdate = new User();
+        BeanUtils.copyProperties(user, beforeUpdate);
+
+        userMapper.updateUserFromAdminDto(dto, user);
+
+        if (dto.getBirthdate() != null) {
+            user.setAge(calculateAge(dto.getBirthdate()));
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        // build human-readable diff string
+        String diffDetails = AuditDiffUtil.generateDiff(beforeUpdate, updatedUser);
+
+        // publish the audit log
+        auditPublisher.publish(AuditEvent.builder()
+                .eventType("USER_UPDATED")
+                .actor(actor.getEmail() + " (" + actor.getRoleCode() + ")")
+                .target(user.getEmail())
+                .role(actor.getRoleCode())
+                .timestamp(OffsetDateTime.now())
+                .details(diffDetails)
+                .build());
+
+        return updatedUser;
+    }
+
 
     // ================= PRIVATE HELPERS =================
 
@@ -129,18 +223,30 @@ public class UserServiceImpl implements UserService {
         validatePassword(user.getPassword());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        if (isCreatedByLabManager() && !"ROLE_PATIENT".equalsIgnoreCase(user.getRoleCode())) {
+        User actor = securityUtil.getCurrentUser();
+        boolean isAdmin = isCreatedByAdmin();
+
+        if (!isAdmin && !"ROLE_PATIENT".equalsIgnoreCase(user.getRoleCode())) {
+            // non-admin (lab manager, etc.) creates account → requires approval
             user.setIsActive(false);
             auditPublisher.publish(AuditEvent.builder()
-                    .eventType("ACCOUNT_PENDING_APPROVAL")
-                    .actor("LAB_MANAGER")
+                    .eventType("USER_CREATED_PENDING_APPROVAL")
+                    .actor(actor.getEmail() + " (" + actor.getRoleCode() + ")")
                     .target(user.getEmail())
                     .role(user.getRoleCode())
                     .timestamp(OffsetDateTime.now())
-                    .details("Account created by Lab Manager and awaiting admin approval")
+                    .details("Account created by non-admin and awaiting admin approval")
                     .build());
         } else {
             user.setIsActive(true);
+            auditPublisher.publish(AuditEvent.builder()
+                    .eventType("USER_CREATED")
+                    .actor(actor.getEmail() + " (" + actor.getRoleCode() + ")")
+                    .target(user.getEmail())
+                    .role(user.getRoleCode())
+                    .timestamp(OffsetDateTime.now())
+                    .details("Account created and activated by admin")
+                    .build());
         }
     }
 
@@ -153,20 +259,15 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private boolean isCreatedByLabManager() {
+    private boolean isCreatedByAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
             return false;
         }
 
-        for (GrantedAuthority authority : authentication.getAuthorities()) {
-            if ("ROLE_LAB_MANAGER".equalsIgnoreCase(authority.getAuthority())) {
-                return true;
-            }
-        }
-
-        return false;
+        return authentication.getAuthorities().stream()
+                .anyMatch(auth -> "ROLE_ADMIN".equalsIgnoreCase(auth.getAuthority()));
     }
 
     private int calculateAge(LocalDate birthdate) {

@@ -1,5 +1,6 @@
 package com.example.iam_service.audit;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
 import java.time.OffsetDateTime;
@@ -11,6 +12,7 @@ public class AuditEvent {
     private String actor;
     private String target;
     private String role;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private OffsetDateTime timestamp;
     private String details;
 }
