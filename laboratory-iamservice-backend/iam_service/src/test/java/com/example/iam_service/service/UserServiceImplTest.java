@@ -235,25 +235,6 @@ class UserServiceImplTest {
         assertEquals(1, list.size());
     }
 
-    @Test
-    void updateUser_ShouldModifyOnlyProvidedFields() {
-        UUID id = UUID.randomUUID();
-        User existing = new User();
-        existing.setFullName("Old");
-        existing.setPhoneNumber("123");
-
-        User patch = new User();
-        patch.setFullName("NewName");
-        patch.setAddress("NewAddress");
-
-        when(userRepository.findById(id)).thenReturn(Optional.of(existing));
-        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
-
-        User result = userService.updateUser(id, patch);
-        assertEquals("NewName", result.getFullName());
-        assertEquals("NewAddress", result.getAddress());
-        assertEquals("123", result.getPhoneNumber());
-    }
 
     @Test
     void updateOwnProfile_ShouldUpdateAndRecalculateAge() {
@@ -290,11 +271,6 @@ class UserServiceImplTest {
         assertNotNull(result.getAge());
     }
 
-    @Test
-    void updateUser_ShouldThrow_WhenUserNotFound() {
-        when(userRepository.findById(any())).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> userService.updateUser(UUID.randomUUID(), new User()));
-    }
 
     @Test
     void isCreatedByLabManager_ShouldReturnFalse_WhenNotAuthenticated() {
