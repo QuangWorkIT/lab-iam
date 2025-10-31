@@ -72,17 +72,7 @@ export const fetchUsers = createAsyncThunk(
                 params.sortDir = searchParams.sortDir;
             }
 
-            console.log('🔍 Fetching users with params:', params);
             const response = await api.get("/api/users", { params });
-            console.log('✅ API Response:', response.data);
-
-            // Log all unique roles to help with debugging
-            if (Array.isArray(response.data)) {
-                const roles = [...new Set(response.data.map(u =>
-                    `${u.roleCode || u.role || 'NO_ROLE'}`.toUpperCase()
-                ))];
-                console.log('📋 Available roles in response:', roles);
-            }
 
             // Handle both paginated and non-paginated responses
             let userDTOs, totalPages, totalElements;
@@ -98,9 +88,6 @@ export const fetchUsers = createAsyncThunk(
 
                 // Client-side filtering as fallback
                 if (params.keyword || params.roleFilter || params.fromDate || params.toDate) {
-                    console.log('⚠️ Backend returned full list, applying client-side filtering...');
-                    console.log('Filter params:', { keyword: params.keyword, role: params.roleFilter, fromDate: params.fromDate, toDate: params.toDate });
-
                     allUsers = allUsers.filter(dto => {
                         // Keyword matching
                         const matchKeyword = !params.keyword ||
@@ -128,7 +115,6 @@ export const fetchUsers = createAsyncThunk(
 
                         return matchKeyword && matchRole && matchDate;
                     });
-                    console.log(`📊 Filtered ${allUsers.length} users from ${response.data.length} total`);
                 }
 
                 // Client-side pagination
@@ -141,8 +127,6 @@ export const fetchUsers = createAsyncThunk(
                 const startIndex = currentPage * pageSize;
                 const endIndex = startIndex + pageSize;
                 userDTOs = allUsers.slice(startIndex, endIndex);
-
-                console.log(`📄 Page ${currentPage + 1}/${totalPages}: Showing ${userDTOs.length} users (${startIndex + 1}-${Math.min(endIndex, totalElements)} of ${totalElements})`);
             } else {
                 userDTOs = [];
                 totalPages = 0;
@@ -150,7 +134,6 @@ export const fetchUsers = createAsyncThunk(
             }
 
             const users = userDTOs.map(mapUserDTOToUI);
-            console.log('✨ Returning users:', users.length, 'users');
 
             return {
                 content: users,
@@ -158,7 +141,6 @@ export const fetchUsers = createAsyncThunk(
                 totalPages,
             };
         } catch (error) {
-            console.error('❌ Error fetching users:', error);
             return rejectWithValue(
                 error.response?.data?.message || error.message || "Failed to fetch users"
             );
@@ -175,14 +157,11 @@ export const createUser = createAsyncThunk(
     "userManagement/createUser",
     async (userData, { rejectWithValue }) => {
         try {
-            console.log('🔵 [CREATE USER] Request payload:', userData);
             const response = await api.post("/api/users", userData);
-            console.log('🟢 [CREATE USER] Response from backend:', response.data);
             return mapUserDTOToUI(response.data);
         } catch (error) {
-            console.error('🔴 [CREATE USER] Error:', error.response?.data || error);
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to create user"
+                error.response?.data?.error || error.message || "Failed to create user"
             );
         }
     }

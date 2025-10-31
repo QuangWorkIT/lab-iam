@@ -5,7 +5,6 @@ import {
   createUser,
 } from "../../redux/features/userManagementSlice";
 import UserTable from "../../components/modules/user/UserTable";
-import UserModal from "../../components/modules/user/UserModal";
 import AddUserModal from "../../components/modules/user/AddUserModal";
 import UserDetailModal from "../../components/common/UserDetailModal";
 import MainLayout from "../../components/layout/MainLayout";
@@ -17,10 +16,8 @@ export default function UserList() {
   const { users, loading, error, totalPages, totalElements } = useSelector(
     (state) => state.users
   );
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
   const [viewingUser, setViewingUser] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState(null);
@@ -52,6 +49,7 @@ export default function UserList() {
       }
     };
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, searchParams]);
 
   // Cleanup timeout on unmount
@@ -88,14 +86,6 @@ export default function UserList() {
     // Loading state sẽ được reset khi fetchUsers hoàn thành
   };
 
-  //Handle cho sort
-  const handleSort = (key, direction) => {
-    setSearchParams((prev) => ({
-      ...prev,
-      sortBy: key,
-      sortDir: direction,
-    }));
-  };
 
   //Handler cho phân trang
   const handlePageChange = (newPage) => {
@@ -124,73 +114,24 @@ export default function UserList() {
     setIsAddModalOpen(true);
   };
 
-  const handleEditUser = (user) => {
-    setEditingUser(user);
-    setIsModalOpen(true);
+  const handleEditUser = () => {
+    // TODO: Implement edit functionality
+    alert("Edit functionality not yet implemented");
   };
 
-  // const handleToggleStatus = (user) => {
-  //     const action = user.isActive ? "lock" : "unlock";
-  //     if (window.confirm(`Are you sure you want to ${action} this user?`)) {
-  //         const updatedUserData = {
-  //             ...user,
-  //             isActive: !user.isActive,
-  //         };
-  //         dispatch(updateUser({ id: user.id, userData: updatedUserData }))
-  //             .unwrap()
-  //             .then(() => {
-  //                 dispatch(fetchUsers(searchParams));
-  //                 alert(`User ${action}ed successfully`);
-  //             })
-  //             .catch((error) => {
-  //                 alert(
-  //                     `Failed to ${action} user: ${error?.message ||
-  //                     error?.response?.data?.message ||
-  //                     "Unknown error"
-  //                     }`
-  //                 );
-  //             })
-  //     }
-  // };
-
-  // Handler cho việc lưu user (thêm hoặc sửa)
-  // const handleSaveUser = (userData) => {
-  //     // Nếu đang edit (có editingUser)
-  //     if (editingUser) {
-  //         dispatch(updateUser({ id: editingUser.id, userData }))
-  //             .unwrap()
-  //             .then(() => {
-  //                 setIsModalOpen(false);
-  //                 dispatch(fetchUsers(searchParams));
-  //                 alert("User updated successfully!");
-  //             })
-  //             .catch((error) => {
-  //                 alert(
-  //                     `Failed to update user: ${error.message || JSON.stringify(error) || "Unknown error"
-  //                     }`
-  //                 );
-  //             });
-  //     } else {
-  //         // Thêm mới
-  //         dispatch(createUser(userData))
-  //             .unwrap()
-  //             .then(() => {
-  //                 setIsModalOpen(false);
-  //                 dispatch(fetchUsers(searchParams));
-  //                 alert("User created successfully!");
-  //             })
-  //             .catch((error) => {
-  //                 alert(`Failed to create user: ${error}`);
-  //             });
-  //     }
-  // };
+  const handleDeleteUser = () => {
+    // TODO: Implement delete functionality
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      alert("Delete functionality not yet implemented");
+    }
+  };
 
   // Handler cho việc lưu user từ AddUserModal
   const handleSaveNewUser = async (userData) => {
     await dispatch(createUser(userData)).unwrap();
     setIsAddModalOpen(false);
     dispatch(fetchUsers(searchParams));
-    toast.success("User created successfully!");
+    toast.success("Create user successfully!");
   };
 
   // Handler for refresh user detail
@@ -237,11 +178,11 @@ export default function UserList() {
           <UserTable
             users={users}
             onSearch={handleSearch}
-            onSort={handleSort}
             onPageChange={handlePageChange}
             onPageSizeChange={handlePageSizeChange}
             onView={handleViewUser}
             onEdit={handleEditUser}
+            onDelete={handleDeleteUser}
             onAdd={handleAddUser}
             currentPage={searchParams.page}
             totalPages={totalPages}
@@ -252,12 +193,6 @@ export default function UserList() {
           />
         )}
       </div>
-      <UserModal
-        user={editingUser}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveNewUser}
-      />
       <AddUserModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}

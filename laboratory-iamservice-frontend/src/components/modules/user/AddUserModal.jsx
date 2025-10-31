@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FaInfoCircle, FaCalendarAlt, FaEye, FaEyeSlash } from "react-icons/fa";
 import { fetchRolesForUser } from "../../../redux/features/userManagementSlice";
+import { toast } from "react-toastify";
+import dayjs from "dayjs";
+import Calendar from "react-calendar";
 
 export default function AddUserModal({ isOpen, onClose, onSave }) {
     const dispatch = useDispatch();
     const { roles, rolesLoading } = useSelector((state) => state.users);
     const { userInfo } = useSelector((state) => state.user); // Get current logged-in user
 
-    // Check if current user is LAB_MANAGER
-    const isLabManager = userInfo?.role?.includes("ROLE_LAB_MANAGER");
+    // Check if current user is ADMIN
     const isAdmin = userInfo?.role?.includes("ROLE_ADMIN");
 
     const [currentStep, setCurrentStep] = useState(1);
@@ -26,7 +28,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         password: "",
         confirmPassword: "",
         roleCode: "",
-        accountStatus: isLabManager ? "IA" : "A", // LAB_MANAGER auto creates Inactive users
     });
 
     const [errors, setErrors] = useState({});
@@ -34,6 +35,9 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const [showPassword, setShowPassword] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showCalendar, setShowCalendar] = useState(false);
+    const calendarRef = useRef(null);
+    const [birthdateInput, setBirthdateInput] = useState("");
 
     const steps = [
         { id: 1, title: "Basic Infor", label: "Basic Infor" },
@@ -47,15 +51,27 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         }
     }, [isOpen, dispatch]);
 
+    // Handle click outside calendar to close it
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+                setShowCalendar(false);
+            }
+        };
+
+        if (showCalendar) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [showCalendar]);
+
     // Handle PATIENT role - backend will auto-generate password and send via email
     useEffect(() => {
         const isPatientRole = formData.roleCode &&
             formData.roleCode.toString().toUpperCase().includes("PATIENT");
-
-        console.log('Role check:', {
-            roleCode: formData.roleCode,
-            isPatient: isPatientRole
-        });
 
         if (isPatientRole) {
             // Clear password fields - backend will generate and send via email
@@ -65,7 +81,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                 confirmPassword: ""
             }));
             setIsPasswordGenerated(true); // Flag to show email notification
-            console.log('✅ PATIENT role selected - password will be sent via email');
         } else if (!isPatientRole && isPasswordGenerated) {
             // Reset when changing from PATIENT to another role
             setFormData(prev => ({
@@ -74,10 +89,21 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                 confirmPassword: ""
             }));
             setIsPasswordGenerated(false);
-            console.log('🔄 Role changed from PATIENT - password input enabled');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formData.roleCode]);
+
+    // Sync input string when birthdate changes
+    useEffect(() => {
+        if (formData.birthdate) {
+            const formatted = dayjs(formData.birthdate, "YYYY-MM-DD").isValid()
+                ? dayjs(formData.birthdate, "YYYY-MM-DD").format("DD/MM/YYYY")
+                : "";
+            setBirthdateInput(formatted);
+        } else {
+            setBirthdateInput("");
+        }
+    }, [formData.birthdate]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -202,7 +228,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         }
 
         if (!formData.roleCode) newErrors.roleCode = "Role Code is required";
-        if (!formData.accountStatus) newErrors.accountStatus = "Account Status is required";
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -228,11 +253,14 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                 formData.roleCode.toString().toUpperCase().includes("PATIENT");
 
             // Prepare user data for saving
+            // Set isActive based on creator's role:
+            // - ADMIN creates users as Active (true)
+            // - MANAGER (LAB_MANAGER) creates users as Inactive (false)
             const userData = {
                 fullName: formData.fullName,
                 email: formData.email,
                 roleCode: formData.roleCode,
-                isActive: formData.accountStatus === "A",     // Backend Entity has 'isActive' field
+                isActive: isAdmin ? true : false,     // ADMIN -> Active, MANAGER -> Inactive
                 phoneNumber: formData.phoneNumber,
                 identityNumber: formData.identityNumber,
                 birthdate: formData.birthdate,
@@ -246,14 +274,24 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                 userData.password = formData.password;
             }
 
-            console.log('📤 Submitting user data:', { ...userData, password: userData.password ? '***hidden***' : 'not included' });
-
             try {
                 await onSave(userData);
+                // Success toast will be shown in handleSaveNewUser (UserList.jsx)
             } catch (error) {
                 // Handle backend errors
-                console.error('❌ Error creating user:', error);
-                const errorMessage = error?.response?.data?.message || error?.message || "Failed to create user";
+
+                // Try multiple possible error fields from backend response
+                // Backend can return: {error: "..."} or {message: "..."}
+                const errorMessage =
+                    error ||
+                    error?.response?.data?.error ||
+                    error?.response?.data?.message ||
+                    error?.message ||
+                    error?.error ||
+                    "Failed to create user";
+
+                // Show error toast
+                toast.error(errorMessage);
 
                 // Check if error is related to email
                 if (errorMessage.toLowerCase().includes('email')) {
@@ -263,12 +301,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                     }));
                     // Go back to step 1 to show email error
                     setCurrentStep(1);
-                } else {
-                    // For other errors, show general error
-                    setErrors(prev => ({
-                        ...prev,
-                        general: errorMessage
-                    }));
                 }
             } finally {
                 setIsSubmitting(false);
@@ -289,13 +321,13 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
             password: "",
             confirmPassword: "",
             roleCode: "",
-            accountStatus: isLabManager ? "IA" : "A",
         });
         setErrors({});
         setIsPasswordGenerated(false);
         setShowPassword(false);
         setPasswordStrength({});
         setIsSubmitting(false);
+        setShowCalendar(false);
         onClose();
     };
 
@@ -428,21 +460,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                     ))}
                 </div>
 
-                {/* General Error Display */}
-                {errors.general && (
-                    <div style={{
-                        marginBottom: "20px",
-                        padding: "12px",
-                        backgroundColor: "#fee",
-                        border: "1px solid #fcc",
-                        borderRadius: "4px",
-                        color: "#c33",
-                        fontSize: "14px"
-                    }}>
-                        {errors.general}
-                    </div>
-                )}
-
                 {/* Form Content */}
                 <form onSubmit={handleSubmit}>
                     {currentStep === 1 && (
@@ -482,6 +499,15 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             borderLeft: "3px solid #ff5a5f",
                                             backgroundColor: "white",
                                             color: "#333",
+                                            outline: "none",
+                                        }}
+                                        onFocus={(e) => {
+                                            e.target.style.border = `1px solid ${errors.fullName ? "#dc3545" : "#999"}`;
+                                            e.target.style.borderLeft = "3px solid #ff5a5f";
+                                        }}
+                                        onBlur={(e) => {
+                                            e.target.style.border = `1px solid ${errors.fullName ? "#dc3545" : "#ddd"}`;
+                                            e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         placeholder="Enter full name"
                                     />
@@ -519,6 +545,15 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             borderLeft: "3px solid #ff5a5f",
                                             backgroundColor: "white",
                                             color: "#333",
+                                            outline: "none",
+                                        }}
+                                        onFocus={(e) => {
+                                            e.target.style.border = `1px solid ${errors.identityNumber ? "#dc3545" : "#999"}`;
+                                            e.target.style.borderLeft = "3px solid #ff5a5f";
+                                        }}
+                                        onBlur={(e) => {
+                                            e.target.style.border = `1px solid ${errors.identityNumber ? "#dc3545" : "#ddd"}`;
+                                            e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         placeholder="Enter identity number"
                                     />
@@ -556,6 +591,15 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             borderLeft: "3px solid #ff5a5f",
                                             backgroundColor: "white",
                                             color: "#333",
+                                            outline: "none",
+                                        }}
+                                        onFocus={(e) => {
+                                            e.target.style.border = `1px solid ${errors.phoneNumber ? "#dc3545" : "#999"}`;
+                                            e.target.style.borderLeft = "3px solid #ff5a5f";
+                                        }}
+                                        onBlur={(e) => {
+                                            e.target.style.border = `1px solid ${errors.phoneNumber ? "#dc3545" : "#ddd"}`;
+                                            e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         placeholder="Enter phone number"
                                     />
@@ -593,6 +637,15 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             borderLeft: "3px solid #ff5a5f",
                                             backgroundColor: "white",
                                             color: "#333",
+                                            outline: "none",
+                                        }}
+                                        onFocus={(e) => {
+                                            e.target.style.border = `1px solid ${errors.email ? "#dc3545" : "#999"}`;
+                                            e.target.style.borderLeft = "3px solid #ff5a5f";
+                                        }}
+                                        onBlur={(e) => {
+                                            e.target.style.border = `1px solid ${errors.email ? "#dc3545" : "#ddd"}`;
+                                            e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         placeholder="Enter email address"
                                     />
@@ -618,37 +671,227 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     >
                                         Birthdate <span style={{ color: "#ff5a5f" }}>*</span>
                                     </label>
-                                    <div style={{ position: "relative" }}>
-                                        <input
-                                            type="date"
-                                            name="birthdate"
-                                            value={formData.birthdate}
-                                            onChange={handleInputChange}
-                                            style={{
-                                                width: "100%",
-                                                padding: "12px 40px 12px 12px",
-                                                border: `1px solid ${errors.birthdate ? "#dc3545" : "#ddd"}`,
-                                                borderRadius: "4px",
-                                                fontSize: "14px",
-                                                boxSizing: "border-box",
-                                                borderLeft: "3px solid #ff5a5f",
-                                                backgroundColor: "white",
-                                                color: "#333",
-                                            }}
-                                        />
-                                        <FaCalendarAlt
-                                            style={{
-                                                position: "absolute",
-                                                right: "12px",
-                                                top: "50%",
-                                                transform: "translateY(-50%)",
-                                                color: "#999",
-                                                fontSize: "14px",
-                                            }}
-                                        />
+                                    <div style={{ position: "relative" }} ref={calendarRef}>
+                                        <style>{`
+                                            .birthdate-input::placeholder { font-size: 14px; }
+                                        `}</style>
+                                        <div style={{
+                                            position: "relative",
+                                            border: `1px solid ${errors.birthdate ? "#dc3545" : "#ddd"}`,
+                                            borderLeft: "3px solid #ff5a5f",
+                                            borderRadius: "4px",
+                                        }}>
+                                            <input
+                                                type="text"
+                                                value={birthdateInput}
+                                                onClick={() => setShowCalendar(!showCalendar)}
+                                                onChange={(e) => {
+                                                    const raw = e.target.value;
+                                                    setBirthdateInput(raw);
+
+                                                    // Try to parse DD/MM/YYYY when full length reached
+                                                    const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+                                                    const m = raw.match(ddmmyyyy);
+                                                    if (m) {
+                                                        const [_, dd, mm, yyyy] = m;
+                                                        const iso = `${yyyy}-${mm}-${dd}`;
+                                                        const parsed = dayjs(iso, "YYYY-MM-DD", true);
+                                                        if (parsed.isValid()) {
+                                                            handleInputChange({
+                                                                target: { name: 'birthdate', value: iso }
+                                                            });
+                                                            if (errors.birthdate) {
+                                                                setErrors(prev => ({ ...prev, birthdate: "" }));
+                                                            }
+                                                        }
+                                                    }
+                                                }}
+                                                placeholder="dd/mm/yyyy"
+                                                style={{
+                                                    width: "100%",
+                                                    padding: "12px 40px 12px 12px",
+                                                    border: "none",
+                                                    borderRadius: "4px",
+                                                    fontSize: "14px",
+                                                    boxSizing: "border-box",
+                                                    backgroundColor: "white",
+                                                    color: "#333",
+                                                    outline: "none",
+                                                }}
+                                                className="birthdate-input"
+                                                onBlur={() => {
+                                                    // Validate date is valid and within range (1900 to today)
+                                                    if (formData.birthdate) {
+                                                        const selectedDate = dayjs(formData.birthdate, "YYYY-MM-DD");
+
+                                                        // Check if date is valid
+                                                        if (!selectedDate.isValid()) {
+                                                            setErrors(prev => ({
+                                                                ...prev,
+                                                                birthdate: "Invalid date"
+                                                            }));
+                                                            return;
+                                                        }
+
+                                                        // Check if date is after today
+                                                        if (selectedDate.isAfter(dayjs(), 'day')) {
+                                                            setErrors(prev => ({
+                                                                ...prev,
+                                                                birthdate: "Birthdate cannot be in the future"
+                                                            }));
+                                                            return;
+                                                        }
+
+                                                        // Check if date is before 1900
+                                                        if (selectedDate.isBefore(dayjs('1900-01-01'), 'day')) {
+                                                            setErrors(prev => ({
+                                                                ...prev,
+                                                                birthdate: "Year must be from 1900 onwards"
+                                                            }));
+                                                            return;
+                                                        }
+
+                                                        // Clear error if validation passes
+                                                        if (errors.birthdate) {
+                                                            setErrors(prev => ({
+                                                                ...prev,
+                                                                birthdate: ""
+                                                            }));
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                            <FaCalendarAlt
+                                                style={{
+                                                    position: "absolute",
+                                                    right: "12px",
+                                                    top: "50%",
+                                                    transform: "translateY(-50%)",
+                                                    color: "#666",
+                                                    cursor: "pointer",
+                                                    pointerEvents: "none"
+                                                }}
+                                            />
+                                        </div>
+                                        {showCalendar && (
+                                            <>
+                                                <style>{`
+                                                    .react-calendar {
+                                                        border: none !important;
+                                                        font-family: inherit;
+                                                        width: 200px !important; /* smaller calendar width */
+                                                    }
+                                                    .react-calendar__navigation {
+                                                        height: 30px;
+                                                    }
+                                                    .react-calendar__navigation button {
+                                                        min-width: 26px;
+                                                        font-size: 12px;
+                                                        padding: 2px 4px;
+                                                    }
+                                                    .react-calendar__month-view__weekdays {
+                                                        text-transform: none !important;
+                                                        font-weight: 500;
+                                                        font-size: 11px; /* smaller weekdays */
+                                                    }
+                                                    .react-calendar__month-view__weekdays__weekday {
+                                                        text-decoration: none !important;
+                                                        padding: 0.25em; /* tighter */
+                                                    }
+                                                    .react-calendar__month-view__weekdays__weekday abbr {
+                                                        text-decoration: none !important;
+                                                        cursor: default;
+                                                    }
+                                                    .react-calendar__tile {
+                                                        border-radius: 4px;
+                                                        padding: 0.4em 0.3em; /* smaller tiles */
+                                                        font-size: 11px; /* smaller numbers */
+                                                    }
+                                                    .react-calendar__tile:enabled:hover {
+                                                        background: #f0f0f0;
+                                                    }
+                                                    .react-calendar__tile--active {
+                                                        background: #87CEEB !important; /* light blue */
+                                                        color: white !important;
+                                                        border-radius: 4px;
+                                                    }
+                                                    .react-calendar__tile--active:enabled:hover,
+                                                    .react-calendar__tile--active:enabled:focus {
+                                                        background: #6BB6D6 !important;
+                                                    }
+                                                    .react-calendar__tile--now {
+                                                        background: transparent !important; /* remove yellow */
+                                                        color: #333 !important;
+                                                    }
+                                                    .react-calendar__tile--now:enabled:hover,
+                                                    .react-calendar__tile--now:enabled:focus {
+                                                        background: #f0f0f0 !important;
+                                                    }
+                                                `}</style>
+                                                <div style={{
+                                                    position: "absolute",
+                                                    top: "100%",
+                                                    right: 0,
+                                                    zIndex: 1000,
+                                                    marginTop: "4px",
+                                                    backgroundColor: "white",
+                                                    borderRadius: "8px",
+                                                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                                                    border: "1px solid #ddd",
+                                                    width: "200px"
+                                                }}>
+                                                    <Calendar
+                                                        onChange={(date) => {
+                                                            if (date) {
+                                                                const dateString = dayjs(date).format("YYYY-MM-DD");
+                                                                handleInputChange({
+                                                                    target: {
+                                                                        name: 'birthdate',
+                                                                        value: dateString
+                                                                    }
+                                                                });
+
+                                                                // Clear error when user selects a valid date
+                                                                if (errors.birthdate) {
+                                                                    setErrors(prev => ({
+                                                                        ...prev,
+                                                                        birthdate: ""
+                                                                    }));
+                                                                }
+
+                                                                // Set input display
+                                                                setBirthdateInput(dayjs(dateString, "YYYY-MM-DD").format("DD/MM/YYYY"));
+                                                                setShowCalendar(false);
+                                                            }
+                                                        }}
+                                                        value={formData.birthdate
+                                                            ? new Date(formData.birthdate)
+                                                            : null}
+                                                        maxDate={new Date()}
+                                                        minDate={new Date("1900-01-01")}
+                                                        formatShortWeekday={(locale, date) => {
+                                                            const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+                                                            return weekdays[date.getDay()];
+                                                        }}
+                                                        tileDisabled={({ date }) => {
+                                                            // Disable dates after today
+                                                            if (date > new Date()) {
+                                                                return true;
+                                                            }
+                                                            // Disable dates before 1900
+                                                            if (date < new Date("1900-01-01")) {
+                                                                return true;
+                                                            }
+                                                            return false;
+                                                        }}
+                                                        locale="en-US"
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                     {errors.birthdate && (
-                                        <span style={{ color: "#dc3545", fontSize: "12px" }}>
+                                        <span style={{ color: "#dc3545", fontSize: "12px", display: "block", marginTop: "4px" }}>
                                             {errors.birthdate}
                                         </span>
                                     )}
@@ -681,6 +924,15 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             borderLeft: "3px solid #ff5a5f",
                                             backgroundColor: "white",
                                             color: "#333",
+                                            outline: "none",
+                                        }}
+                                        onFocus={(e) => {
+                                            e.target.style.border = `1px solid ${errors.address ? "#dc3545" : "#999"}`;
+                                            e.target.style.borderLeft = "3px solid #ff5a5f";
+                                        }}
+                                        onBlur={(e) => {
+                                            e.target.style.border = `1px solid ${errors.address ? "#dc3545" : "#ddd"}`;
+                                            e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         placeholder="Enter address"
                                     />
@@ -844,6 +1096,15 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                                     borderLeft: "3px solid #ff5a5f",
                                                     backgroundColor: "white",
                                                     color: "#333",
+                                                    outline: "none",
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.target.style.border = `1px solid ${errors.password ? "#dc3545" : "#999"}`;
+                                                    e.target.style.borderLeft = "3px solid #ff5a5f";
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.target.style.border = `1px solid ${errors.password ? "#dc3545" : "#ddd"}`;
+                                                    e.target.style.borderLeft = "3px solid #ff5a5f";
                                                 }}
                                                 placeholder="Enter password"
                                             />
@@ -925,6 +1186,15 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                                 borderLeft: "3px solid #ff5a5f",
                                                 backgroundColor: "white",
                                                 color: "#333",
+                                                outline: "none",
+                                            }}
+                                            onFocus={(e) => {
+                                                e.target.style.border = `1px solid ${errors.confirmPassword ? "#dc3545" : "#999"}`;
+                                                e.target.style.borderLeft = "3px solid #ff5a5f";
+                                            }}
+                                            onBlur={(e) => {
+                                                e.target.style.border = `1px solid ${errors.confirmPassword ? "#dc3545" : "#ddd"}`;
+                                                e.target.style.borderLeft = "3px solid #ff5a5f";
                                             }}
                                             placeholder="Confirm password"
                                         />
@@ -987,127 +1257,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     </div>
                                 </div>
                             )}
-
-                            {/* Account Status - Only show for ADMIN, auto-set to Inactive for LAB_MANAGER */}
-                            {isAdmin ? (
-                                <div style={{ marginBottom: "20px" }}>
-                                    <label
-                                        style={{
-                                            display: "block",
-                                            marginBottom: "8px",
-                                            fontSize: "14px",
-                                            fontWeight: "500",
-                                            color: "#ff5a5f",
-                                        }}
-                                    >
-                                        Account Status <span style={{ color: "#ff5a5f" }}>*</span>
-                                    </label>
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            gap: "20px",
-                                            alignItems: "center",
-                                        }}
-                                    >
-                                        <label
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                cursor: "pointer",
-                                            }}
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="accountStatus"
-                                                value="A"
-                                                checked={formData.accountStatus === "A"}
-                                                onChange={handleInputChange}
-                                                style={{
-                                                    marginRight: "8px",
-                                                    accentColor: "#ff5a5f",
-                                                }}
-                                            />
-                                            <span style={{ color: "#333", fontSize: "14px" }}>Active</span>
-                                        </label>
-                                        <label
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                cursor: "pointer",
-                                            }}
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="accountStatus"
-                                                value="IA"
-                                                checked={formData.accountStatus === "IA"}
-                                                onChange={handleInputChange}
-                                                style={{
-                                                    marginRight: "8px",
-                                                    accentColor: "#ff5a5f",
-                                                }}
-                                            />
-                                            <span style={{ color: "#333", fontSize: "14px" }}>Inactive</span>
-                                        </label>
-                                    </div>
-                                    {errors.accountStatus && (
-                                        <span style={{ color: "#dc3545", fontSize: "12px" }}>
-                                            {errors.accountStatus}
-                                        </span>
-                                    )}
-                                </div>
-                            ) : isLabManager ? (
-                                /* Info notification for LAB_MANAGER - User will be created as Inactive */
-                                <div style={{
-                                    marginBottom: "20px",
-                                    padding: "20px",
-                                    backgroundColor: "#fff3cd",
-                                    border: "2px solid #ffc107",
-                                    borderRadius: "8px",
-                                    display: "flex",
-                                    alignItems: "flex-start",
-                                    gap: "12px",
-                                }}>
-                                    <div style={{
-                                        width: "40px",
-                                        height: "40px",
-                                        backgroundColor: "#ffc107",
-                                        borderRadius: "50%",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        flexShrink: 0,
-                                    }}>
-                                        <FaInfoCircle style={{ color: "white", fontSize: "20px" }} />
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <h4 style={{
-                                            margin: "0 0 8px 0",
-                                            fontSize: "16px",
-                                            fontWeight: "600",
-                                            color: "#856404",
-                                        }}>
-                                            ⏳ Account Pending Approval
-                                        </h4>
-                                        <p style={{
-                                            margin: "0",
-                                            fontSize: "14px",
-                                            color: "#856404",
-                                            lineHeight: "1.6",
-                                        }}>
-                                            As a <strong>Lab Manager</strong>, new users you create will be set to <strong>Inactive</strong> status and require <strong>Admin approval</strong> before they can access the system.
-                                        </p>
-                                        <p style={{
-                                            margin: "8px 0 0 0",
-                                            fontSize: "13px",
-                                            color: "#856404",
-                                            fontStyle: "italic",
-                                        }}>
-                                            ℹ️ Admin will review and activate the account in the Account Management section.
-                                        </p>
-                                    </div>
-                                </div>
-                            ) : null}
                         </div>
                     )}
 
