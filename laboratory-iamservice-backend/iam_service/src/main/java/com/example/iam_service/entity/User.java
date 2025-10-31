@@ -70,9 +70,14 @@ public class User {
 
     private LocalDate createdAt;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDate.now();
+        this.version = 0L;
     }
 
 }
