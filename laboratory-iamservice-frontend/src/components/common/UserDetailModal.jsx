@@ -4,6 +4,8 @@ import { CheckCircleTwoTone, EditOutlined, ArrowLeftOutlined, ExclamationCircleT
 import ResetPassWord from "../modules/auth/ResetPassWordForm.jsx";
 import { useState } from "react"
 import { getRoleName } from "../../utils/formatter.js"
+import { useSelector } from "react-redux";
+
 /**
  * User Detail Modal - Reusable modal component for displaying user/account details
  * 
@@ -119,9 +121,11 @@ function LeftPanel({ user, statusColor, statusText }) {
 }
 
 // Right Panel Component - Detailed Information
-function RightPanel({ user, onRefresh, formatDate, getGenderText, setIsResetPassWordOpen }) {
+function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsResetPassWordOpen }) {
+    const { userInfo } = useSelector((state) => state.user)
+
     // Helper function to render an information field
-    const renderField = (label, value, isStatus = false) => (
+    const renderField = (label, value) => (
         <div style={{ marginBottom: "15px" }}>
             <div
                 style={{
@@ -152,7 +156,7 @@ function RightPanel({ user, onRefresh, formatDate, getGenderText, setIsResetPass
                         className="text-[#5170ff] hover:text-[#748cfc] transition-all duration-300 ease"
                     >
                         {label}
-                        {label === "Password" &&
+                        {label === "Password" && userInfo.id === propUser.id &&
                             <Tooltip placement="top" title={"Change password"} >
                                 <button
                                     onClick={() => setIsResetPassWordOpen(true)}
@@ -242,30 +246,29 @@ function RightPanel({ user, onRefresh, formatDate, getGenderText, setIsResetPass
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
                     gap: "20px",
-                    marginTop: "20px",
+                    marginTop: "60px",
                     // paddingBottom: onRefresh ? "60px" : "10px",
                     wordBreak: "break-word",
                     overflowWrap: "break-word",
                     justifyContent: "center",
-                    alignItems: "center",
+                    alignItems: "flex-start",
                     height: "100%",
                 }}
             >
                 {/* Left Column */}
                 <div>
-                    {renderField("Identity Number", user?.identifyNumber || "N/A")}
-                    {renderField("Phone Number", user?.phoneNumber || "N/A")}
-                    {renderField("Gender", getGenderText ? getGenderText(user?.gender) : (user?.gender || "N/A"))}
-                    {renderField("Email", user?.email || "N/A")}
+                    {renderField("Identity Number", propUser?.identifyNumber || "N/A")}
+                    {renderField("Phone Number", propUser?.phoneNumber || "N/A")}
+                    {renderField("Gender", getGenderText ? getGenderText(propUser?.gender) : (propUser?.gender || "N/A"))}
+                    {renderField("Email", propUser?.email || "N/A")}
                 </div>
 
                 {/* Right Column */}
                 <div>
-                    {renderField("Date of Birth", formatDate ? formatDate(user?.dateOfBirth) : (user?.dateOfBirth || "N/A"))}
-                    {renderField("Age", user?.age !== undefined && user?.age !== null ? `${user.age} years old` : "N/A")}
-                    {renderField("Address", user?.address || "N/A")}
-                    {renderField("Password", "*********")}
-
+                    {renderField("Date of Birth", formatDate ? formatDate(propUser?.dateOfBirth) : (propUser?.dateOfBirth || "N/A"))}
+                    {renderField("Age", propUser?.age !== undefined && propUser?.age !== null ? `${propUser.age} years old` : "N/A")}
+                    {renderField("Address", propUser?.address || "N/A")}
+                    {userInfo.id === propUser.id && (renderField("Password", "*********"))}
                 </div>
             </div>
         </div>
@@ -345,7 +348,7 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                     </div>)
                     : (
                         <RightPanel
-                            user={user}
+                            propUser={user}
                             onRefresh={onRefresh}
                             formatDate={formatDate}
                             getGenderText={getGenderText}

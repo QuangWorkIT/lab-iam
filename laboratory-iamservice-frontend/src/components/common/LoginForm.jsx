@@ -91,7 +91,8 @@ function LoginForm({setIsResetPassWord}) {
                     gender: payload.gender,
                     dateOfBirth: payload.dob,
                     age: payload.age,
-                    address: payload.address
+                    address: payload.address,
+                    isActive: payload.isActive === "true",
                 }
             }))
             setbanUntil(null)

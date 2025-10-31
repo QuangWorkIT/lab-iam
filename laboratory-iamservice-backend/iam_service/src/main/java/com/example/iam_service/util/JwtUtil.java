@@ -95,6 +95,7 @@ public class JwtUtil {
         payload.put("dob", user.getBirthdate() != null ? user.getBirthdate().toString() : null);
         payload.put("address", user.getAddress());
         payload.put("phone", user.getPhoneNumber());
+        payload.put("isActive", user.getIsActive().toString());
 
         return payload;
     }

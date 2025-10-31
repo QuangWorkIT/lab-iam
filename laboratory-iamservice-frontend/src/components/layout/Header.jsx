@@ -70,7 +70,7 @@ export default function Header({ pageTitle }) {
       age: userInfo.age !== undefined ? userInfo.age : null,
       address: userInfo.address || "N/A",
       createdAt: userInfo.createdAt || userInfo.created_at || null,
-      isActive: userInfo.isActive !== undefined ? userInfo.isActive : true,
+      isActive: userInfo.isActive || true,
     };
   };
 
