@@ -4,7 +4,9 @@ import api from "../../configs/axios.js";
 const initialState = {
     users: [],
     currentUser: null,
+    userDetail: null,
     loading: false,
+    userDetailLoading: false,
     error: null,
     totalPages: 0,
     totalElements: 0,
@@ -19,12 +21,18 @@ const initialState = {
  */
 function mapUserDTOToUI(dto) {
     return {
-        id: dto.userId,                    // Backend: userId -> UI: id
-        name: dto.fullName || "",          // Backend: fullName -> UI: name
+        id: dto.userId,
+        name: dto.fullName || "",
         email: dto.email || "",
-        role: dto.roleCode || dto.rolecode || dto.role || "",  // Try multiple field names
+        role: dto.roleCode || dto.rolecode || dto.role || "",
         createdAt: dto.createdAt || null,
         isActive: dto.isActive ?? true,
+        identifyNumber: dto.identityNumber || "",
+        phoneNumber: dto.phoneNumber || dto.phone || "",
+        gender: dto.gender || "",
+        dateOfBirth: dto.birthdate || dto.dateOfBirth || dto.birthDate || dto.dob || null,
+        age: dto.age || null,
+        address: dto.address || "",
     };
 }
 
@@ -221,6 +229,25 @@ export const getUserByEmail = createAsyncThunk(
 );
 
 /**
+ * API: GET /api/users/{id}
+ * Lấy user theo ID (cho user detail modal)
+ */
+export const fetchUserById = createAsyncThunk(
+    "userManagement/fetchUserById",
+    async (userId, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/api/users/${userId}`);
+            const detailUserDTO = response.data?.data || response.data;
+            return mapUserDTOToUI(detailUserDTO);
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || "Failed to fetch user details"
+            );
+        }
+    }
+);
+
+/**
  * API: GET /api/users/inactive
  * Lấy danh sách users inactive
  */
@@ -324,6 +351,20 @@ const userManagementSlice = createSlice({
             .addCase(getUserByEmail.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || action.error.message;
+            })
+            // Fetch user by ID (for detail modal)
+            .addCase(fetchUserById.pending, (state) => {
+                state.userDetailLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchUserById.fulfilled, (state, action) => {
+                state.userDetailLoading = false;
+                state.userDetail = action.payload;
+            })
+            .addCase(fetchUserById.rejected, (state, action) => {
+                state.userDetailLoading = false;
+                state.error = action.payload || action.error.message;
+                state.userDetail = null;
             })
             // Get inactive users
             .addCase(getInactiveUsers.pending, (state) => {
