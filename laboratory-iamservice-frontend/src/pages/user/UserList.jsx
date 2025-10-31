@@ -9,6 +9,7 @@ import AddUserModal from "../../components/modules/user/AddUserModal";
 import UserDetailModal from "../../components/common/UserDetailModal";
 import MainLayout from "../../components/layout/MainLayout";
 import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "motion/react"
 
 export default function UserList() {
   //Redux hooks
@@ -198,12 +199,35 @@ export default function UserList() {
         onClose={() => setIsAddModalOpen(false)}
         onSave={handleSaveNewUser}
       />
-      <UserDetailModal
-        user={viewingUser}
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        onRefresh={handleRefreshUser}
-      />
+
+      <AnimatePresence>
+        {isDetailModalOpen && (
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000]"
+          >
+            <motion.div
+              key="modal"
+              initial={{ scale: 0.9, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 40 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="relative"
+            >
+              <UserDetailModal
+                user={viewingUser}
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                onRefresh={handleRefreshUser}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </MainLayout>
   );
 }

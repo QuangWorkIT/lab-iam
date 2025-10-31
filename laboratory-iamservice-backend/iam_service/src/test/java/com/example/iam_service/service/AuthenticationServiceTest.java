@@ -403,7 +403,7 @@ public class AuthenticationServiceTest {
             user.setEmail("test@example.com");
             user.setFullName("John Doe");
             user.setRoleCode("ROLE_USER");
-
+            user.setIsActive(true);
             // Mock the authorities
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
             when(grantAuthority.getAuthorityByUser(user)).thenReturn(authorities);
@@ -438,112 +438,89 @@ public class AuthenticationServiceTest {
         }
     }
 
-//    @Nested
-//    class ForgetPasswordTestGroup {
-//        @Test
-//        void findUserByEmail_ShouldReturnUser() {
-//            String option = "email";
-//            String data = "admin@example.com";
-//
-//            User mockUser = new User();
-//            mockUser.setEmail(data);
-//            when(userRepository.findByEmail(data)).thenReturn(Optional.of(mockUser));
-//
-//            User userFound = authenticationService.findUserByEmailOrPhone(option, data);
-//
-//            assertNotNull(userFound);
-//            assertEquals(mockUser.getEmail(), userFound.getEmail());
-//            verify(userRepository, times(1)).findByEmail(data);
-//            verify(userRepository, times(0)).findByPhoneNumber(data);
-//        }
-//
-//        @Test
-//        void findUserByPhone_ShouldReturnUser() {
-//            String option = "phone";
-//            String data = "0123456789";
-//
-//            User mockUser = new User();
-//            mockUser.setPhoneNumber(data);
-//            when(userRepository.findByPhoneNumber(data)).thenReturn(Optional.of(mockUser));
-//
-//            User userFound = authenticationService.findUserByEmailOrPhone(option, data);
-//
-//            assertNotNull(userFound);
-//            assertEquals(mockUser.getPhoneNumber(), userFound.getPhoneNumber());
-//            verify(userRepository, times(0)).findByEmail(data);
-//            verify(userRepository, times(1)).findByPhoneNumber(data);
-//        }
-//
-//        @Test
-//        void findUserByInvalidOption_ShouldThrowException() {
-//            String option = "phoneOrEmail";
-//            String data = "invalidData";
-//
-//            RuntimeException ex = assertThrows(RuntimeException.class, () ->
-//                    authenticationService.findUserByEmailOrPhone(option, data));
-//
-//            assertEquals("Find user by option not found", ex.getMessage());
-//        }
-//
-//        @Test
-//        void updatePassword_ValidUser_ShouldSaveNewPassword() {
-//            String userid = UUID.randomUUID().toString();
-//            String password = "newPassWord";
-//
-//            User mockUser = new User();
-//            mockUser.setUserId(UUID.fromString(userid));
-//            mockUser.setPassword("oldPasswordm");
-//
-//            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));
-//            when(encoder.encode(password)).thenReturn(password);
-//            when(userRepository.save(mockUser)).thenReturn(mockUser);
-//
-//            User userUpdated = authenticationService.updateUserPassword(userid, password);
-//
-//            assertNotNull(userUpdated);
-//            assertEquals(password, userUpdated.getPassword());
-//            assertEquals(userid, userUpdated.getUserId().toString());
-//            verify(userRepository, times(1)).findById(UUID.fromString(userid));
-//            verify(userRepository, times(1)).save(mockUser);
-//        }
-//
-//        @Test
-//        void updatePassword_UserNotFound_ShouldThrowException() {
-//            String userid = UUID.randomUUID().toString();
-//            String password = "newPassword";
-//
-//            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.empty());
-//
-//            RuntimeException ex = assertThrows(RuntimeException.class, () ->
-//                    authenticationService.updateUserPassword(userid, password)
-//            );
-//
-//            assertEquals("User not found", ex.getMessage());
-//            verify(userRepository, times(1)).findById(UUID.fromString(userid));
-//            verify(userRepository, never()).save(any(User.class));
-//        }
-//
-//        @Test
-//        void updatePassword_SaveFails_ShouldThrowException() {
-//            String userid = UUID.randomUUID().toString();
-//            String password = "newPassword";
-//
-//            User mockUser = new User();
-//            mockUser.setUserId(UUID.fromString(userid));
-//            mockUser.setPassword("oldPassword");
-//
-//            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));
-//            when(encoder.encode(password)).thenReturn(password);
-//            when(userRepository.save(any(User.class)))
-//                    .thenThrow(new RuntimeException("Database connection failed"));
-//
-//            RuntimeException ex = assertThrows(RuntimeException.class, () ->
-//                    authenticationService.updateUserPassword(userid, password)
-//            );
-//
-//            assertTrue(ex.getMessage().contains("Database connection failed"));
-//            verify(userRepository, times(1)).findById(UUID.fromString(userid));
-//            verify(userRepository, times(1)).save(any(User.class));
-//        }
-//    }
+    @Nested
+    class ForgetPasswordTestGroup {
+        private String userid;
+        private String password;
+        private String currentPassword;
+        private String option;
+
+        @BeforeEach
+        void setup() {
+            userid = UUID.randomUUID().toString();
+            password = "validPassword123";
+            currentPassword = "currentPass123";
+            option = "reset";
+        }
+
+        @Test
+        void updatePassword_UserNotFound_ShouldThroughNotFoundException() {
+
+            User mockUser = new User();
+
+            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.empty());
+
+            RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+                authenticationService.updateUserPassword(userid, password, currentPassword, option);
+            });
+
+            assertTrue(ex.getMessage().contains("User not found"));
+            verify(userRepository, times(1)).findById(UUID.fromString(userid));
+            verify(userRepository, never()).save(mockUser);
+        }
+
+        @Test
+        void updatePassword_InvalidCurrentPassword_ShouldThroughPasswordInvalidEx() {
+            User mockUser = new User();
+            mockUser.setPassword(currentPassword);
+
+
+            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));
+            when(encoder.matches(currentPassword, mockUser.getPassword())).thenReturn(false);
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,() ->{
+               authenticationService.updateUserPassword(userid, password, currentPassword, option);
+            });
+
+            assertTrue(ex.getMessage().contains("Current password does not match"));
+            verify(userRepository, times(1)).findById(UUID.fromString(userid));
+            verify(userRepository, never()).save(mockUser);
+        }
+
+        @Test
+        void updatePassword_ChangeWithOldPassword_ShouldThrowInvalidEx() {
+            currentPassword = password;
+            User mockUser = new User();
+            mockUser.setPassword(currentPassword);
+
+            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));
+            when(encoder.matches(currentPassword, mockUser.getPassword())).thenReturn(true);
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+                authenticationService.updateUserPassword(userid, password, currentPassword, "change");
+            });
+
+            assertTrue(ex.getMessage().contains("Password must be different from the old one"));
+            verify(userRepository, times(1)).findById(UUID.fromString(userid));
+            verify(userRepository, never()).save(mockUser);
+        }
+
+        @Test
+        void updatePassword_ValidChangePasswordOption_ShouldSaveNewPassword() {
+            User mockUser = new User();
+            mockUser.setPassword(currentPassword);
+
+            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));
+            when(encoder.matches(currentPassword, mockUser.getPassword())).thenReturn(true);
+            when(encoder.matches(password, mockUser.getPassword())).thenReturn(false);
+            when(encoder.encode(password)).thenReturn("encodedPassword123");
+            when(userRepository.save(mockUser)).thenReturn(mockUser);
+
+            User userUpdated = authenticationService.updateUserPassword(userid, password, currentPassword, "change");
+
+            assertEquals("encodedPassword123", userUpdated.getPassword());
+            verify(userRepository, times(1)).findById(UUID.fromString(userid));
+            verify(userRepository, times(1)).save(mockUser);
+        }
+
+    }
 }
