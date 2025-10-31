@@ -53,8 +53,38 @@ export default function RoleTable({
 
     const toEndOfDay = (dateStr) => {
       const d = new Date(dateStr);
+      if (!Number.isFinite(d.getTime())) return null;
       d.setHours(23, 59, 59, 999);
       return d;
+    };
+
+    const parseDateSafe = (val) => {
+      if (!val) return null;
+      if (val instanceof Date)
+        return Number.isFinite(val.getTime()) ? val : null;
+      // numeric timestamp
+      if (typeof val === "number") {
+        const d = new Date(val);
+        return Number.isFinite(d.getTime()) ? d : null;
+      }
+      // string formats
+      if (typeof val === "string") {
+        const s = val.trim();
+        // ISO or yyyy-mm-dd or yyyy/mm/dd
+        if (/^\d{4}[-\/]\d{2}[-\/]\d{2}/.test(s)) {
+          const d = new Date(s.replace(/\//g, "-"));
+          return Number.isFinite(d.getTime()) ? d : null;
+        }
+        // dd/mm/yyyy
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+          const [dd, mm, yyyy] = s.split("/");
+          const d = new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
+          return Number.isFinite(d.getTime()) ? d : null;
+        }
+        const d = new Date(s);
+        return Number.isFinite(d.getTime()) ? d : null;
+      }
+      return null;
     };
 
     return (list || []).filter((r) => {
@@ -77,10 +107,19 @@ export default function RoleTable({
       const rf = (roleFilter || "").toLowerCase();
       const matchRole = !rf || code === rf;
 
-      // Lọc theo ngày tạo
-      const created = r.createdAt ? new Date(r.createdAt) : null;
-      const matchFrom = !fromDate || (created && created >= new Date(fromDate));
-      const matchTo = !toDate || (created && created <= toEndOfDay(toDate));
+      // Lọc theo ngày tạo (chấp nhận nhiều khóa & định dạng ngày)
+      const createdRaw =
+        r.createdAt ||
+        r.created_at ||
+        r.createdDate ||
+        r.created_date ||
+        r.created_on ||
+        r.createdOn;
+      const created = parseDateSafe(createdRaw);
+      const from = fromDate ? parseDateSafe(fromDate) : null;
+      const to = toDate ? toEndOfDay(toDate) : null;
+      const matchFrom = !from || (created && created >= from);
+      const matchTo = !to || (created && created <= to);
 
       return matchKeyword && matchRole && matchFrom && matchTo;
     });
@@ -357,8 +396,9 @@ export default function RoleTable({
       {confirmState.open && (
         <ConfirmDialog
           title="Delete Role"
-          message={`Are you sure you want to delete role "${confirmState.role?.name || confirmState.role?.code || "this role"
-            }"?`}
+          message={`Are you sure you want to delete role "${
+            confirmState.role?.name || confirmState.role?.code || "this role"
+          }"?`}
           confirmText="Delete"
           cancelText="Cancel"
           onConfirm={handleConfirmDelete}
