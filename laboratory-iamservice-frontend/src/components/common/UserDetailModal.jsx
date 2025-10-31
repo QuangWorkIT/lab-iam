@@ -1,10 +1,11 @@
 import { FaUser, FaTimes, FaSyncAlt } from "react-icons/fa";
-import { Button, Tooltip } from "antd";
+import { Tooltip } from "antd";
 import { CheckCircleTwoTone, EditOutlined, ArrowLeftOutlined, ExclamationCircleTwoTone } from '@ant-design/icons';
 import ResetPassWord from "../modules/auth/ResetPassWordForm.jsx";
 import { useState } from "react"
 import { getRoleName } from "../../utils/formatter.js"
 import { useSelector } from "react-redux";
+import { motion, AnimatePresence } from "motion/react"
 
 /**
  * User Detail Modal - Reusable modal component for displaying user/account details
@@ -18,12 +19,9 @@ import { useSelector } from "react-redux";
 // Left Panel Component - Avatar, Name, Role
 function LeftPanel({ user, statusColor, statusText }) {
     const activeClass = `shadow-[0_4px_10px_rgba(82,196,26,0.4)] 
-                        hover:shadow-[0_6px_14px_rgba(82,196,26,0.6)]
-                        bg-[${statusColor}]`
-
+                        hover:shadow-[0_6px_14px_rgba(82,196,26,0.6)] `
     const inActiveClass = `shadow-[0_4px_10px_rgba(220,53,69,0.4)]
-                        hover:shadow-[0_6px_14px_rgba(220,53,69,0.6)]
-                        bg-[${statusColor}]`;
+                        hover:shadow-[0_6px_14px_rgba(220,53,69,0.6)]`
     return (
         <div
             style={{
@@ -48,8 +46,8 @@ function LeftPanel({ user, statusColor, statusText }) {
                 className={`absolute top-3 right-3 flex items-center justify-center 
                             rounded-full text-white group transition-all
                             duration-250 ease-in-out overflow-hidden w-[28px] hover:w-[90px] px-[10px] py-[5px]
-                            hover:cursor-pointer 
-                ${statusText === "Active" ? activeClass : inActiveClass}`}
+                            hover:cursor-pointer ${statusText === "Active" ? activeClass : inActiveClass}`}
+                style={{ background: statusColor }}
             >
 
                 {
@@ -245,7 +243,7 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                 style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
-                    gap: "20px",
+                    gap: "10px",
                     marginTop: "60px",
                     // paddingBottom: onRefresh ? "60px" : "10px",
                     wordBreak: "break-word",
@@ -302,51 +300,49 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
     return (
         <div
             style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.8)",
+                background: "white",
+                borderRadius: "12px",
+                width: "650px",
+                height: "450px",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 1000,
+                boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+                position: "relative",
+                left: "20px"
             }}
         >
-            <div
-                style={{
-                    backgroundColor: "white",
-                    borderRadius: "12px",
-                    width: "650px",
-                    maxWidth: "800px",
-                    minHeight: "400px",
-                    height: "450px",
-                    maxHeight: "85vh",
-                    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
-                    display: "flex",
-                    position: "relative",
-                    left: "100px"
-                }}
-            >
-                {/* Left Panel */}
-                <div style={{ position: "relative", width: "150px" }}>
-                    <LeftPanel
-                        user={user}
-                        statusColor={getStatusColor(user.isActive)}
-                        statusText={getStatusText(user.isActive)} />
-                </div>
+            <div style={{ width: "150px" }}>
+                <LeftPanel
+                    user={user}
+                    statusColor={getStatusColor(user.isActive)}
+                    statusText={getStatusText(user.isActive)}
+                />
+            </div>
 
-                {/* Right Panel */}
+            <AnimatePresence mode="wait">
                 {isResetPassWordOpen ? (
-                    <div className="ml-[70px]">
+                    <motion.div
+                        key="reset"
+                        initial={{ opacity: 0, x: 40 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -40 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="ml-[70px]"
+                    >
                         <ResetPassWord
                             setIsResetPassWord={setIsResetPassWordOpen}
                             userId={user.id}
-                            updateOption={"change"}
+                            updateOption="change"
                         />
-                    </div>)
-                    : (
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="info"
+                        initial={{ opacity: 0, x: -40 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x:-40 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="w-full"
+                    >
                         <RightPanel
                             propUser={user}
                             onRefresh={onRefresh}
@@ -354,27 +350,23 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                             getGenderText={getGenderText}
                             setIsResetPassWordOpen={setIsResetPassWordOpen}
                         />
-                    )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                {/* Close Button */}
-                <button
-                    onClick={isResetPassWordOpen ? () => setIsResetPassWordOpen(false) : onClose}
-                    className={`absolute ${isResetPassWordOpen ? "top-10 right-10" : "top-5 right-5"}
-                    text-white hover:text-[#dc3545] hover:scale-120
-                    flex items-center justify-center
-                    cursor-pointer font-bold text-[20px]
-                    transition-all duration-200 ease-in-out z-[9999] p-2`}
-                    aria-label="Close"
-                >
-                    {isResetPassWordOpen ? (
-                        <ArrowLeftOutlined
-                            className="!text-[#ff5a5f] font-bold group-hover:text-[#dc3545] text-[20px]" />
-                    ) : (
-                        <FaTimes className="text-[#ff5a5f] group-hover:text-[#dc3545] text-[20px]" />
-                    )}
-
-                </button>
-            </div>
+            {/* Close Button */}
+            <button
+                onClick={isResetPassWordOpen ? () => setIsResetPassWordOpen(false) : onClose}
+                className={`absolute ${isResetPassWordOpen ? "top-10 right-10" : "top-5 right-5"} 
+                text-white hover:text-[#dc3545] hover:scale-120 flex items-center justify-center
+                cursor-pointer font-bold text-[20px] transition-all duration-400 ease-in-out z-[9999] p-2`}
+            >
+                {isResetPassWordOpen ? (
+                    <ArrowLeftOutlined className="!text-[#ff5a5f] text-[25px]" />
+                ) : (
+                    <FaTimes className="text-[#ff5a5f] text-[20px]" />
+                )}
+            </button>
         </div>
     );
 }

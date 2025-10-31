@@ -537,64 +537,105 @@ public class AuthControllerTest {
         }
     }
 
-//    @Nested
-//    class PasswordResetTestGroup {
-//
-//        @Test
-//        void resetPassword_ValidRequest_ShouldReturnSuccess() {
-//            UUID userid = UUID.randomUUID();
-//
-//            // Given
-//            ResetPassWordRequest request = new ResetPassWordRequest();
-//            request.setUserid("user123");
-//            request.setPassword("newPassword123");
-//
-//            User updatedUser = new User();
-//            updatedUser.setUserId(userid);
-//            updatedUser.setEmail("user@example.com");
-//
-//            UserDTO userDTO = new UserDTO();
-//            userDTO.setUserId(userid);
-//            userDTO.setEmail("user@example.com");
-//
-//            when(authService.updateUserPassword("user123", "newPassword123")).thenReturn(updatedUser);
-//            when(userMapper.toDto(updatedUser)).thenReturn(userDTO);
-//
-//            // When
-//            ResponseEntity<ApiResponse<UserDTO>> response =
-//                    authController.resetPassWord(request);
-//
-//            // Then
-//            assertEquals(200, response.getStatusCode().value());
-//            assertNotNull(response.getBody());
-//            assertEquals("success", response.getBody().getStatus());
-//            assertEquals("Update password successfully!", response.getBody().getMessage());
-//            assertNotNull(response.getBody().getData());
-//            assertEquals(userid, response.getBody().getData().getUserId());
-//            assertEquals("user@example.com", response.getBody().getData().getEmail());
-//
-//            verify(authService, times(1)).updateUserPassword("user123", "newPassword123");
-//            verify(userMapper, times(1)).toDto(updatedUser);
-//        }
-//
-//        @Test
-//        void resetPassword_NonExistentUser_ShouldHandleException() {
-//            // Given
-//            ResetPassWordRequest request = new ResetPassWordRequest();
-//            request.setUserid("nonexistent");
-//            request.setPassword("newPassword123");
-//
-//            when(authService.updateUserPassword("nonexistent", "newPassword123"))
-//                    .thenThrow(new RuntimeException("User not found"));
-//
-//            // When/Then
-//            assertThrows(RuntimeException.class, () -> {
-//                authController.resetPassWord(request);
-//            });
-//
-//            verify(authService, times(1)).updateUserPassword("nonexistent", "newPassword123");
-//            verify(userMapper, never()).toDto(any());
-//        }
-//    }
+    @Nested
+    class PasswordResetTestGroup {
+        // ✅ 1. Missing current password when option is "change"
+        @Test
+        void resetPassword_ShouldReturn400_WhenCurrentPasswordMissingForChange() {
+            ResetPassWordRequest request = new ResetPassWordRequest();
+            request.setUserid("abc-123");
+            request.setPassword("newPassword123");
+            request.setOption("change");
+            request.setCurrentPassword(null); // Missing current password
+
+            ResponseEntity<ApiResponse<UserDTO>> response = authController.resetPassWord(request);
+
+            assertEquals(400, response.getStatusCode().value());
+            assertEquals("Error", response.getBody().getStatus());
+            assertEquals("Current password is missing for change password process", response.getBody().getMessage());
+
+            verify(authService, never()).updateUserPassword(any(), any(), any(), any());
+        }
+
+        @Test
+        void resetPassword_ShouldReturn200_WhenPasswordUpdatedSuccessfully() {
+            // Arrange
+            ResetPassWordRequest request = new ResetPassWordRequest();
+            request.setUserid("abc-123");
+            request.setPassword("newPass123");
+            request.setCurrentPassword("oldPass123");
+            request.setOption("change");
+
+            User user = new User();
+            user.setUserId(java.util.UUID.randomUUID());
+            user.setEmail("user@example.com");
+
+            UserDTO userDTO = new UserDTO();
+            userDTO.setEmail("user@example.com");
+
+            when(authService.updateUserPassword(
+                    request.getUserid(),
+                    request.getPassword(),
+                    request.getCurrentPassword(),
+                    request.getOption()
+            )).thenReturn(user);
+            when(userMapper.toDto(user)).thenReturn(userDTO);
+
+            // Act
+            ResponseEntity<ApiResponse<UserDTO>> response = authController.resetPassWord(request);
+
+            // Assert
+            assertEquals(200, response.getStatusCode().value());
+            assertEquals("success", response.getBody().getStatus());
+            assertEquals("Update password successfully!", response.getBody().getMessage());
+            assertEquals("user@example.com", response.getBody().getData().getEmail());
+
+            verify(authService, times(1)).updateUserPassword(
+                    request.getUserid(),
+                    request.getPassword(),
+                    request.getCurrentPassword(),
+                    request.getOption()
+            );
+        }
+
+        // ✅ 3. authService throws RuntimeException (User not found)
+        @Test
+        void resetPassword_ShouldReturn500_WhenUserNotFound() {
+            ResetPassWordRequest request = new ResetPassWordRequest();
+            request.setUserid("abc-123");
+            request.setPassword("newPass");
+            request.setCurrentPassword("oldPass");
+            request.setOption("change");
+
+            when(authService.updateUserPassword(any(), any(), any(), any()))
+                    .thenThrow(new RuntimeException("User not found"));
+
+            // Act & Assert
+            RuntimeException thrown = assertThrows(RuntimeException.class, () ->
+                    authController.resetPassWord(request)
+            );
+
+            assertEquals("User not found", thrown.getMessage());
+        }
+
+        // ✅ 4. authService throws IllegalArgumentException (Password same as old one)
+        @Test
+        void resetPassword_ShouldThrowIllegalArgument_WhenPasswordSameAsOld() {
+            ResetPassWordRequest request = new ResetPassWordRequest();
+            request.setUserid("abc-123");
+            request.setPassword("samePassword");
+            request.setCurrentPassword("samePassword");
+            request.setOption("change");
+
+            when(authService.updateUserPassword(any(), any(), any(), any()))
+                    .thenThrow(new IllegalArgumentException("Password must be different from the old one"));
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                    authController.resetPassWord(request)
+            );
+
+            assertEquals("Password must be different from the old one", ex.getMessage());
+        }
+    }
 
 }

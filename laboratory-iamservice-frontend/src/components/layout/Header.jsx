@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FaHeartbeat, FaCog, FaSignOutAlt } from "react-icons/fa";
 import { logout } from "../../redux/features/userSlice";
 import UserDetailModal from "../common/UserDetailModal";
 import { DoubleRightOutlined } from "@ant-design/icons"
-
+import { motion, AnimatePresence } from "motion/react"
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
@@ -180,7 +180,7 @@ export default function Header({ pageTitle }) {
               <span style={{ margin: "0 10px", color: "lightgray" }}>
                 <DoubleRightOutlined />
               </span>
-              <span style={{ color: "#fe535b",fontWeight: "bold" }}>{pageTitle}</span>
+              <span style={{ color: "#fe535b", fontWeight: "bold" }}>{pageTitle}</span>
             </>
           )}
         </div>
@@ -261,12 +261,34 @@ export default function Header({ pageTitle }) {
       )}
 
       {/* User Detail Modal */}
-      <UserDetailModal
-        user={getUserDetailData()}
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        onRefresh={handleRefreshUser}
-      />
+      <AnimatePresence>
+        {isDetailModalOpen && (
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000]"
+          >
+            <motion.div
+              key="modal"
+              initial={{ scale: 0.9, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 40 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="relative"
+            >
+              <UserDetailModal
+                user={getUserDetailData()}
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                onRefresh={() => {}}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
