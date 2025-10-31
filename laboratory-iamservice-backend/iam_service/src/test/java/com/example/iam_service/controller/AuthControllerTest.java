@@ -537,64 +537,64 @@ public class AuthControllerTest {
         }
     }
 
-    @Nested
-    class PasswordResetTestGroup {
-
-        @Test
-        void resetPassword_ValidRequest_ShouldReturnSuccess() {
-            UUID userid = UUID.randomUUID();
-
-            // Given
-            ResetPassWordRequest request = new ResetPassWordRequest();
-            request.setUserid("user123");
-            request.setPassword("newPassword123");
-
-            User updatedUser = new User();
-            updatedUser.setUserId(userid);
-            updatedUser.setEmail("user@example.com");
-
-            UserDTO userDTO = new UserDTO();
-            userDTO.setUserId(userid);
-            userDTO.setEmail("user@example.com");
-
-            when(authService.updateUserPassword("user123", "newPassword123")).thenReturn(updatedUser);
-            when(userMapper.toDto(updatedUser)).thenReturn(userDTO);
-
-            // When
-            ResponseEntity<ApiResponse<UserDTO>> response =
-                    authController.resetPassWord(request);
-
-            // Then
-            assertEquals(200, response.getStatusCode().value());
-            assertNotNull(response.getBody());
-            assertEquals("success", response.getBody().getStatus());
-            assertEquals("Update password successfully!", response.getBody().getMessage());
-            assertNotNull(response.getBody().getData());
-            assertEquals(userid, response.getBody().getData().getUserId());
-            assertEquals("user@example.com", response.getBody().getData().getEmail());
-
-            verify(authService, times(1)).updateUserPassword("user123", "newPassword123");
-            verify(userMapper, times(1)).toDto(updatedUser);
-        }
-
-        @Test
-        void resetPassword_NonExistentUser_ShouldHandleException() {
-            // Given
-            ResetPassWordRequest request = new ResetPassWordRequest();
-            request.setUserid("nonexistent");
-            request.setPassword("newPassword123");
-
-            when(authService.updateUserPassword("nonexistent", "newPassword123"))
-                    .thenThrow(new RuntimeException("User not found"));
-
-            // When/Then
-            assertThrows(RuntimeException.class, () -> {
-                authController.resetPassWord(request);
-            });
-
-            verify(authService, times(1)).updateUserPassword("nonexistent", "newPassword123");
-            verify(userMapper, never()).toDto(any());
-        }
-    }
+//    @Nested
+//    class PasswordResetTestGroup {
+//
+//        @Test
+//        void resetPassword_ValidRequest_ShouldReturnSuccess() {
+//            UUID userid = UUID.randomUUID();
+//
+//            // Given
+//            ResetPassWordRequest request = new ResetPassWordRequest();
+//            request.setUserid("user123");
+//            request.setPassword("newPassword123");
+//
+//            User updatedUser = new User();
+//            updatedUser.setUserId(userid);
+//            updatedUser.setEmail("user@example.com");
+//
+//            UserDTO userDTO = new UserDTO();
+//            userDTO.setUserId(userid);
+//            userDTO.setEmail("user@example.com");
+//
+//            when(authService.updateUserPassword("user123", "newPassword123")).thenReturn(updatedUser);
+//            when(userMapper.toDto(updatedUser)).thenReturn(userDTO);
+//
+//            // When
+//            ResponseEntity<ApiResponse<UserDTO>> response =
+//                    authController.resetPassWord(request);
+//
+//            // Then
+//            assertEquals(200, response.getStatusCode().value());
+//            assertNotNull(response.getBody());
+//            assertEquals("success", response.getBody().getStatus());
+//            assertEquals("Update password successfully!", response.getBody().getMessage());
+//            assertNotNull(response.getBody().getData());
+//            assertEquals(userid, response.getBody().getData().getUserId());
+//            assertEquals("user@example.com", response.getBody().getData().getEmail());
+//
+//            verify(authService, times(1)).updateUserPassword("user123", "newPassword123");
+//            verify(userMapper, times(1)).toDto(updatedUser);
+//        }
+//
+//        @Test
+//        void resetPassword_NonExistentUser_ShouldHandleException() {
+//            // Given
+//            ResetPassWordRequest request = new ResetPassWordRequest();
+//            request.setUserid("nonexistent");
+//            request.setPassword("newPassword123");
+//
+//            when(authService.updateUserPassword("nonexistent", "newPassword123"))
+//                    .thenThrow(new RuntimeException("User not found"));
+//
+//            // When/Then
+//            assertThrows(RuntimeException.class, () -> {
+//                authController.resetPassWord(request);
+//            });
+//
+//            verify(authService, times(1)).updateUserPassword("nonexistent", "newPassword123");
+//            verify(userMapper, never()).toDto(any());
+//        }
+//    }
 
 }

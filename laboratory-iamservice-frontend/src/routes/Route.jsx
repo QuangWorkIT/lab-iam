@@ -10,8 +10,12 @@ import HomePage from "../pages/HomePage";
 
 const routes = [
   {
-    path: "/",
-    element: <Navigate to="/login" replace />, // default redirect to login
+    path: "/", // default redirect to login
+    element: (
+      <ProtectedRoute
+        element={HomePage}
+      />
+    ) 
   },
   {
     path: "/login",
