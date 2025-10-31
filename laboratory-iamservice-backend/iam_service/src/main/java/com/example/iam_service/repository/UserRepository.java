@@ -1,6 +1,10 @@
 package com.example.iam_service.repository;
 
 import com.example.iam_service.entity.User;
+import com.example.iam_service.util.RoleSpecification;
+import com.example.iam_service.util.UserSpecification;
+import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -24,4 +28,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Transactional
     @Query("UPDATE User u SET u.isActive = TRUE WHERE LOWER(u.email) = LOWER(:email)")
     int activateUserByEmail(String email);
+
+    @Modifying(clearAutomatically = true)
+    @Transactional
+    @Query(value = "UPDATE \"User\" SET rolecode = :newRoleCode WHERE rolecode = :oldRoleCode",
+            nativeQuery = true)
+    int batchUpdateUser(@Param("newRoleCode") String newRoleCode,
+                        @Param("oldRoleCode") String oldRoleCode);
 }

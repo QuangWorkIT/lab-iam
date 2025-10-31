@@ -23,12 +23,13 @@ import java.util.EnumSet;
 public class Role {
 
     @Id
-    @Column(name = "role_code")
+    @Column(name = "role_code", unique = true)
     @Schema(description = "Unique role code identifier", example = "ROLE_ADMIN", required = true)
     private String code;
 
+    @Pattern(regexp = "^[a-zA-Z0-9_]*$")
     @NotBlank(message = "Role name is required")
-    @Column(name = "role_name", nullable = false)
+    @Column(name = "role_name", nullable = false,  unique = true)
     @Schema(description = "Human-readable role name", example = "Administrator", required = true)
     private String name;
 
@@ -40,7 +41,7 @@ public class Role {
     private EnumSet<Privileges> privileges;
 
     @NotBlank(message = "Description is required")
-    @Column(name = "role_description", nullable = false)
+    @Column(name = "role_description", nullable = false, unique = true)
     @Schema(description = "Detailed description of the role's purpose",
             example = "Full system administrator with all privileges",
             required = true)
@@ -66,6 +67,11 @@ public class Role {
             example = "2024-10-21",
             accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDate updatedAt;
+
+    @Column(name = "role_deletable", nullable = false, columnDefinition = "boolean default false")
+    @Schema(description = "Indicates whether the role deletable",
+            example = "false")
+    private boolean deletable;
 
     @PrePersist
     public void onCreate() {
