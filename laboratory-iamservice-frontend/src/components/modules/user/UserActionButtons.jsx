@@ -1,5 +1,5 @@
 import React from "react";
-import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import { FiEye, FiEdit, FiTrash2 } from "react-icons/fi";
 
 export default function UserActionButtons({ onView, onEdit, onDelete, user }) {
     return (
@@ -7,7 +7,7 @@ export default function UserActionButtons({ onView, onEdit, onDelete, user }) {
             <button
                 style={{
                     backgroundColor: "transparent",
-                    color: "#ff5a5f",
+                    color: "#fe535b",
                     border: "none",
                     padding: "5px",
                     cursor: "pointer",
@@ -17,12 +17,12 @@ export default function UserActionButtons({ onView, onEdit, onDelete, user }) {
                 title="View"
                 onClick={() => onView(user)}
             >
-                <FaEye />
+                <FiEye size={18} />
             </button>
             <button
                 style={{
                     backgroundColor: "transparent",
-                    color: "#ff5a5f",
+                    color: "#fe535b",
                     border: "none",
                     padding: "5px",
                     cursor: "pointer",
@@ -32,12 +32,12 @@ export default function UserActionButtons({ onView, onEdit, onDelete, user }) {
                 title="Edit"
                 onClick={() => onEdit(user)}
             >
-                <FaEdit />
+                <FiEdit size={18} />
             </button>
             <button
                 style={{
                     backgroundColor: "transparent",
-                    color: "#ff5a5f",
+                    color: "#fe535b",
                     border: "none",
                     padding: "5px",
                     cursor: "pointer",
@@ -47,7 +47,7 @@ export default function UserActionButtons({ onView, onEdit, onDelete, user }) {
                 title="Delete"
                 onClick={() => onDelete(user.id)}
             >
-                <FaTrash />
+                <FiTrash2 size={18} />
             </button>
         </div>
     );

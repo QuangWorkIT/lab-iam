@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import {
-    FaEye,
-    FaUnlock,
-} from "react-icons/fa";
+    FiEye,
+    FiUnlock,
+} from "react-icons/fi";
 import AccountSearchBar from "./AccountSearchBar";
 import StatusBadge from "../../common/StatusBadge";
 import UserBadge from "../user/UserBadge";
@@ -99,7 +99,7 @@ export default function AccountTable({
                     }}
                 >
                     <thead>
-                        <tr style={{ backgroundColor: "#ff5a5f" }}>
+                        <tr style={{ backgroundColor: "#fe535b" }}>
                             <th
                                 style={{
                                     padding: "12px 15px",
@@ -358,7 +358,7 @@ export default function AccountTable({
                                             onClick={() => onView && onView(account)}
                                             style={{
                                                 backgroundColor: "transparent",
-                                                color: "#ff5a5f",
+                                                color: "#fe535b",
                                                 border: "none",
                                                 padding: "5px",
                                                 cursor: "pointer",
@@ -370,7 +370,7 @@ export default function AccountTable({
                                             }}
                                             title="View Details"
                                         >
-                                            <FaEye />
+                                            <FiEye size={18} />
                                         </button>
                                         {!account.isActive && (
                                             <button
@@ -395,7 +395,7 @@ export default function AccountTable({
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#38a169"}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#48bb78"}
                                             >
-                                                <FaUnlock />
+                                                <FiUnlock size={18} />
                                                 <span>Activate</span>
                                             </button>
                                         )}
