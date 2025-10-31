@@ -9,9 +9,10 @@ export default function StatusBadge({ active, text }) {
       style={{
         backgroundColor: active ? "#00bf63" : "#fe535b",
         color: "white",
-        padding: "3px 8px",
-        borderRadius: "3px",
+        padding: "4px 12px",
+        borderRadius: "9999px",
         fontSize: "12px",
+        fontWeight: "bold",
         whiteSpace: "nowrap",
       }}
     >

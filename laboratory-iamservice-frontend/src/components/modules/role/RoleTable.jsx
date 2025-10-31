@@ -357,9 +357,8 @@ export default function RoleTable({
       {confirmState.open && (
         <ConfirmDialog
           title="Delete Role"
-          message={`Are you sure you want to delete role "${
-            confirmState.role?.name || confirmState.role?.code || "this role"
-          }"?`}
+          message={`Are you sure you want to delete role "${confirmState.role?.name || confirmState.role?.code || "this role"
+            }"?`}
           confirmText="Delete"
           cancelText="Cancel"
           onConfirm={handleConfirmDelete}

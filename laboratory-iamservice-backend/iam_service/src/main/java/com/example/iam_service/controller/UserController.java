@@ -72,9 +72,9 @@ public class UserController {
 
     @PreAuthorize("hasAuthority('VIEW_USER') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_LAB_MANAGER')")
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable UUID id) {
+    public ResponseEntity<DetailUserDTO> getUserById(@PathVariable UUID id) {
         return userService.getUserById(id)
-                .map(user -> ResponseEntity.ok(userMapper.toDto(user)))
+                .map(user -> ResponseEntity.ok(userMapper.toDetailDto(user)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
