@@ -1,6 +1,6 @@
 package com.example.iam_service.controller;
 
-import com.example.iam_service.dto.UserDTO;
+import com.example.iam_service.dto.user.UserDTO;
 import com.example.iam_service.dto.request.*;
 import com.example.iam_service.dto.response.ApiResponse;
 import com.example.iam_service.dto.response.auth.TokenResponse;
@@ -235,8 +235,19 @@ public class AuthController {
 
     @PutMapping("/password-reset")
     public ResponseEntity<ApiResponse<UserDTO>> resetPassWord(
-            @RequestBody ResetPassWordRequest request) {
-        User updatedUser = authService.updateUserPassword(request.getUserid(), request.getPassword());
+            @Valid @RequestBody ResetPassWordRequest request) {
+        if (request.getOption().equals("change") && request.getCurrentPassword() == null) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new ApiResponse<>("Error", "Current password is missing for change password process"));
+        }
+
+        User updatedUser = authService.updateUserPassword(
+                request.getUserid(),
+                request.getPassword(),
+                request.getCurrentPassword(),
+                request.getOption()
+        );
         return ResponseEntity
                 .ok()
                 .body(new ApiResponse<>(

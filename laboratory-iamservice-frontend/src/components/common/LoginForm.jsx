@@ -86,6 +86,13 @@ function LoginForm({setIsResetPassWord}) {
                     email: payload.email,
                     role: payload.role,
                     privileges: payload.privileges,
+                    identifyNumber: payload.identifyNumber,
+                    phoneNumber: payload.phone,
+                    gender: payload.gender,
+                    dateOfBirth: payload.dob,
+                    age: payload.age,
+                    address: payload.address,
+                    isActive: payload.isActive === "true",
                 }
             }))
             setbanUntil(null)

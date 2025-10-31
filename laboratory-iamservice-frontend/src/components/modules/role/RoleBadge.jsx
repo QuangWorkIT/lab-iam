@@ -42,7 +42,7 @@ export default function RoleBadge({ roleName }) {
       style={{
         ...badgeStyle,
         padding: "4px 10px",
-        borderRadius: "4px",
+        borderRadius: "20px",
         fontSize: "12px",
         fontWeight: "bold",
         display: "inline-block",

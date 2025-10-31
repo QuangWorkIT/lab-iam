@@ -3,16 +3,21 @@ import publicApi from "../../../configs/publicAxios"
 import { Button, Form, Input } from "antd";
 import { motion, AnimatePresence } from "motion/react";
 import { CheckOutlined } from "@ant-design/icons";
-const ResetPassWord = ({ setIsResetPassWord, userId }) => {
+import { toast } from "react-toastify";
+const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) => {
     const [resetPassWordState, setResetPassWordState] = useState(null)
 
     const resetPassWord = async (values) => {
         try {
             setResetPassWordState("reseting")
-            await publicApi.put("/api/auth/password-reset", {
+            const payload = {
                 userid: userId,
-                password: values.password
-            })
+                password: values.password,
+                option: updateOption,
+                currentPassword: updateOption !== "reset" ? values.currentPassword : null
+            }
+
+            await publicApi.put("/api/auth/password-reset", payload)
             setResetPassWordState("success")
             setTimeout(() => {
                 setIsResetPassWord(false)
@@ -20,9 +25,12 @@ const ResetPassWord = ({ setIsResetPassWord, userId }) => {
             }, 1000);
 
         } catch (error) {
-            console.log("Error reset password", error)
-            toast.error("Error reset password")
+            console.error("Error reset password", error)
             setResetPassWordState(null)
+            const errMess = error.response.data?.message
+            if(errMess) toast.error(errMess)
+            else if(error.response.data?.error) toast.error(error.response.data.error)
+            else toast.error(`Error ${updateOption} password`)
         }
     }
 
@@ -35,6 +43,18 @@ const ResetPassWord = ({ setIsResetPassWord, userId }) => {
                 autoComplete="off"
                 className="w-[300px]"
             >
+                {
+                    updateOption !== "reset" && (
+                        <Form.Item
+                            name="currentPassword"
+                            rules={[{ required: true, message: "Please enter current password" }]}
+                        >
+                            <Input.Password visibilityToggle={false} placeholder="Enter current password" />
+                        </Form.Item>
+                    )
+                }
+
+
                 <Form.Item
                     name="password"
                     rules={[{ required: true, message: "Please enter new password" }]}
@@ -93,7 +113,7 @@ const ResetPassWord = ({ setIsResetPassWord, userId }) => {
                                     exit={{ opacity: 0 }}
                                     transition={{ duration: 0.2 }}
                                 >
-                                    Reset
+                                    {updateOption === "reset" ? "Reset" : "Save"}
                                 </motion.span>
                             )}
                         </AnimatePresence>

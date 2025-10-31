@@ -6,6 +6,7 @@ import com.example.iam_service.security.StoreOtp;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -23,6 +24,7 @@ public class EmailService {
     @Value("${app.email.from}")
     private String fromAddress;
 
+    @Async
     public void sendPasswordEmail(String to, String password) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromAddress);

@@ -64,12 +64,12 @@ export default function UserBadge({ roleName }) {
         <span
             style={{
                 display: "inline-block",
-                padding: "4px 10px",
-                borderRadius: "4px",
+                padding: "6px 18px",
+                borderRadius: "9999px",
                 fontSize: "12px",
                 fontWeight: "bold",
                 textAlign: "center",
-                minWidth: "80px",
+                minWidth: "auto",
                 boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                 textShadow: style.color === "white" ? "0 1px 1px rgba(0,0,0,0.1)" : "none",
                 textTransform: "uppercase",

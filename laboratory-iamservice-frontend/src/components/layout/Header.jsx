@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { FaHeartbeat, FaCog, FaSignOutAlt } from "react-icons/fa";
 import { logout } from "../../redux/features/userSlice";
 import UserDetailModal from "../common/UserDetailModal";
+import { DoubleRightOutlined } from "@ant-design/icons"
+
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
@@ -14,6 +16,20 @@ export default function Header({ pageTitle }) {
 
   // User detail modal state
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // disable scroll when modal open
+  useEffect(() => {
+    if (isDetailModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    // Cleanup to restore scroll when component unmounts
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isDetailModalOpen]);
 
   const handleLogout = () => {
     // Mở popup confirm thay vì window.confirm
@@ -43,6 +59,7 @@ export default function Header({ pageTitle }) {
     if (!userInfo) return null;
 
     return {
+      id: userInfo.id,
       name: userInfo.userName || userInfo.name || "N/A",
       role: userInfo.role || "N/A",
       email: userInfo.email || "N/A",
@@ -53,7 +70,7 @@ export default function Header({ pageTitle }) {
       age: userInfo.age !== undefined ? userInfo.age : null,
       address: userInfo.address || "N/A",
       createdAt: userInfo.createdAt || userInfo.created_at || null,
-      isActive: userInfo.isActive !== undefined ? userInfo.isActive : true,
+      isActive: userInfo.isActive || true,
     };
   };
 
@@ -160,8 +177,10 @@ export default function Header({ pageTitle }) {
           </div>
           {pageTitle && (
             <>
-              <span style={{ margin: "0 10px", color: "#ccc" }}>›</span>
-              <span style={{ color: "#fe535b" }}>{pageTitle}</span>
+              <span style={{ margin: "0 10px", color: "lightgray" }}>
+                <DoubleRightOutlined />
+              </span>
+              <span style={{ color: "#fe535b",fontWeight: "bold" }}>{pageTitle}</span>
             </>
           )}
         </div>
@@ -174,8 +193,8 @@ export default function Header({ pageTitle }) {
               alignItems: "center",
             }}
           >
-            <span style={{ marginRight: "5px", color: "#888" }}>Welcome, </span>
-            <span style={{ fontWeight: "bold", color: "#fe535b" }}>
+            <span style={{ marginRight: "5px", color: "#888", cursor: "default" }}>Welcome, </span>
+            <span style={{ fontWeight: "bold", color: "#fe535b", cursor: "default" }}>
               [{userInfo?.userName || "User"}]
             </span>
           </div>
@@ -184,11 +203,13 @@ export default function Header({ pageTitle }) {
               style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
               title="View User Details"
               onClick={handleViewUserDetail}
+              className="hover:scale-120 transition-all duration-300 ease-in-out"
             />
             <FaSignOutAlt
               style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
               title="Logout"
               onClick={handleLogout}
+              className="hover:scale-120 transition-all duration-300 ease-in-out"
             />
           </div>
         </div>
