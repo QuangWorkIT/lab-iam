@@ -6,7 +6,8 @@ import { useState, useEffect } from "react"
 import { getRoleName } from "../../utils/formatter.js"
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "motion/react"
-
+import { useDispatch } from "react-redux";
+import { fetchUserById } from "../../redux/features/userManagementSlice";
 /**
  * User Detail Modal - Reusable modal component for displaying user/account details
  * 
@@ -442,7 +443,7 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
                         key="info"
                         initial={{ opacity: 0, x: -40 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x:-40 }}
+                        exit={{ opacity: 0, x: -40 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="w-full"
                     >
