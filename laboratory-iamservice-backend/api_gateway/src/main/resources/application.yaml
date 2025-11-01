@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  profile:
+    active: dev
+  cloud:
+    gateway:
+      routes:
+        - id: iam-service
+          uri: lb://iam-service
+          predicates:
+            - Path=/iam/**
+          filters:
+            - StripPrefix=1
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/notification/**
+          filters:
+            - StripPrefix=1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true

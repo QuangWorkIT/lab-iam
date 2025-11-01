@@ -28,7 +28,7 @@ COPY --from=builder --chown=spring:spring /app/target/iam_service-0.0.1-SNAPSHOT
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
 
-EXPOSE 8081
+EXPOSE 8089
 
 # Shell form for better signal handling and environment variable expansion
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]

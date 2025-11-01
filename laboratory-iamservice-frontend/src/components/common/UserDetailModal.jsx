@@ -254,7 +254,7 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
                     gap: "10px",
-                    marginTop: "60px",
+                    marginTop: "65px",
                     // paddingBottom: onRefresh ? "60px" : "10px",
                     wordBreak: "break-word",
                     overflowWrap: "break-word",

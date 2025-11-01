@@ -1,19 +1,15 @@
-package com.example.iam_service;
+package com.example.api_gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableCaching
-public class IamServiceApplication {
+public class ApiGatewayApplication {
 
 	public static void main(String[] args) {
-		System.setProperty("user.timezone", "Asia/Ho_Chi_Minh");
-		SpringApplication.run(IamServiceApplication.class, args);
+		SpringApplication.run(ApiGatewayApplication.class, args);
 	}
 
 }

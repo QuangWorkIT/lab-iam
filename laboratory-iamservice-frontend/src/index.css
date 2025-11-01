@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: InterVariable, Inter , sans-serif;
+  --font-sans--font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+@layer base {
+  html,
+  body {
+    font-family: var(--font-sans);
+    font-feature-settings: var(--font-sans--font-feature-settings);
+  }
+}
