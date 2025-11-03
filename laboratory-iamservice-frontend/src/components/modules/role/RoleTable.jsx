@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus } from "react-icons/fa";
 import SearchBar from "../../common/SearchBar";
 import Pagination from "../../common/Pagination";
 import StatusBadge from "../../common/StatusBadge";
@@ -182,7 +181,7 @@ export default function RoleTable({
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-start",
           alignItems: "center",
           marginBottom: "15px",
           width: "100%",
@@ -197,27 +196,6 @@ export default function RoleTable({
           allRolesLabel="All Roles"
           autoSearchOnRoleChange={true}
         />
-
-        <div className="add-new-button">
-          <button
-            style={{
-              backgroundColor: "#fe535b",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "8px 15px",
-              fontWeight: "bold",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              fontSize: "14px",
-            }}
-            onClick={() => (onAdd ? onAdd() : console.log("Add new role"))}
-          >
-            <FaPlus style={{ marginRight: "5px" }} />
-            Add New Role
-          </button>
-        </div>
       </div>
 
       {/* Bảng vai trò */}

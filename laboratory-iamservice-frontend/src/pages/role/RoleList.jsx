@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { FaPlus } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchRoles,
@@ -183,16 +184,45 @@ export default function RoleList() {
           overflowX: "auto",
         }}
       >
-        <h2
+        <div
           style={{
-            fontSize: "18px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
             marginBottom: "20px",
-            color: "#fe535b",
-            fontWeight: "600",
+            gap: 12,
           }}
         >
-          User Roles
-        </h2>
+          <h2
+            style={{
+              fontSize: "18px",
+              margin: 0,
+              color: "#fe535b",
+              fontWeight: "600",
+            }}
+          >
+            User Roles
+          </h2>
+          <button
+            type="button"
+            onClick={handleAddRole}
+            style={{
+              backgroundColor: "#fe535b",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              padding: "8px 15px",
+              fontWeight: "bold",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              fontSize: "14px",
+            }}
+          >
+            <FaPlus style={{ marginRight: 6 }} />
+            Add New Role
+          </button>
+        </div>
         {errorText && (
           <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
             Error: {errorText}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaPlus } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchUsers,
@@ -9,7 +10,7 @@ import AddUserModal from "../../components/modules/user/AddUserModal";
 import UserDetailModal from "../../components/common/UserDetailModal";
 import MainLayout from "../../components/layout/MainLayout";
 import { toast } from "react-toastify";
-import { motion, AnimatePresence } from "motion/react"
+import { motion, AnimatePresence } from "motion/react";
 
 export default function UserList() {
   //Redux hooks
@@ -87,7 +88,6 @@ export default function UserList() {
     // Loading state sẽ được reset khi fetchUsers hoàn thành
   };
 
-
   //Handler cho phân trang
   const handlePageChange = (newPage) => {
     setSearchParams((prev) => ({
@@ -159,16 +159,46 @@ export default function UserList() {
           overflowX: "auto",
         }}
       >
-        <h2
+        <div
           style={{
-            fontSize: "18px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
             marginBottom: "20px",
-            color: "#ff5a5f",
-            fontWeight: "600",
+            gap: 12,
           }}
         >
-          User Lists
-        </h2>
+          <h2
+            style={{
+              fontSize: "18px",
+              margin: 0,
+              color: "#ff5a5f",
+              fontWeight: "600",
+            }}
+          >
+            User Lists
+          </h2>
+          <button
+            type="button"
+            onClick={handleAddUser}
+            style={{
+              backgroundColor: "#ff5a5f",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              padding: "8px 15px",
+              fontWeight: "bold",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              fontSize: "14px",
+              gap: 6,
+            }}
+          >
+            <FaPlus />
+            Add New User
+          </button>
+        </div>
         {loading && !isSearching ? (
           <div style={{ textAlign: "center", padding: "20px" }}>Loading...</div>
         ) : error ? (
