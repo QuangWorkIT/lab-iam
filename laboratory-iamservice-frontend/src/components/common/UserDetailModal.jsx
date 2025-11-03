@@ -268,7 +268,7 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
             >
                 {/* Left Column */}
                 <div>
-                    {renderField("Identity Number", propUser?.identifyNumber || "N/A")}
+                    {renderField("Identity Number", propUser?.identityNumber || propUser?.identifyNumber || "N/A")}
                     {renderField("Phone Number", propUser?.phoneNumber || "N/A")}
                     {renderField("Gender", getGenderText ? getGenderText(propUser?.gender) : (propUser?.gender || "N/A"))}
                     {renderField("Email", propUser?.email || "N/A")}
