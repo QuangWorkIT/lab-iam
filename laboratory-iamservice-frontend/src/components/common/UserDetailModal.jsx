@@ -5,9 +5,9 @@ import ResetPassWord from "../modules/auth/ResetPassWordForm.jsx";
 import { useState, useEffect } from "react"
 import { getRoleName } from "../../utils/formatter.js"
 import { useSelector } from "react-redux";
-import { motion, AnimatePresence } from "motion/react"
+import { motion as Motion, AnimatePresence } from "motion/react"
 import { useDispatch } from "react-redux";
-import { fetchUserById } from "../../redux/features/userManagementSlice";
+import { fetchUserById, updateOwnProfile } from "../../redux/features/userManagementSlice";
 /**
  * User Detail Modal - Reusable modal component for displaying user/account details
  * 
@@ -120,9 +120,10 @@ function LeftPanel({ user, statusColor, statusText }) {
 }
 
 // Right Panel Component - Detailed Information
-function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsResetPassWordOpen, userId }) {
+function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsResetPassWordOpen, userId, onOpenUpdate }) {
     const { userInfo } = useSelector((state) => state.user)
     const dispatch = useDispatch();
+    const canUpdate = userInfo.id === propUser.id;
 
     // Handle refresh - re-fetch user from API
     const handleRefresh = () => {
@@ -248,6 +249,8 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                 <FaSyncAlt />
             </button>
 
+            {/* Update button removed as requested */}
+
             {/* User Information Grid */}
             <div
                 style={{
@@ -279,14 +282,43 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                     {userInfo.id === propUser.id && (renderField("Password", "*********"))}
                 </div>
             </div>
+
+            {/* Update button for self - bottom-right near refresh */}
+            {canUpdate && (
+                <button
+                    onClick={onOpenUpdate}
+                    style={{
+                        position: "absolute",
+                        bottom: "20px",
+                        right: "70px",
+                        padding: "10px 18px",
+                        backgroundColor: "#28a745",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        zIndex: 9999
+                    }}
+                    onMouseEnter={(e) => { e.target.style.backgroundColor = "#218838"; }}
+                    onMouseLeave={(e) => { e.target.style.backgroundColor = "#28a745"; }}
+                >
+                    Update
+                </button>
+            )}
         </div>
     );
 }
 
 // Main Modal Component
+import UpdateSelfForm from "../modules/user/UpdateSelfForm.jsx";
+import { toast } from "react-toastify";
+
 export default function UserDetailModal({ user, userId, isOpen, onClose, onRefresh }) {
     const dispatch = useDispatch();
     const [isResetPassWordOpen, setIsResetPassWordOpen] = useState(false);
+    const [isSelfUpdateOpen, setIsSelfUpdateOpen] = useState(false);
 
     // Get user detail from Redux store or use passed user prop
     const { userDetail, userDetailLoading, error } = useSelector((state) => state.users);
@@ -401,6 +433,34 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
         return isActive ? "Active" : "Inactive";
     };
 
+    const handleUpdateSubmit = async (formData) => {
+        try {
+            // Dispatch Redux action to update profile
+            await dispatch(
+                updateOwnProfile({
+                    userId: displayUser.id,
+                    profileData: formData
+                })
+            ).unwrap(); // unwrap() to get result or throw error
+
+            toast.success("Update user successfully!");
+            
+            // Refresh data if callback provided
+            if (onRefresh) {
+                await onRefresh();
+            }
+            
+            // Close modal completely
+            setIsSelfUpdateOpen(false);
+            onClose();
+        } catch (error) {
+            toast.error(error || "Failed to update profile!");
+            console.error("Update profile error:", error);
+        }
+    };
+
+    // integrated update form via AnimatePresence below
+
     return (
         <div
             style={{
@@ -424,7 +484,7 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
 
             <AnimatePresence mode="wait">
                 {isResetPassWordOpen ? (
-                    <motion.div
+                    <Motion.div
                         key="reset"
                         initial={{ opacity: 0, x: 40 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -437,9 +497,26 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
                             userId={user.id}
                             updateOption="change"
                         />
-                    </motion.div>
+                    </Motion.div>
+                ) : isSelfUpdateOpen ? (
+                    <Motion.div
+                        key="update"
+                        initial={{ opacity: 0, x: 40 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -40 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="w-full flex justify-start"
+                    >
+                        <div style={{ width: "320px", maxWidth: "80vw", padding: 16, marginLeft: 40, marginRight: 20, boxSizing: "border-box" }}>
+                            <UpdateSelfForm
+                                user={displayUser}
+                                onCancel={() => setIsSelfUpdateOpen(false)}
+                                onSubmit={handleUpdateSubmit}
+                            />
+                        </div>
+                    </Motion.div>
                 ) : (
-                    <motion.div
+                    <Motion.div
                         key="info"
                         initial={{ opacity: 0, x: -40 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -454,14 +531,17 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
                             getGenderText={getGenderText}
                             setIsResetPassWordOpen={setIsResetPassWordOpen}
                             userId={targetUserId}
+                            onOpenUpdate={() => setIsSelfUpdateOpen(true)}
                         />
-                    </motion.div>
+                    </Motion.div>
                 )}
+
+                {/* Update form now integrated with animation */}
             </AnimatePresence>
 
             {/* Close Button */}
             <button
-                onClick={isResetPassWordOpen ? () => setIsResetPassWordOpen(false) : onClose}
+                onClick={isResetPassWordOpen ? () => setIsResetPassWordOpen(false) : isSelfUpdateOpen ? () => setIsSelfUpdateOpen(false) : onClose}
                 className={`absolute ${isResetPassWordOpen ? "top-10 right-10" : "top-5 right-5"} 
                 text-white hover:text-[#dc3545] hover:scale-120 flex items-center justify-center
                 cursor-pointer font-bold text-[20px] transition-all duration-400 ease-in-out z-[9999] p-2`}

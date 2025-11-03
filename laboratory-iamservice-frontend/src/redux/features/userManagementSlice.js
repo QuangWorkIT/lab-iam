@@ -264,6 +264,31 @@ export const fetchRolesForUser = createAsyncThunk(
     }
 );
 
+/**
+ * API: PUT /api/users/{id}/profile
+ * Update user's own profile
+ * Body: { fullName, phoneNumber, gender, dateOfBirth, address }
+ */
+export const updateOwnProfile = createAsyncThunk(
+    "userManagement/updateOwnProfile",
+    async ({ userId, profileData }, { rejectWithValue }) => {
+        try {
+            const response = await api.put(`/api/users/${userId}/profile`, {
+                fullName: profileData.fullName,
+                phoneNumber: profileData.phoneNumber,
+                gender: profileData.gender,
+                dateOfBirth: profileData.birthdate,
+                address: profileData.address
+            });
+            return mapUserDTOToUI(response.data);
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || "Failed to update profile"
+            );
+        }
+    }
+);
+
 const userManagementSlice = createSlice({
     name: "userManagement",
     initialState,
@@ -370,6 +395,27 @@ const userManagementSlice = createSlice({
             })
             .addCase(fetchRolesForUser.rejected, (state, action) => {
                 state.rolesLoading = false;
+                state.error = action.payload || action.error.message;
+            })
+            // Update own profile
+            .addCase(updateOwnProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateOwnProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                // Update userDetail if it's the same user
+                if (state.userDetail && state.userDetail.id === action.payload.id) {
+                    state.userDetail = action.payload;
+                }
+                // Update in users array if exists
+                const index = state.users.findIndex(u => u.id === action.payload.id);
+                if (index !== -1) {
+                    state.users[index] = action.payload;
+                }
+            })
+            .addCase(updateOwnProfile.rejected, (state, action) => {
+                state.loading = false;
                 state.error = action.payload || action.error.message;
             });
     },
