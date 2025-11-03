@@ -6,6 +6,22 @@ import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import Calendar from "react-calendar";
 
+// helper to reset all form-related states
+function initialFormState() {
+    return {
+        fullName: "",
+        identityNumber: "",
+        phoneNumber: "",
+        email: "",
+        birthdate: "",
+        address: "",
+        gender: "MALE",
+        password: "",
+        confirmPassword: "",
+        roleCode: "",
+    };
+}
+
 export default function AddUserModal({ isOpen, onClose, onSave }) {
     const dispatch = useDispatch();
     const { roles, rolesLoading } = useSelector((state) => state.users);
@@ -38,6 +54,18 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const [showCalendar, setShowCalendar] = useState(false);
     const calendarRef = useRef(null);
     const [birthdateInput, setBirthdateInput] = useState("");
+
+    const resetForm = () => {
+        setCurrentStep(1);
+        setFormData(initialFormState());
+        setErrors({});
+        setIsPasswordGenerated(false);
+        setShowPassword(false);
+        setPasswordStrength({});
+        setIsSubmitting(false);
+        setShowCalendar(false);
+        setBirthdateInput("");
+    };
 
     const steps = [
         { id: 1, title: "Basic Infor", label: "Basic Infor" },
@@ -276,6 +304,8 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
 
             try {
                 await onSave(userData);
+                // clear form for next creation
+                resetForm();
                 // Success toast will be shown in handleSaveNewUser (UserList.jsx)
             } catch (error) {
                 // Handle backend errors
@@ -309,25 +339,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     };
 
     const handleCancel = () => {
-        setCurrentStep(1);
-        setFormData({
-            fullName: "",
-            identityNumber: "",
-            phoneNumber: "",
-            email: "",
-            birthdate: "",
-            address: "",
-            gender: "MALE",
-            password: "",
-            confirmPassword: "",
-            roleCode: "",
-        });
-        setErrors({});
-        setIsPasswordGenerated(false);
-        setShowPassword(false);
-        setPasswordStrength({});
-        setIsSubmitting(false);
-        setShowCalendar(false);
+        resetForm();
         onClose();
     };
 
@@ -1045,6 +1057,19 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         color: "#333",
                                         cursor: rolesLoading ? "not-allowed" : "pointer",
                                         opacity: rolesLoading ? 0.6 : 1,
+                                        outline: "none",
+                                    }}
+                                    onFocus={(e) => {
+                                        e.target.style.borderColor = errors.roleCode ? "#dc3545" : "#999";
+                                        e.target.style.borderLeft = "3px solid #ff5a5f";
+                                        e.target.style.outline = "none";
+                                        e.target.style.boxShadow = "none";
+                                    }}
+                                    onBlur={(e) => {
+                                        e.target.style.borderColor = errors.roleCode ? "#dc3545" : "#ddd";
+                                        e.target.style.borderLeft = "3px solid #ff5a5f";
+                                        e.target.style.outline = "none";
+                                        e.target.style.boxShadow = "none";
                                     }}
                                 >
                                     <option value="">
@@ -1099,12 +1124,16 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                                     outline: "none",
                                                 }}
                                                 onFocus={(e) => {
-                                                    e.target.style.border = `1px solid ${errors.password ? "#dc3545" : "#999"}`;
+                                                    e.target.style.borderColor = errors.password ? "#dc3545" : "#999";
                                                     e.target.style.borderLeft = "3px solid #ff5a5f";
+                                                    e.target.style.outline = "none";
+                                                    e.target.style.boxShadow = "none";
                                                 }}
                                                 onBlur={(e) => {
-                                                    e.target.style.border = `1px solid ${errors.password ? "#dc3545" : "#ddd"}`;
+                                                    e.target.style.borderColor = errors.password ? "#dc3545" : "#ddd";
                                                     e.target.style.borderLeft = "3px solid #ff5a5f";
+                                                    e.target.style.outline = "none";
+                                                    e.target.style.boxShadow = "none";
                                                 }}
                                                 placeholder="Enter password"
                                             />
@@ -1189,12 +1218,16 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                                 outline: "none",
                                             }}
                                             onFocus={(e) => {
-                                                e.target.style.border = `1px solid ${errors.confirmPassword ? "#dc3545" : "#999"}`;
+                                                e.target.style.borderColor = errors.confirmPassword ? "#dc3545" : "#999";
                                                 e.target.style.borderLeft = "3px solid #ff5a5f";
+                                                e.target.style.outline = "none";
+                                                e.target.style.boxShadow = "none";
                                             }}
                                             onBlur={(e) => {
-                                                e.target.style.border = `1px solid ${errors.confirmPassword ? "#dc3545" : "#ddd"}`;
+                                                e.target.style.borderColor = errors.confirmPassword ? "#dc3545" : "#ddd";
                                                 e.target.style.borderLeft = "3px solid #ff5a5f";
+                                                e.target.style.outline = "none";
+                                                e.target.style.boxShadow = "none";
                                             }}
                                             placeholder="Confirm password"
                                         />
