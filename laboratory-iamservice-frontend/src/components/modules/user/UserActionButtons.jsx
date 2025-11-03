@@ -19,36 +19,40 @@ export default function UserActionButtons({ onView, onEdit, onDelete, user }) {
             >
                 <FiEye size={18} />
             </button>
-            <button
-                style={{
-                    backgroundColor: "transparent",
-                    color: "#fe535b",
-                    border: "none",
-                    padding: "5px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    fontSize: "18px",
-                }}
-                title="Edit"
-                onClick={() => onEdit(user)}
-            >
-                <FiEdit size={18} />
-            </button>
-            <button
-                style={{
-                    backgroundColor: "transparent",
-                    color: "#fe535b",
-                    border: "none",
-                    padding: "5px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    fontSize: "18px",
-                }}
-                title="Delete"
-                onClick={() => onDelete(user.id)}
-            >
-                <FiTrash2 size={18} />
-            </button>
+            {onEdit && (
+                <button
+                    style={{
+                        backgroundColor: "transparent",
+                        color: "#fe535b",
+                        border: "none",
+                        padding: "5px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        fontSize: "18px",
+                    }}
+                    title="Edit"
+                    onClick={() => onEdit(user)}
+                >
+                    <FiEdit size={18} />
+                </button>
+            )}
+            {onDelete && (
+                <button
+                    style={{
+                        backgroundColor: "transparent",
+                        color: "#fe535b",
+                        border: "none",
+                        padding: "5px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        fontSize: "18px",
+                    }}
+                    title="Delete"
+                    onClick={() => onDelete(user.id)}
+                >
+                    <FiTrash2 size={18} />
+                </button>
+            )}
         </div>
     );
 }

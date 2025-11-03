@@ -1,6 +1,7 @@
 package com.example.iam_service.service;
 
 import com.example.iam_service.dto.RoleDTO;
+import com.example.iam_service.dto.request.RoleUpdateRequestDto;
 import com.example.iam_service.entity.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +23,6 @@ public interface RoleService {
     public List<Role> getActiveRoles();
     public boolean isRoleCodeExists(String code);
     public RoleDTO createRole(Role role);
-    public Role updateRole(Role role);
-    public Role DeleteRole(Role role);
-    Role softDeleteRole(Role role);
+    public RoleDTO updateRole(RoleUpdateRequestDto dto, String roleCode);
+    public void DeleteRole( String roleCode);
 }

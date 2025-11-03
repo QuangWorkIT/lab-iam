@@ -20,7 +20,7 @@ function SidebarIcon({ icon, active, to = "#", isSideBarOpen }) {
   return (
     <Link to={to}>
       <div
-        className={`w-10 h-10 rounded-[5px] flex justify-center items-center my-[5px] cursor-pointer transition-all duration-300 ease-in-out
+        className={`w-10 h-10 rounded-[5px] flex justify-center items-center cursor-pointer transition-all duration-300 ease-in-out
       ${active ? "bg-[#FFFFFF33]" : "bg-transparent"}
       ${!isSideBarOpen && "hover:bg-[#FFFFFF33]"}`}
       >
@@ -115,7 +115,7 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`bg-[#fe535b] text-white flex flex-col items-center pt-[20px]
+      className={`bg-[#fe535b] text-white flex flex-col items-center pt-[18px]
           z-[100] transition-all duration-200 ease-in-out
         ${isSideBarOpen ? "w-[250px] " : "w-[100px]"}`}
     >
@@ -146,7 +146,8 @@ export default function Sidebar() {
             <Link
               to={item.path}
               key={index}
-              className={`flex items-center w-full px-2 mb-3 transition-all duration-200 ease-in-out hover:cursor-pointer
+              className={`flex items-center w-full px-2 mb-5 transition-all duration-200 ease-in-out
+               hover:cursor-pointer hover:scale-110
                   ${
                     isSideBarOpen
                       ? " hover:bg-white/20 rounded-r-full "
@@ -158,7 +159,7 @@ export default function Sidebar() {
                     "bg-[#FFFFFF33]"
                   }`}
             >
-              <div className="pl-5">
+              <div className="pl-[22px]">
                 <SidebarIcon
                   icon={item.icon}
                   to={item.path}
@@ -167,7 +168,7 @@ export default function Sidebar() {
                 />
               </div>
               {isSideBarOpen && (
-                <span className="whitespace-nowrap text-[14px] transition-all duration-300 ease-in-out hover:cursor-pointer">
+                <span className="pt-1 whitespace-nowrap text-[14px] transition-all duration-300 ease-in-out hover:cursor-pointer">
                   {item.desc}
                 </span>
               )}

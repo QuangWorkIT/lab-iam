@@ -12,11 +12,11 @@ import { fetchRolesForUser } from "../../../redux/features/userManagementSlice";
 export default function UserTable({
   users,
   onSearch,
-  onDelete,
   onPageChange,
   onPageSizeChange,
   onView,
   onEdit,
+  onDelete,
   onAdd,
   currentPage = 0,
   totalPages = 1,
@@ -392,7 +392,7 @@ export default function UserTable({
                     style={{
                       padding: "12px 15px",
                       fontWeight: "500",
-                      color: "#333",
+                      color: "#000",
                     }}
                     title={user.id}
                   >
@@ -402,7 +402,7 @@ export default function UserTable({
                     style={{
                       padding: "12px 15px",
                       fontWeight: "500",
-                      color: "#333",
+                      color: "#000",
                     }}
                   >
                     {user.name}
@@ -410,7 +410,7 @@ export default function UserTable({
                   <td
                     style={{
                       padding: "12px 15px",
-                      color: "#555",
+                      color: "#000",
                     }}
                   >
                     {user.email}
@@ -425,7 +425,7 @@ export default function UserTable({
                   <td
                     style={{
                       padding: "12px 15px",
-                      color: "#555",
+                      color: "#000",
                     }}
                   >
                     {formatDate(user.createdAt)}
@@ -433,7 +433,6 @@ export default function UserTable({
                   <td
                     style={{
                       padding: "12px 15px",
-                      color: "#555",
                     }}
                   >
                     <StatusBadge active={normalizeActive(user)} />
