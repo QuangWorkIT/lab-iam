@@ -12,6 +12,7 @@ import UserTable from "../../components/modules/user/UserTable";
 import AddUserModal from "../../components/modules/user/AddUserModal";
 import UserDetailModal from "../../components/common/UserDetailModal";
 import UpdateUserModal from "../../components/modules/user/UpdateUserModal";
+import UserRoleChart from "../../components/modules/user/UserRoleChart";
 import MainLayout from "../../components/layout/MainLayout";
 import { toast } from "react-toastify";
 import { motion as Motion, AnimatePresence } from "motion/react";
@@ -187,82 +188,115 @@ export default function UserList() {
       pageTitle="USER MANAGEMENT"
       pageDescription="Manage user accounts"
     >
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "20px",
-          borderRadius: "5px",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
-          border: "1px solid #eee",
-          width: "100%",
-          boxSizing: "border-box",
-          overflowX: "auto",
-        }}
-      >
+      {/* Add responsive styles */}
+      <style>
+        {`
+          .user-list-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            width: 100%;
+            align-items: start;
+          }
+          
+          @media (max-width: 1400px) {
+            .user-list-container {
+              grid-template-columns: 1fr 350px;
+            }
+          }
+          
+          @media (max-width: 1200px) {
+            .user-list-container {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}
+      </style>
+
+      <div className="user-list-container">
+        {/* Left: User Table */}
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: "20px",
-            gap: 12,
+            backgroundColor: "white",
+            padding: "20px",
+            borderRadius: "5px",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
+            border: "1px solid #eee",
+            width: "100%",
+            boxSizing: "border-box",
+            overflowX: "auto",
           }}
         >
-          <h2
+          <div
             style={{
-              fontSize: "18px",
-              margin: 0,
-              color: "#ff5a5f",
-              fontWeight: "600",
-            }}
-          >
-            User Lists
-          </h2>
-          <button
-            type="button"
-            onClick={handleAddUser}
-            style={{
-              backgroundColor: "#ff5a5f",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "8px 15px",
-              fontWeight: "bold",
-              cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              fontSize: "14px",
-              gap: 6,
+              justifyContent: "space-between",
+              marginBottom: "20px",
+              gap: 12,
             }}
           >
-            <FaPlus />
-            Add New User
-          </button>
-        </div>
-        {loading && !isSearching ? (
-          <div style={{ textAlign: "center", padding: "20px" }}>Loading...</div>
-        ) : error ? (
-          <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
-            Error: {error}
+            <h2
+              style={{
+                fontSize: "18px",
+                margin: 0,
+                color: "#ff5a5f",
+                fontWeight: "600",
+              }}
+            >
+              User Lists
+            </h2>
+            <button
+              type="button"
+              onClick={handleAddUser}
+              style={{
+                backgroundColor: "#ff5a5f",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "8px 15px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                fontSize: "14px",
+                gap: 6,
+              }}
+            >
+              <FaPlus />
+              Add New User
+            </button>
           </div>
-        ) : (
-          <UserTable
-            users={users}
-            onSearch={handleSearch}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            onView={handleViewUser}
-            onEdit={handleEditUser}
-            onDelete={handleDeleteUser}
-            onAdd={handleAddUser}
-            currentPage={searchParams.page}
-            totalPages={totalPages}
-            totalElements={totalElements}
-            pageSize={searchParams.size}
-            searchParams={searchParams}
-            isSearching={isSearching}
-          />
-        )}
+          {loading && !isSearching ? (
+            <div style={{ textAlign: "center", padding: "20px" }}>
+              Loading...
+            </div>
+          ) : error ? (
+            <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
+              Error: {error}
+            </div>
+          ) : (
+            <UserTable
+              users={users}
+              onSearch={handleSearch}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              onView={handleViewUser}
+              onEdit={handleEditUser}
+              onDelete={handleDeleteUser}
+              onAdd={handleAddUser}
+              currentPage={searchParams.page}
+              totalPages={totalPages}
+              totalElements={totalElements}
+              pageSize={searchParams.size}
+              searchParams={searchParams}
+              isSearching={isSearching}
+            />
+          )}
+        </div>
+
+        {/* Right: User Role Chart */}
+        <UserRoleChart users={users} />
       </div>
       <AddUserModal
         isOpen={isAddModalOpen}

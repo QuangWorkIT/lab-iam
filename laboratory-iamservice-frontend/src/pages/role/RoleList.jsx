@@ -40,6 +40,10 @@ export default function RoleList() {
   const [toDate, setToDate] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+
   // Fetch roles 1 lần khi mount
   useEffect(() => {
     dispatch(fetchRoles());
@@ -76,6 +80,18 @@ export default function RoleList() {
     }
     return result;
   }, [roles, searchKeyword, fromDate, toDate, sortConfig]);
+
+  // Paginated roles
+  const paginatedRoles = useMemo(() => {
+    const startIndex = currentPage * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredRoles.slice(startIndex, endIndex);
+  }, [filteredRoles, currentPage, pageSize]);
+
+  // Total pages
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredRoles.length / pageSize);
+  }, [filteredRoles.length, pageSize]);
 
   const formatErr = (error) => {
     // Ưu tiên message từ backend
@@ -134,9 +150,20 @@ export default function RoleList() {
     setSearchKeyword(keyword);
     setFromDate(from);
     setToDate(to);
+    setCurrentPage(0); // Reset về trang đầu khi search
   };
   const handleSort = (key, direction) => {
     setSortConfig({ key, direction });
+  };
+
+  // Pagination handlers
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setCurrentPage(0); // Reset về trang đầu khi đổi page size
   };
 
   // Handlers cho các action buttons
@@ -236,13 +263,19 @@ export default function RoleList() {
         )} */}
 
         <RoleTable
-          roles={filteredRoles}
+          roles={paginatedRoles}
           onSearch={handleSearch}
           onSort={handleSort}
           onView={handleViewRole}
           onEdit={handleEditRole}
           onDelete={handleDelete}
           onAdd={handleAddRole}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          totalElements={filteredRoles.length}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
         />
 
         {loading && (

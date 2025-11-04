@@ -11,51 +11,56 @@ function stringToColor(str) {
   return `hsl(${hue}, 65%, 50%)`;
 }
 
-export default function RoleBadge({ roleName }) {
-  // NORMALIZE: Loại bỏ prefix ROLE_, khoảng trắng, chuyển về uppercase
-  const normalized = (roleName || "")
+// EXPORT: Normalize role name
+export const normalizeRoleName = (roleName) => {
+  return (roleName || "")
     .toString()
     .replace(/^ROLE_/i, "") // Loại bỏ "ROLE_" ở đầu (case-insensitive)
     .toUpperCase()
     .replace(/\s+/g, "_");
+};
 
-  let backgroundColor = "#e1e7ef"; // mặc định xám
-  let color = "white";
+// EXPORT: Get color for role
+export const getRoleColor = (roleName) => {
+  const normalized = normalizeRoleName(roleName);
 
-  // Mapping màu cố định cho các role chính
   switch (normalized) {
     case "ADMIN":
-      backgroundColor = "#00bf63"; // xanh lá
-      break;
+      return "#00bf63"; // xanh lá
     case "LAB_USER":
-    case "LABUSER": // thêm variant không có underscore
-      backgroundColor = "#fe535b"; // đỏ cam
-      break;
+    case "LABUSER":
+      return "#fe535b"; // đỏ cam
     case "MANAGER":
     case "LAB_MANAGER":
     case "LABMANAGER":
-      backgroundColor = "#8c52ff"; // tím
-      break;
+      return "#8c52ff"; // tím
     case "SERVICE_USER":
     case "SERVICEUSER":
     case "SERVICE":
-      backgroundColor = "#5170ff"; // xanh dương
-      break;
+      return "#5170ff"; // xanh dương
     case "PATIENT":
-      backgroundColor = "#ff9800"; // cam
-      break;
+      return "#ff9800"; // cam
     case "DEFAULT":
     case "GUEST":
-      backgroundColor = "#e1e7ef"; // xám
-      color = "#333"; // text tối cho nền sáng
-      break;
+      return "#e1e7ef"; // xám
     default:
       // Role tùy chỉnh: sinh màu từ tên
-      backgroundColor = stringToColor(normalized);
+      return stringToColor(normalized);
   }
+};
 
-  // Display name: format đẹp (bỏ underscore, giữ nguyên tên gốc đã normalize)
-  const displayName = normalized.replace(/_/g, " ");
+// EXPORT: Format display name
+export const formatRoleName = (roleName) => {
+  return normalizeRoleName(roleName).replace(/_/g, " ");
+};
+
+export default function RoleBadge({ roleName }) {
+  const backgroundColor = getRoleColor(roleName);
+  const displayName = formatRoleName(roleName);
+
+  // Xác định màu text (xám cần text tối)
+  const needsDarkText = backgroundColor === "#e1e7ef";
+  const color = needsDarkText ? "#333" : "white";
 
   return (
     <span

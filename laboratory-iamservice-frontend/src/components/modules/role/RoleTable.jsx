@@ -17,6 +17,9 @@ export default function RoleTable({
   onAdd,
   currentPage = 0,
   totalPages = 1,
+  totalElements = 0,
+  pageSize = 10,
+  onPageSizeChange,
 }) {
   const [filteredRoles, setFilteredRoles] = useState(roles);
   // Sorting: only 'code' and 'name' are sortable alphabetically
@@ -179,6 +182,19 @@ export default function RoleTable({
     if (r && typeof r.status === "string")
       return r.status.toLowerCase() === "active";
     return false;
+  };
+
+  // Helper: Check if role is system role (cannot be deleted)
+  const isSystemRole = (roleCode) => {
+    const systemRoles = [
+      "ROLE_ADMIN",
+      "ROLE_SERVICE",
+      "ROLE_LAB_MANAGER",
+      "ROLE_LAB_USER",
+      "ROLE_PATIENT",
+      "ROLE_DEFAULT",
+    ];
+    return systemRoles.includes((roleCode || "").toUpperCase());
   };
 
   return (
@@ -368,6 +384,7 @@ export default function RoleTable({
                       onEdit={onEdit}
                       onDelete={requestDelete}
                       item={role}
+                      isSystemRole={isSystemRole(role.code)}
                     />
                   </td>
                 </tr>
@@ -382,6 +399,9 @@ export default function RoleTable({
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={onPageChange}
+        totalElements={totalElements}
+        pageSize={pageSize}
+        onPageSizeChange={onPageSizeChange}
       />
 
       {/* Confirm delete dialog */}

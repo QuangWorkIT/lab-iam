@@ -2,7 +2,13 @@ import Item from "antd/es/list/Item";
 import React from "react";
 import { FiEye, FiEdit, FiTrash2 } from "react-icons/fi";
 
-export default function ActionButtons({ onView, onEdit, onDelete, item }) {
+export default function ActionButtons({
+  onView,
+  onEdit,
+  onDelete,
+  item,
+  isSystemRole = false,
+}) {
   const iconColor = "#fe535b";
 
   const btnStyle = {
@@ -11,6 +17,15 @@ export default function ActionButtons({ onView, onEdit, onDelete, item }) {
     border: "none",
     padding: "4px",
     cursor: "pointer",
+  };
+
+  const disabledBtnStyle = {
+    background: "transparent",
+    color: "#999",
+    border: "none",
+    padding: "4px",
+    cursor: "not-allowed",
+    opacity: 0.5,
   };
 
   return (
@@ -35,10 +50,11 @@ export default function ActionButtons({ onView, onEdit, onDelete, item }) {
       </button>
       <button
         type="button"
-        style={btnStyle}
-        title="Delete"
+        style={isSystemRole ? disabledBtnStyle : btnStyle}
+        title={isSystemRole ? "System role cannot be deleted" : "Delete"}
         aria-label="Delete"
-        onClick={() => onDelete(item)}
+        onClick={() => !isSystemRole && onDelete(item)}
+        disabled={isSystemRole}
       >
         <FiTrash2 size={18} />
       </button>

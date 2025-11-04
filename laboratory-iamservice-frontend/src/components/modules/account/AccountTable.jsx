@@ -289,6 +289,14 @@ export default function AccountTable({
                   key={account.id}
                   style={{
                     backgroundColor: "#fff",
+                    transition: "background-color 0.2s ease",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f5f5f5";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#fff";
                   }}
                 >
                   <td
