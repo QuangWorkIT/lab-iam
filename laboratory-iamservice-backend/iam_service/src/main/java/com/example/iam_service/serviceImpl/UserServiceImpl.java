@@ -45,7 +45,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @PrivilegesRequired(values =Privileges.CREATE_USER, requireAll = true)
     public User createUser(User user) {
         User actor = securityUtil.getCurrentUser();
         validateUniqueEmail(user.getEmail());
@@ -81,7 +80,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PrivilegesRequired(values =Privileges.VIEW_USER, requireAll = true)
     public Optional<User> getUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
@@ -91,13 +89,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PrivilegesRequired(values =Privileges.VIEW_USER, requireAll = true)
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
     @Override
-    @PrivilegesRequired(values =Privileges.VIEW_USER, requireAll = true)
     public List<User> getInactiveUsers() {
         return userRepository.findByIsActiveFalse();
     }
@@ -172,7 +168,6 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    @PrivilegesRequired(values =Privileges.MODIFY_USER, requireAll = true)
     public User adminUpdateUser(UUID id, AdminUpdateUserDTO dto) {
         User actor = securityUtil.getCurrentUser();
         User user = userRepository.findById(id)
