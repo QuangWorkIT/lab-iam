@@ -21,4 +21,6 @@ public interface UserService {
     void requestDeletion(UUID userId);
     void adminDeleteUser(UUID userId);
     void deactivateAndAnonymizeExpiredUsers();
+    List<User> getDeletedUsers();
+    void restoreUser(UUID userId);
 }
