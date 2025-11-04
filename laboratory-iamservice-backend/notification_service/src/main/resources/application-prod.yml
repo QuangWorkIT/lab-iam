@@ -1,13 +1,14 @@
 server:
-  port: 8089
+  port: 9090
+  address: ${ALLOWED_PORT}   # <== Listen on all interfaces (NOT just localhost)
 
 spring:
   application:
-    name: iam-service
+    name: notification-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/lab_db
-    username: postgres
-    password: db@pass12345
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -28,14 +29,13 @@ google:
   web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
 eureka:
   client:
+    register-with-eureka: true      # Cho phép đăng ký với Eureka
+    fetch-registry: true            # Cho phép lấy danh sách các service khác
     service-url:
-      defaultZone: http://localhost:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
+      defaultZone: http://service-registry:8761/eureka/
   instance:
-    prefer-ip-address: true
-    instance-id: iam-service:8089:8089
-
+    prefer-ip-address: true         # Dùng IP thay vì hostname (tránh lỗi trong Docker)
+    instance-id: notification-service:9090
 management:
   endpoints:
     web:
@@ -53,6 +53,8 @@ logging:
     root: INFO
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
+
 app:
   email:
     from: "no-reply@lab-iam.local"
+

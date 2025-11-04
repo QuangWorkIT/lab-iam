@@ -1,9 +1,9 @@
 server:
-  port: 8089
+  port: 9090
 
 spring:
   application:
-    name: iam-service
+    name: notification-service
   datasource:
     url: jdbc:postgresql://localhost:5432/lab_db
     username: postgres
@@ -34,8 +34,7 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
-    instance-id: iam-service:8089:8089
-
+    instance-id: notification-service:9090
 management:
   endpoints:
     web:
