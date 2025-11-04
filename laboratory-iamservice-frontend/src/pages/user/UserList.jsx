@@ -139,11 +139,10 @@ export default function UserList() {
     }
   };
 
-  const handleDeleteUser = () => {
+  const handleDeleteUser = (userId) => {
     // TODO: Implement delete functionality
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      alert("Delete functionality not yet implemented");
-    }
+    console.log("Delete user:", userId);
+    toast.info("Delete functionality not yet implemented");
   };
 
   // Handler cho việc lưu user từ AddUserModal
