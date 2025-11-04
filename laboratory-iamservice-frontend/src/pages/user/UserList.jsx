@@ -4,23 +4,28 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchUsers,
   createUser,
+  updateUserByAdmin,
+  fetchRolesForUser,
+  fetchUserById,
 } from "../../redux/features/userManagementSlice";
 import UserTable from "../../components/modules/user/UserTable";
 import AddUserModal from "../../components/modules/user/AddUserModal";
 import UserDetailModal from "../../components/common/UserDetailModal";
+import UpdateUserModal from "../../components/modules/user/UpdateUserModal";
 import MainLayout from "../../components/layout/MainLayout";
 import { toast } from "react-toastify";
-import { motion, AnimatePresence } from "motion/react";
+import { motion as Motion, AnimatePresence } from "motion/react";
 
 export default function UserList() {
   //Redux hooks
   const dispatch = useDispatch();
-  const { users, loading, error, totalPages, totalElements } = useSelector(
-    (state) => state.users
-  );
+  const { users, loading, error, totalPages, totalElements, roles } =
+    useSelector((state) => state.users);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [viewingUser, setViewingUser] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState(null);
 
@@ -35,6 +40,11 @@ export default function UserList() {
     sortBy: "name",
     sortDir: "asc",
   });
+
+  // Fetch roles when component mounts
+  useEffect(() => {
+    dispatch(fetchRolesForUser());
+  }, [dispatch]);
 
   // Fetch users when component mounts or search params change
   useEffect(() => {
@@ -115,9 +125,17 @@ export default function UserList() {
     setIsAddModalOpen(true);
   };
 
-  const handleEditUser = () => {
-    // TODO: Implement edit functionality
-    alert("Edit functionality not yet implemented");
+  const handleEditUser = async (user) => {
+    try {
+      // Fetch full user details including identityNumber
+      const result = await dispatch(fetchUserById(user.id)).unwrap();
+      console.log("Fetched user detail:", result);
+      setEditingUser(result);
+      setIsUpdateModalOpen(true);
+    } catch (error) {
+      console.error("Failed to fetch user details:", error);
+      toast.error("Failed to load user details");
+    }
   };
 
   const handleDeleteUser = () => {
@@ -139,6 +157,28 @@ export default function UserList() {
   const handleRefreshUser = () => {
     if (viewingUser) {
       dispatch(fetchUsers(searchParams));
+    }
+  };
+
+  // Handler for update user
+  const handleUpdateUser = async (userData) => {
+    try {
+      await dispatch(
+        updateUserByAdmin({
+          userId: editingUser.id,
+          userData: userData,
+        })
+      ).unwrap();
+
+      toast.success("User updated successfully!");
+      setIsUpdateModalOpen(false);
+      setEditingUser(null);
+
+      // Refresh user list
+      dispatch(fetchUsers(searchParams));
+    } catch (error) {
+      toast.error(error || "Failed to update user!");
+      console.error("Update user error:", error);
     }
   };
 
@@ -230,9 +270,20 @@ export default function UserList() {
         onSave={handleSaveNewUser}
       />
 
+      <UpdateUserModal
+        isOpen={isUpdateModalOpen}
+        user={editingUser}
+        roles={roles}
+        onClose={() => {
+          setIsUpdateModalOpen(false);
+          setEditingUser(null);
+        }}
+        onSubmit={handleUpdateUser}
+      />
+
       <AnimatePresence>
         {isDetailModalOpen && (
-          <motion.div
+          <Motion.div
             key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -240,7 +291,7 @@ export default function UserList() {
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000]"
           >
-            <motion.div
+            <Motion.div
               key="modal"
               initial={{ scale: 0.9, opacity: 0, y: 40 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -254,8 +305,8 @@ export default function UserList() {
                 onClose={() => setIsDetailModalOpen(false)}
                 onRefresh={handleRefreshUser}
               />
-            </motion.div>
-          </motion.div>
+            </Motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
     </MainLayout>

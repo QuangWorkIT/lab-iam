@@ -110,4 +110,19 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasAuthority('ROLE_PATIENT')")
+    @DeleteMapping("/{id}/request-deletion")
+    public ResponseEntity<String> requestSelfDeletion(@PathVariable UUID id) {
+        userService.requestDeletion(id);
+        return ResponseEntity.ok("Your deletion request has been submitted. Account will be deleted after 7 days.");
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('DELETE_USER') or hasAuthority('ROLE_LAB_MANAGER')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteUserByAdmin(@PathVariable UUID id) {
+        userService.adminDeleteUser(id);
+        return ResponseEntity.ok("User deleted successfully.");
+    }
+
+
 }

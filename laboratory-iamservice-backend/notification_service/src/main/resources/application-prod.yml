@@ -1,0 +1,60 @@
+server:
+  port: 9090
+  address: ${ALLOWED_PORT}   # <== Listen on all interfaces (NOT just localhost)
+
+spring:
+  application:
+    name: notification-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  redis:
+    host: redis
+    port: 6379
+  mail:
+    username: ${MAIL_USERNAME:no-reply@dummy.local}
+    password: ${MAIL_PASSWORD:dummy-password}
+
+google:
+  web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
+eureka:
+  client:
+    register-with-eureka: true      # Cho phép đăng ký với Eureka
+    fetch-registry: true            # Cho phép lấy danh sách các service khác
+    service-url:
+      defaultZone: http://service-registry:8761/eureka/
+  instance:
+    prefer-ip-address: true         # Dùng IP thay vì hostname (tránh lỗi trong Docker)
+    instance-id: notification-service:9090
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+
+app:
+  email:
+    from: "no-reply@lab-iam.local"
+

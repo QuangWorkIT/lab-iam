@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Configuration
 @RequiredArgsConstructor
@@ -23,36 +24,131 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         System.out.println("🌱 Seeding initial demo users...");
+
+        // Admin & Employees
         seedUser("admin@example.com", "Nguyen Van Admin", "0901234567", "012345678901",
                 "Hanoi, Vietnam", "MALE", 30, LocalDate.of(1995, 5, 12),
-                "admin123ADMIN", "ROLE_ADMIN", true);
+                "admin123ADMIN", "ROLE_ADMIN", true, false, null);
 
         seedUser("labmanager1@example.com", "Tran Thi Staff", "0912345678", "123456789012",
                 "Ho Chi Minh City, Vietnam", "FEMALE", 28, LocalDate.of(1997, 3, 25),
-                "staff123STAFF", "ROLE_LAB_MANAGER", true);
+                "staff123STAFF", "ROLE_LAB_MANAGER", true, false, null);
 
         seedUser("labuser1@example.com", "Le Quang Member", "0987654321", "234567890123",
                 "Da Nang, Vietnam", "MALE", 24, LocalDate.of(2001, 8, 14),
-                "member123MEMBER", "ROLE_LAB_USER", true);
+                "member123MEMBER", "ROLE_LAB_USER", true, false, null);
 
         seedUser("service@example.com", "Pham Thi User", "0978123456", "345678901234",
                 "Can Tho, Vietnam", "FEMALE", 22, LocalDate.of(2003, 1, 10),
-                "user123USER", "ROLE_SERVICE", true);
+                "user123USER", "ROLE_SERVICE", true, false, null);
 
         seedUser("default@example.com", "Hoang Minh Guest", "0923456789", "456789012345",
                 "Hai Phong, Vietnam", "MALE", 20, LocalDate.of(2005, 7, 20),
-                "guest123GUEST", "ROLE_DEFAULT", true);
+                "guest123GUEST", "ROLE_DEFAULT", true, false, null);
 
         seedUser("inactive@example.com", "Lazy Inactive Guy", "0911222333", "567890123456",
                 "Hue, Vietnam", "MALE", 26, LocalDate.of(1999, 11, 11),
-                "inactive123USER", "ROLE_LAB_MANAGER", false);
+                "inactive123USER", "ROLE_LAB_MANAGER", false, false, null);
+
+        seedUser(
+                "staff2@example.com", "Vo Thanh Employee", "0908000111", "121212121212",
+                "Ha Noi, Vietnam", "MALE", 32, LocalDate.of(1993, 7, 7),
+                "staffpassA", "ROLE_LAB_MANAGER",
+                true, false, null
+        );
+
+        seedUser(
+                "staff3@example.com", "Tran Mai Assistant", "0908555666", "131313131313",
+                "Hue, Vietnam", "FEMALE", 25, LocalDate.of(2000, 4, 14),
+                "staffpassB", "ROLE_LAB_USER",
+                true, false, null
+        );
+
+        seedUser(
+                "staff4@example.com", "Le Huu Tester", "0933888777", "141414141414",
+                "Hai Phong, Vietnam", "MALE", 27, LocalDate.of(1998, 2, 8),
+                "staffpassC", "ROLE_LAB_USER",
+                true, false, null
+        );
+
+        seedUser(
+                "staff5@example.com", "Nguyen Bao Analyst", "0977555666", "151515151515",
+                "Can Tho, Vietnam", "MALE", 31, LocalDate.of(1994, 10, 2),
+                "staffpassD", "ROLE_SERVICE",
+                true, false, null
+        );
+
+        seedUser(
+                "staff6@example.com", "Pham Anh Coordinator", "0909777888", "161616161616",
+                "Da Lat, Vietnam", "FEMALE", 28, LocalDate.of(1997, 5, 28),
+                "staffpassE", "ROLE_LAB_MANAGER",
+                true, false, null
+        );
+
+        //Patients
+        seedUser(
+                "ghost1@example.com", "Ghosted User", "0911222333", "999999999999",
+                "Underworld", "MALE", 45, LocalDate.of(1979, 5, 1),
+                "ghostpass", "ROLE_PATIENT",
+                false, true, LocalDateTime.now().minusDays(10)
+        );
+
+        seedUser(
+                "soon2die@example.com", "Pending Deletion", "0933222111", "888888888888",
+                "Limbo City", "FEMALE", 31, LocalDate.of(1994, 10, 20),
+                "waitingpass", "ROLE_PATIENT",
+                true, false, LocalDateTime.now().plusDays(3).withHour(2).withMinute(59)
+        );
+
+        seedUser(
+                "patient1@example.com", "Pham Tuan Patient", "0905123456", "777111222333",
+                "Ha Noi, Vietnam", "MALE", 34, LocalDate.of(1991, 2, 15),
+                "patient123A", "ROLE_PATIENT",
+                true, false, null
+        );
+
+        seedUser(
+                "patient2@example.com", "Nguyen Thi Health", "0933444555", "888222333444",
+                "Ho Chi Minh City, Vietnam", "FEMALE", 29, LocalDate.of(1996, 9, 4),
+                "patient123B", "ROLE_PATIENT",
+                true, false, null
+        );
+
+        seedUser(
+                "patient3@example.com", "Le Minh Wellness", "0977666888", "999333444555",
+                "Da Nang, Vietnam", "MALE", 41, LocalDate.of(1984, 11, 22),
+                "patient123C", "ROLE_PATIENT",
+                true, false, null
+        );
+
+        seedUser(
+                "ghost2@example.com", "Expired Patient", "0911888999", "101010101010",
+                "Forgotten Town", "FEMALE", 52, LocalDate.of(1973, 1, 1),
+                "goneforever", "ROLE_PATIENT",
+                false, true, LocalDateTime.now().minusDays(10)
+        );
+
+        seedUser(
+                "ghost3@example.com", "Erased Soul", "0911555777", "111222333444",
+                "Nether City", "MALE", 37, LocalDate.of(1988, 6, 6),
+                "vanishsoon", "ROLE_PATIENT",
+                false, true, LocalDateTime.now().minusDays(2)
+        );
+
+        seedUser(
+                "almostgone@example.com", "Pending Patient", "0933999444", "555666777888",
+                "Purgatory, Vietnam", "FEMALE", 27, LocalDate.of(1998, 12, 9),
+                "halfdead", "ROLE_PATIENT",
+                true, false, LocalDateTime.now().plusDays(5).withHour(2).withMinute(59)
+        );
+
 
         System.out.println("✅ Demo users seeded successfully!");
     }
 
     private void seedUser(String email, String fullName, String phone, String identity,
                           String address, String gender, int age, LocalDate birthdate,
-                          String password, String roleCode, boolean isActive) {
+                          String password, String roleCode, boolean isActive, boolean isDeleted, LocalDateTime deletedAt) {
 
         User user = User.builder()
                 .email(email)
@@ -66,6 +162,8 @@ public class DataSeeder implements CommandLineRunner {
                 .password(encoder.encode(password))
                 .roleCode(roleCode)
                 .isActive(isActive)
+                .isDeleted(isDeleted)
+                .deletedAt(deletedAt)
                 .build();
 
         userRepository.save(user);
