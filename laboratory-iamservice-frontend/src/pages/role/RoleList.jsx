@@ -77,16 +77,21 @@ export default function RoleList() {
     return result;
   }, [roles, searchKeyword, fromDate, toDate, sortConfig]);
 
-  const formatErr = (error) =>
-    error?.response?.data?.message ||
-    error?.message ||
-    (() => {
-      try {
-        return JSON.stringify(error);
-      } catch {
-        return String(error);
-      }
-    })();
+  const formatErr = (error) => {
+    // Ưu tiên message từ backend
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    if (error?.message) {
+      // Loại bỏ các prefix kỹ thuật như "Error:", "TypeError:", etc.
+      return error.message.replace(
+        /^(Error|TypeError|ReferenceError):\s*/i,
+        ""
+      );
+    }
+    // Fallback: thông báo chung
+    return "An error occurred. Please try again or contact support.";
+  };
 
   const handleSaveRole = (roleData) => {
     // Guard chống double submit
@@ -102,7 +107,9 @@ export default function RoleList() {
           toast.success("Role updated successfully!");
         })
         .catch((error) => {
-          toast.error(`Failed to update role: ${formatErr(error)}`);
+          console.error("Update role error:", error); // Log đầy đủ cho dev
+          const userMessage = formatErr(error);
+          toast.error(`Failed to update role. ${userMessage}`);
         })
         .finally(() => setActionLoading(false));
     } else {
@@ -114,7 +121,9 @@ export default function RoleList() {
           toast.success("Role created successfully!");
         })
         .catch((error) => {
-          toast.error(`Failed to create role: ${formatErr(error)}`);
+          console.error("Create role error:", error); // Log đầy đủ cho dev
+          const userMessage = formatErr(error);
+          toast.error(`Failed to create role. ${userMessage}`);
         })
         .finally(() => setActionLoading(false));
     }
@@ -147,27 +156,24 @@ export default function RoleList() {
     setIsModalOpen(true);
   };
   const handleDelete = (code) => {
-    if (window.confirm("Are you sure you want to delete this role?")) {
-      setActionLoading(true);
-      dispatch(deleteRole(code))
-        .unwrap()
-        .then(() => {
-          dispatch(fetchRoles());
-          alert("Role deleted successfully");
-        })
-        .catch((error) => {
-          alert(
-            `Failed to delete: ${
-              error?.message ||
-              error?.response?.data?.message ||
-              "Unknown error"
-            }`
-          );
-        })
-        .finally(() => {
-          setActionLoading(false);
-        });
-    }
+    // Guard chống double submit
+    if (actionLoading) return;
+    setActionLoading(true);
+
+    dispatch(deleteRole(code))
+      .unwrap()
+      .then(() => {
+        dispatch(fetchRoles());
+        toast.success("Role deleted successfully");
+      })
+      .catch((error) => {
+        console.error("Delete role error:", error); // Log đầy đủ cho dev
+        const userMessage = formatErr(error);
+        toast.error(`Failed to delete role. ${userMessage}`);
+      })
+      .finally(() => {
+        setActionLoading(false);
+      });
   };
 
   return (
@@ -223,11 +229,11 @@ export default function RoleList() {
             Add New Role
           </button>
         </div>
-        {errorText && (
+        {/* {errorText && (
           <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
             Error: {errorText}
           </div>
-        )}
+        )} */}
 
         <RoleTable
           roles={filteredRoles}

@@ -160,10 +160,16 @@ export default function RoleTable({
   // Open custom confirm dialog (replace window.confirm)
   const requestDelete = (role) => setConfirmState({ open: true, role });
   const handleConfirmDelete = () => {
-    if (confirmState.role && onDelete) onDelete(confirmState.role);
+    const role = confirmState.role;
+    if (role) {
+      onDelete?.(role.code); // giữ nguyên API: parent nhận code để xóa
+    }
     setConfirmState({ open: false, role: null });
   };
-  const handleCancelDelete = () => setConfirmState({ open: false, role: null });
+
+  const handleCancelDelete = () => {
+    setConfirmState({ open: false, role: null });
+  };
 
   // Chuẩn hóa trạng thái active từ nhiều kiểu dữ liệu trả về
   const normalizeActive = (r) => {
@@ -302,6 +308,14 @@ export default function RoleTable({
                   key={role.code}
                   style={{
                     backgroundColor: "#fff",
+                    transition: "background-color 0.2s ease",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f5f5f5";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#fff";
                   }}
                 >
                   <td
@@ -371,24 +385,24 @@ export default function RoleTable({
       />
 
       {/* Confirm delete dialog */}
-      {confirmState.open && (
-        <ConfirmDialog
-          title="Delete Role"
-          message={`Are you sure you want to delete role "${
-            confirmState.role?.name || confirmState.role?.code || "this role"
-          }"?`}
-          confirmText="Delete"
-          cancelText="Cancel"
-          onConfirm={handleConfirmDelete}
-          onCancel={handleCancelDelete}
-        />
-      )}
+      <ConfirmDialog
+        open={confirmState.open}
+        title="Delete Role"
+        message={`Are you sure you want to delete role "${
+          confirmState.role?.name || confirmState.role?.code || "this role"
+        }"?`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 }
 
 // Simple confirm dialog with overlay, styled to match app modals
 function ConfirmDialog({
+  open,
   title = "Confirm",
   message,
   confirmText = "OK",
@@ -396,10 +410,41 @@ function ConfirmDialog({
   onConfirm,
   onCancel,
 }) {
+  // ADD: enter + exit animation (same pattern as RoleModal)
+  const ANIM_MS = 180;
+  const [mounted, setMounted] = React.useState(false);
+  const [animateIn, setAnimateIn] = React.useState(false);
+
+  React.useEffect(() => {
+    let raf1;
+    let raf2;
+    let timer;
+    if (open) {
+      setMounted(true);
+      setAnimateIn(false);
+      raf1 = requestAnimationFrame(() => {
+        // force reflow to ensure initial styles apply before transition
+        if (typeof document !== "undefined") void document.body.offsetHeight;
+        raf2 = requestAnimationFrame(() => setAnimateIn(true));
+      });
+    } else {
+      setAnimateIn(false);
+      timer = setTimeout(() => setMounted(false), ANIM_MS);
+    }
+    return () => {
+      if (raf1) cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+      if (timer) clearTimeout(timer);
+    };
+  }, [open]);
+
+  if (!mounted) return null;
+
   return (
     <div
       role="dialog"
       aria-modal="true"
+      className={`lm-role-confirm-overlay ${animateIn ? "is-open" : ""}`} // ADD className here
       style={{
         position: "fixed",
         inset: 0,
@@ -413,7 +458,31 @@ function ConfirmDialog({
         if (e.currentTarget === e.target) onCancel?.();
       }}
     >
+      <style>
+        {`
+          .lm-role-confirm-overlay {
+            opacity: 0;
+            transition: opacity ${ANIM_MS}ms ease-out;
+          }
+          .lm-role-confirm-overlay.is-open { opacity: 1; }
+          .lm-role-confirm-card {
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+            transition: transform ${ANIM_MS}ms cubic-bezier(.2,.8,.2,1), opacity ${ANIM_MS}ms ease-out;
+            will-change: transform, opacity;
+          }
+          .lm-role-confirm-card.is-open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .lm-role-confirm-overlay, .lm-role-confirm-card { transition: none !important; }
+          }
+        `}
+      </style>
+
       <div
+        className={`lm-role-confirm-card ${animateIn ? "is-open" : ""}`}
         style={{
           background: "#fff",
           borderRadius: 12,

@@ -1,3 +1,4 @@
+import Item from "antd/es/list/Item";
 import React from "react";
 import { FiEye, FiEdit, FiTrash2 } from "react-icons/fi";
 
@@ -37,7 +38,7 @@ export default function ActionButtons({ onView, onEdit, onDelete, item }) {
         style={btnStyle}
         title="Delete"
         aria-label="Delete"
-        onClick={() => onDelete(item.code)}
+        onClick={() => onDelete(item)}
       >
         <FiTrash2 size={18} />
       </button>
