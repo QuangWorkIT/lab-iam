@@ -69,7 +69,7 @@ public class RoleMapper {
                     .privileges(privilegesConverter.convertToEntityAttribute(dto.getPrivileges()))
                     .createdAt(dto.getCreatedAt())
                     .updatedAt(dto.getLastUpdatedAt())
-                    .deletable(dto.getDeletable())
+                    .deletable(true)
                     .isActive(dto.getIsActive())
                     .build();
 

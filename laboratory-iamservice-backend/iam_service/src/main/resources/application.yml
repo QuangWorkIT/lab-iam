@@ -27,7 +27,7 @@ management:
       show-details: true
 eureka:
   client:
-    enabled: true
+    enabled: false
 logging:
   level:
     root: INFO

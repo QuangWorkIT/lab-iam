@@ -1,6 +1,8 @@
 server:
   port: 8089
   address: ${ALLOWED_PORT}   # <== Listen on all interfaces (NOT just localhost)
+  error:
+    include-message: always
 
 spring:
   application:

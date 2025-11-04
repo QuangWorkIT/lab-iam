@@ -11,6 +11,7 @@ import com.example.iam_service.exception.RoleNotFoundException;
 import com.example.iam_service.mapper.RoleMapper;
 import com.example.iam_service.repository.RoleRepository;
 import com.example.iam_service.repository.UserRepository;
+import com.example.iam_service.security.PrivilegesRequired;
 import com.example.iam_service.service.RoleService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Predicate;
@@ -22,7 +23,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -51,30 +51,35 @@ public class RoleServiceImp implements RoleService {
 
     @Transactional(readOnly = true)
     @Override
+    @PrivilegesRequired(values = Privileges.VIEW_ROLE, requireAll = true)
     public Page<Role> getRolesPaged(Pageable pageable) {
         return roleRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
     @Override
+    @PrivilegesRequired(values = Privileges.VIEW_ROLE, requireAll = true)
     public Optional<Role> getRoleByCode(String code) {
         return roleRepository.findById(code);
     }
 
     @Transactional(readOnly = true)
     @Override
+    @PrivilegesRequired(values = Privileges.VIEW_ROLE, requireAll = true)
     public List<Role> searchRolesByName(String name) {
         return roleRepository.findByNameContainingIgnoreCase(name);
     }
 
     @Transactional(readOnly = true)
     @Override
+    @PrivilegesRequired(values = Privileges.VIEW_ROLE, requireAll = true)
     public List<Role> searchRoles(String keyword, LocalDate fromDate, LocalDate toDate) {
         return searchRoles(keyword, fromDate, toDate, "name", Sort.Direction.ASC);
     }
 
     @Transactional(readOnly = true)
     @Override
+    @PrivilegesRequired(values = Privileges.VIEW_ROLE, requireAll = true)
     public List<Role> searchRoles(String keyword, LocalDate fromDate, LocalDate toDate, String sortBy, Sort.Direction direction) {
         final String kw = (keyword == null || keyword.isBlank()) ? null : keyword.trim().toLowerCase();
 
@@ -111,18 +116,21 @@ public class RoleServiceImp implements RoleService {
 
     @Transactional(readOnly = true)
     @Override
+    @PrivilegesRequired(values = Privileges.VIEW_ROLE, requireAll = true)
     public List<Role> getActiveRoles() {
         return roleRepository.findByIsActiveTrue();
     }
 
     @Transactional(readOnly = true)
     @Override
+    @PrivilegesRequired(values = Privileges.VIEW_ROLE, requireAll = true)
     public boolean isRoleCodeExists(String code) {
         return roleRepository.existsByCode(code);
     }
 
     @Transactional
     @Override
+    @PrivilegesRequired(values = Privileges.CREATE_ROLE, requireAll = true)
     public RoleDTO createRole(Role role) {
 
         log.info("Role create called on role: {} at {}", role.getName(), LocalDateTime.now());
@@ -145,6 +153,7 @@ public class RoleServiceImp implements RoleService {
 
     @Transactional
     @Override
+    @PrivilegesRequired(values = Privileges.UPDATE_ROLE, requireAll = true)
     public RoleDTO updateRole(RoleUpdateRequestDto dto, String roleCode) {
         log.info("Role update called on role: {} at {}", dto.getName(), LocalDateTime.now());
         if(!isRoleCodeExists(roleCode))
@@ -160,6 +169,7 @@ public class RoleServiceImp implements RoleService {
 
     @Transactional
     @Override
+    @PrivilegesRequired(values = Privileges.DELETE_ROLE, requireAll = true)
     public void DeleteRole(String roleCode) {
         log.info("Starting role deletion for {}", roleCode);
         if(!isRoleCodeExists(roleCode))

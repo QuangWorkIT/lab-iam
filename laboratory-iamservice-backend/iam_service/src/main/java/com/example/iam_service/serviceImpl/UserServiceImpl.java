@@ -4,10 +4,12 @@ import com.example.iam_service.audit.AuditEvent;
 import com.example.iam_service.audit.AuditPublisher;
 import com.example.iam_service.dto.user.AdminUpdateUserDTO;
 import com.example.iam_service.dto.user.UpdateUserProfileDTO;
+import com.example.iam_service.entity.Enum.Privileges;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.external.PatientVerificationService;
 import com.example.iam_service.mapper.UserMapper;
 import com.example.iam_service.repository.UserRepository;
+import com.example.iam_service.security.PrivilegesRequired;
 import com.example.iam_service.service.EmailService;
 import com.example.iam_service.service.UserService;
 import com.example.iam_service.util.AuditDiffUtil;
@@ -125,6 +127,7 @@ public class UserServiceImpl implements UserService {
                 .build());
     }
 
+    @PrivilegesRequired(values =Privileges.VIEW_USER, requireAll = true)
     public Optional<User> getUserById(UUID id) {
         return userRepository.findById(id);
     }
