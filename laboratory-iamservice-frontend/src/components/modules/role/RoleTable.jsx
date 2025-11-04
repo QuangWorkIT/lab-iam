@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus } from "react-icons/fa";
 import SearchBar from "../../common/SearchBar";
 import Pagination from "../../common/Pagination";
 import StatusBadge from "../../common/StatusBadge";
@@ -18,6 +17,9 @@ export default function RoleTable({
   onAdd,
   currentPage = 0,
   totalPages = 1,
+  totalElements = 0,
+  pageSize = 10,
+  onPageSizeChange,
 }) {
   const [filteredRoles, setFilteredRoles] = useState(roles);
   // Sorting: only 'code' and 'name' are sortable alphabetically
@@ -53,8 +55,38 @@ export default function RoleTable({
 
     const toEndOfDay = (dateStr) => {
       const d = new Date(dateStr);
+      if (!Number.isFinite(d.getTime())) return null;
       d.setHours(23, 59, 59, 999);
       return d;
+    };
+
+    const parseDateSafe = (val) => {
+      if (!val) return null;
+      if (val instanceof Date)
+        return Number.isFinite(val.getTime()) ? val : null;
+      // numeric timestamp
+      if (typeof val === "number") {
+        const d = new Date(val);
+        return Number.isFinite(d.getTime()) ? d : null;
+      }
+      // string formats
+      if (typeof val === "string") {
+        const s = val.trim();
+        // ISO or yyyy-mm-dd or yyyy/mm/dd
+        if (/^\d{4}[-\/]\d{2}[-\/]\d{2}/.test(s)) {
+          const d = new Date(s.replace(/\//g, "-"));
+          return Number.isFinite(d.getTime()) ? d : null;
+        }
+        // dd/mm/yyyy
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+          const [dd, mm, yyyy] = s.split("/");
+          const d = new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
+          return Number.isFinite(d.getTime()) ? d : null;
+        }
+        const d = new Date(s);
+        return Number.isFinite(d.getTime()) ? d : null;
+      }
+      return null;
     };
 
     return (list || []).filter((r) => {
@@ -77,10 +109,19 @@ export default function RoleTable({
       const rf = (roleFilter || "").toLowerCase();
       const matchRole = !rf || code === rf;
 
-      // Lọc theo ngày tạo
-      const created = r.createdAt ? new Date(r.createdAt) : null;
-      const matchFrom = !fromDate || (created && created >= new Date(fromDate));
-      const matchTo = !toDate || (created && created <= toEndOfDay(toDate));
+      // Lọc theo ngày tạo (chấp nhận nhiều khóa & định dạng ngày)
+      const createdRaw =
+        r.createdAt ||
+        r.created_at ||
+        r.createdDate ||
+        r.created_date ||
+        r.created_on ||
+        r.createdOn;
+      const created = parseDateSafe(createdRaw);
+      const from = fromDate ? parseDateSafe(fromDate) : null;
+      const to = toDate ? toEndOfDay(toDate) : null;
+      const matchFrom = !from || (created && created >= from);
+      const matchTo = !to || (created && created <= to);
 
       return matchKeyword && matchRole && matchFrom && matchTo;
     });
@@ -122,10 +163,16 @@ export default function RoleTable({
   // Open custom confirm dialog (replace window.confirm)
   const requestDelete = (role) => setConfirmState({ open: true, role });
   const handleConfirmDelete = () => {
-    if (confirmState.role && onDelete) onDelete(confirmState.role);
+    const role = confirmState.role;
+    if (role) {
+      onDelete?.(role.code); // giữ nguyên API: parent nhận code để xóa
+    }
     setConfirmState({ open: false, role: null });
   };
-  const handleCancelDelete = () => setConfirmState({ open: false, role: null });
+
+  const handleCancelDelete = () => {
+    setConfirmState({ open: false, role: null });
+  };
 
   // Chuẩn hóa trạng thái active từ nhiều kiểu dữ liệu trả về
   const normalizeActive = (r) => {
@@ -137,13 +184,26 @@ export default function RoleTable({
     return false;
   };
 
+  // Helper: Check if role is system role (cannot be deleted)
+  const isSystemRole = (roleCode) => {
+    const systemRoles = [
+      "ROLE_ADMIN",
+      "ROLE_SERVICE",
+      "ROLE_LAB_MANAGER",
+      "ROLE_LAB_USER",
+      "ROLE_PATIENT",
+      "ROLE_DEFAULT",
+    ];
+    return systemRoles.includes((roleCode || "").toUpperCase());
+  };
+
   return (
     <div className="role-table-container" style={{ width: "100%" }}>
       {/* Toolbar & Search */}
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-start",
           alignItems: "center",
           marginBottom: "15px",
           width: "100%",
@@ -158,27 +218,6 @@ export default function RoleTable({
           allRolesLabel="All Roles"
           autoSearchOnRoleChange={true}
         />
-
-        <div className="add-new-button">
-          <button
-            style={{
-              backgroundColor: "#fe535b",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "8px 15px",
-              fontWeight: "bold",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              fontSize: "14px",
-            }}
-            onClick={() => (onAdd ? onAdd() : console.log("Add new role"))}
-          >
-            <FaPlus style={{ marginRight: "5px" }} />
-            Add New Role
-          </button>
-        </div>
       </div>
 
       {/* Bảng vai trò */}
@@ -285,6 +324,14 @@ export default function RoleTable({
                   key={role.code}
                   style={{
                     backgroundColor: "#fff",
+                    transition: "background-color 0.2s ease",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f5f5f5";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#fff";
                   }}
                 >
                   <td
@@ -337,6 +384,7 @@ export default function RoleTable({
                       onEdit={onEdit}
                       onDelete={requestDelete}
                       item={role}
+                      isSystemRole={isSystemRole(role.code)}
                     />
                   </td>
                 </tr>
@@ -351,26 +399,30 @@ export default function RoleTable({
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={onPageChange}
+        totalElements={totalElements}
+        pageSize={pageSize}
+        onPageSizeChange={onPageSizeChange}
       />
 
       {/* Confirm delete dialog */}
-      {confirmState.open && (
-        <ConfirmDialog
-          title="Delete Role"
-          message={`Are you sure you want to delete role "${confirmState.role?.name || confirmState.role?.code || "this role"
-            }"?`}
-          confirmText="Delete"
-          cancelText="Cancel"
-          onConfirm={handleConfirmDelete}
-          onCancel={handleCancelDelete}
-        />
-      )}
+      <ConfirmDialog
+        open={confirmState.open}
+        title="Delete Role"
+        message={`Are you sure you want to delete role "${
+          confirmState.role?.name || confirmState.role?.code || "this role"
+        }"?`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 }
 
 // Simple confirm dialog with overlay, styled to match app modals
 function ConfirmDialog({
+  open,
   title = "Confirm",
   message,
   confirmText = "OK",
@@ -378,10 +430,41 @@ function ConfirmDialog({
   onConfirm,
   onCancel,
 }) {
+  // ADD: enter + exit animation (same pattern as RoleModal)
+  const ANIM_MS = 180;
+  const [mounted, setMounted] = React.useState(false);
+  const [animateIn, setAnimateIn] = React.useState(false);
+
+  React.useEffect(() => {
+    let raf1;
+    let raf2;
+    let timer;
+    if (open) {
+      setMounted(true);
+      setAnimateIn(false);
+      raf1 = requestAnimationFrame(() => {
+        // force reflow to ensure initial styles apply before transition
+        if (typeof document !== "undefined") void document.body.offsetHeight;
+        raf2 = requestAnimationFrame(() => setAnimateIn(true));
+      });
+    } else {
+      setAnimateIn(false);
+      timer = setTimeout(() => setMounted(false), ANIM_MS);
+    }
+    return () => {
+      if (raf1) cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+      if (timer) clearTimeout(timer);
+    };
+  }, [open]);
+
+  if (!mounted) return null;
+
   return (
     <div
       role="dialog"
       aria-modal="true"
+      className={`lm-role-confirm-overlay ${animateIn ? "is-open" : ""}`} // ADD className here
       style={{
         position: "fixed",
         inset: 0,
@@ -395,7 +478,31 @@ function ConfirmDialog({
         if (e.currentTarget === e.target) onCancel?.();
       }}
     >
+      <style>
+        {`
+          .lm-role-confirm-overlay {
+            opacity: 0;
+            transition: opacity ${ANIM_MS}ms ease-out;
+          }
+          .lm-role-confirm-overlay.is-open { opacity: 1; }
+          .lm-role-confirm-card {
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+            transition: transform ${ANIM_MS}ms cubic-bezier(.2,.8,.2,1), opacity ${ANIM_MS}ms ease-out;
+            will-change: transform, opacity;
+          }
+          .lm-role-confirm-card.is-open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .lm-role-confirm-overlay, .lm-role-confirm-card { transition: none !important; }
+          }
+        `}
+      </style>
+
       <div
+        className={`lm-role-confirm-card ${animateIn ? "is-open" : ""}`}
         style={{
           background: "#fff",
           borderRadius: 12,

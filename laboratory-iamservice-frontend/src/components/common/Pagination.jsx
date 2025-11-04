@@ -1,156 +1,172 @@
 import React from "react";
 
-export default function Pagination({ currentPage, totalPages, onPageChange, totalElements, pageSize, onPageSizeChange }) {
+export default function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  totalElements,
+  pageSize,
+  onPageSizeChange,
+}) {
   // Don't show pagination if there's only 1 page or no pages
   if (!totalPages || totalPages <= 1) {
     return null;
   }
 
+  // Generate page numbers to display (max 3 pages)
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 3;
+
+    let startPage = Math.max(0, currentPage - 1);
+    let endPage = Math.min(totalPages - 1, currentPage + 1);
+
+    // Adjust if at start
+    if (currentPage === 0) {
+      endPage = Math.min(totalPages - 1, maxVisible - 1);
+    }
+    // Adjust if at end
+    else if (currentPage === totalPages - 1) {
+      startPage = Math.max(0, totalPages - maxVisible);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return pages;
+  };
+
+  const pageNumbers = getPageNumbers();
+
   return (
     <div
       style={{
         display: "flex",
-        justifyContent: "space-between",
+        justifyContent: "center",
         alignItems: "center",
         marginTop: "20px",
         padding: "15px 0",
         borderTop: "1px solid #eee",
       }}
     >
-      {/* Info text and page size selector */}
-      <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-        {totalElements !== undefined && (
-          <div style={{ fontSize: "14px", color: "#666" }}>
-            Showing page <strong>{currentPage + 1}</strong> of <strong>{totalPages}</strong>
-            {totalElements > 0 && ` (${totalElements} total items)`}
-          </div>
-        )}
-
-        {onPageSizeChange && (
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "14px", color: "#666" }}>Items per page:</span>
-            <select
-              value={pageSize || 10}
-              onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              style={{
-                padding: "6px 10px",
-                border: "1px solid #e0e0e0",
-                borderRadius: "4px",
-                fontSize: "14px",
-                backgroundColor: "#fff",
-                color: "#333",
-                cursor: "pointer",
-              }}
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-          </div>
-        )}
-      </div>
-
       {/* Pagination buttons */}
-      <div style={{ display: "flex", gap: "5px" }}>
+      <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+        {/* First page button (<<) */}
         <button
           style={{
             backgroundColor: "#ffffff",
             border: "1px solid #e0e0e0",
-            borderRadius: "4px",
+            borderRadius: "6px",
             padding: "8px 12px",
             cursor: currentPage === 0 ? "not-allowed" : "pointer",
-            color: "#666",
-            opacity: currentPage === 0 ? 0.5 : 1,
+            color: currentPage === 0 ? "#ccc" : "#666",
+            opacity: currentPage === 0 ? 0.6 : 1,
+            fontSize: "16px",
+            fontWeight: "500",
+            minWidth: "36px",
+            height: "36px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.2s ease",
           }}
           onClick={() => onPageChange(0)}
           disabled={currentPage === 0}
           title="First page"
-        >
-          &lt;&lt;
-        </button>
-        <button
-          style={{
-            backgroundColor: "#ffffff",
-            border: "1px solid #e0e0e0",
-            borderRadius: "4px",
-            padding: "8px 12px",
-            cursor: currentPage === 0 ? "not-allowed" : "pointer",
-            color: "#666",
-            opacity: currentPage === 0 ? 0.5 : 1,
+          onMouseEnter={(e) => {
+            if (currentPage !== 0) {
+              e.currentTarget.style.borderColor = "#fe535b";
+              e.currentTarget.style.backgroundColor = "#fff5f5";
+            }
           }}
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 0}
-          title="Previous page"
+          onMouseLeave={(e) => {
+            if (currentPage !== 0) {
+              e.currentTarget.style.borderColor = "#e0e0e0";
+              e.currentTarget.style.backgroundColor = "#ffffff";
+            }
+          }}
         >
-          &lt;
+          «
         </button>
 
-        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-          // Tính toán số trang để hiển thị 5 nút phân trang quanh trang hiện tại
-          const pageNumber =
-            currentPage <= 2
-              ? i // Nếu đang ở đầu, hiển thị 5 trang đầu
-              : currentPage >= totalPages - 3
-                ? totalPages - 5 + i // Nếu đang ở cuối, hiển thị 5 trang cuối
-                : currentPage - 2 + i; // Nếu ở giữa, hiển thị 2 trang trước và 2 trang sau
+        {/* Page number buttons */}
+        {pageNumbers.map((pageNum) => (
+          <button
+            key={pageNum}
+            style={{
+              backgroundColor: currentPage === pageNum ? "#fe535b" : "#ffffff",
+              color: currentPage === pageNum ? "white" : "#666",
+              border:
+                currentPage === pageNum
+                  ? "1px solid #fe535b"
+                  : "1px solid #e0e0e0",
+              borderRadius: "6px",
+              padding: "8px 12px",
+              cursor: "pointer",
+              fontWeight: currentPage === pageNum ? "600" : "500",
+              minWidth: "36px",
+              height: "36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "14px",
+              transition: "all 0.2s ease",
+            }}
+            onClick={() => onPageChange(pageNum)}
+            onMouseEnter={(e) => {
+              if (currentPage !== pageNum) {
+                e.currentTarget.style.borderColor = "#fe535b";
+                e.currentTarget.style.backgroundColor = "#fff5f5";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentPage !== pageNum) {
+                e.currentTarget.style.borderColor = "#e0e0e0";
+                e.currentTarget.style.backgroundColor = "#ffffff";
+              }
+            }}
+          >
+            {pageNum + 1}
+          </button>
+        ))}
 
-          // Kiểm tra pageNumber có hợp lệ không
-          if (pageNumber < 0 || pageNumber >= totalPages) return null;
-
-          return (
-            <button
-              key={pageNumber}
-              style={{
-                backgroundColor:
-                  currentPage === pageNumber ? "#ff5a5f" : "#ffffff",
-                color: currentPage === pageNumber ? "white" : "#666",
-                border: currentPage === pageNumber ? "none" : "1px solid #e0e0e0",
-                borderRadius: "4px",
-                padding: "8px 12px",
-                cursor: "pointer",
-                fontWeight: currentPage === pageNumber ? "bold" : "normal",
-                minWidth: "40px",
-              }}
-              onClick={() => onPageChange(pageNumber)}
-            >
-              {pageNumber + 1}
-            </button>
-          );
-        }).filter(Boolean)}
-
+        {/* Last page button (>>) */}
         <button
           style={{
             backgroundColor: "#ffffff",
             border: "1px solid #e0e0e0",
-            borderRadius: "4px",
+            borderRadius: "6px",
             padding: "8px 12px",
             cursor: currentPage >= totalPages - 1 ? "not-allowed" : "pointer",
-            color: "#666",
-            opacity: currentPage >= totalPages - 1 ? 0.5 : 1,
-          }}
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage >= totalPages - 1}
-          title="Next page"
-        >
-          &gt;
-        </button>
-        <button
-          style={{
-            backgroundColor: "#ffffff",
-            border: "1px solid #e0e0e0",
-            borderRadius: "4px",
-            padding: "8px 12px",
-            cursor: currentPage >= totalPages - 1 ? "not-allowed" : "pointer",
-            color: "#666",
-            opacity: currentPage >= totalPages - 1 ? 0.5 : 1,
+            color: currentPage >= totalPages - 1 ? "#ccc" : "#666",
+            opacity: currentPage >= totalPages - 1 ? 0.6 : 1,
+            fontSize: "16px",
+            fontWeight: "500",
+            minWidth: "36px",
+            height: "36px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.2s ease",
           }}
           onClick={() => onPageChange(totalPages - 1)}
           disabled={currentPage >= totalPages - 1}
           title="Last page"
+          onMouseEnter={(e) => {
+            if (currentPage < totalPages - 1) {
+              e.currentTarget.style.borderColor = "#fe535b";
+              e.currentTarget.style.backgroundColor = "#fff5f5";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (currentPage < totalPages - 1) {
+              e.currentTarget.style.borderColor = "#e0e0e0";
+              e.currentTarget.style.backgroundColor = "#ffffff";
+            }
+          }}
         >
-          &gt;&gt;
+          »
         </button>
       </div>
     </div>

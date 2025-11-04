@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { FaPlus } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchRoles,
@@ -39,6 +40,10 @@ export default function RoleList() {
   const [toDate, setToDate] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+
   // Fetch roles 1 lần khi mount
   useEffect(() => {
     dispatch(fetchRoles());
@@ -76,16 +81,33 @@ export default function RoleList() {
     return result;
   }, [roles, searchKeyword, fromDate, toDate, sortConfig]);
 
-  const formatErr = (error) =>
-    error?.response?.data?.message ||
-    error?.message ||
-    (() => {
-      try {
-        return JSON.stringify(error);
-      } catch {
-        return String(error);
-      }
-    })();
+  // Paginated roles
+  const paginatedRoles = useMemo(() => {
+    const startIndex = currentPage * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredRoles.slice(startIndex, endIndex);
+  }, [filteredRoles, currentPage, pageSize]);
+
+  // Total pages
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredRoles.length / pageSize);
+  }, [filteredRoles.length, pageSize]);
+
+  const formatErr = (error) => {
+    // Ưu tiên message từ backend
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    if (error?.message) {
+      // Loại bỏ các prefix kỹ thuật như "Error:", "TypeError:", etc.
+      return error.message.replace(
+        /^(Error|TypeError|ReferenceError):\s*/i,
+        ""
+      );
+    }
+    // Fallback: thông báo chung
+    return "An error occurred. Please try again or contact support.";
+  };
 
   const handleSaveRole = (roleData) => {
     // Guard chống double submit
@@ -101,7 +123,9 @@ export default function RoleList() {
           toast.success("Role updated successfully!");
         })
         .catch((error) => {
-          toast.error(`Failed to update role: ${formatErr(error)}`);
+          console.error("Update role error:", error); // Log đầy đủ cho dev
+          const userMessage = formatErr(error);
+          toast.error(`Failed to update role. ${userMessage}`);
         })
         .finally(() => setActionLoading(false));
     } else {
@@ -113,7 +137,9 @@ export default function RoleList() {
           toast.success("Role created successfully!");
         })
         .catch((error) => {
-          toast.error(`Failed to create role: ${formatErr(error)}`);
+          console.error("Create role error:", error); // Log đầy đủ cho dev
+          const userMessage = formatErr(error);
+          toast.error(`Failed to create role. ${userMessage}`);
         })
         .finally(() => setActionLoading(false));
     }
@@ -124,9 +150,20 @@ export default function RoleList() {
     setSearchKeyword(keyword);
     setFromDate(from);
     setToDate(to);
+    setCurrentPage(0); // Reset về trang đầu khi search
   };
   const handleSort = (key, direction) => {
     setSortConfig({ key, direction });
+  };
+
+  // Pagination handlers
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setCurrentPage(0); // Reset về trang đầu khi đổi page size
   };
 
   // Handlers cho các action buttons
@@ -146,27 +183,24 @@ export default function RoleList() {
     setIsModalOpen(true);
   };
   const handleDelete = (code) => {
-    if (window.confirm("Are you sure you want to delete this role?")) {
-      setActionLoading(true);
-      dispatch(deleteRole(code))
-        .unwrap()
-        .then(() => {
-          dispatch(fetchRoles());
-          alert("Role deleted successfully");
-        })
-        .catch((error) => {
-          alert(
-            `Failed to delete: ${
-              error?.message ||
-              error?.response?.data?.message ||
-              "Unknown error"
-            }`
-          );
-        })
-        .finally(() => {
-          setActionLoading(false);
-        });
-    }
+    // Guard chống double submit
+    if (actionLoading) return;
+    setActionLoading(true);
+
+    dispatch(deleteRole(code))
+      .unwrap()
+      .then(() => {
+        dispatch(fetchRoles());
+        toast.success("Role deleted successfully");
+      })
+      .catch((error) => {
+        console.error("Delete role error:", error); // Log đầy đủ cho dev
+        const userMessage = formatErr(error);
+        toast.error(`Failed to delete role. ${userMessage}`);
+      })
+      .finally(() => {
+        setActionLoading(false);
+      });
   };
 
   return (
@@ -183,30 +217,65 @@ export default function RoleList() {
           overflowX: "auto",
         }}
       >
-        <h2
+        <div
           style={{
-            fontSize: "18px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
             marginBottom: "20px",
-            color: "#fe535b",
-            fontWeight: "600",
+            gap: 12,
           }}
         >
-          User Roles
-        </h2>
-        {errorText && (
+          <h2
+            style={{
+              fontSize: "18px",
+              margin: 0,
+              color: "#fe535b",
+              fontWeight: "600",
+            }}
+          >
+            User Roles
+          </h2>
+          <button
+            type="button"
+            onClick={handleAddRole}
+            style={{
+              backgroundColor: "#fe535b",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              padding: "8px 15px",
+              fontWeight: "bold",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              fontSize: "14px",
+            }}
+          >
+            <FaPlus style={{ marginRight: 6 }} />
+            Add New Role
+          </button>
+        </div>
+        {/* {errorText && (
           <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
             Error: {errorText}
           </div>
-        )}
+        )} */}
 
         <RoleTable
-          roles={filteredRoles}
+          roles={paginatedRoles}
           onSearch={handleSearch}
           onSort={handleSort}
           onView={handleViewRole}
           onEdit={handleEditRole}
           onDelete={handleDelete}
           onAdd={handleAddRole}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          totalElements={filteredRoles.length}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
         />
 
         {loading && (
