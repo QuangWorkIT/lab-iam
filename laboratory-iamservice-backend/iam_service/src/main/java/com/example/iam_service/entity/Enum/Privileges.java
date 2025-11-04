@@ -33,7 +33,7 @@ public enum Privileges {
     LOCK_UNLOCK_USER("Have right to lock or unlock a user"),
 
     // Role Management (Laboratory Management)
-    VIEW_ROLE("Have right to view all role privileges"),
+    VIEW_ROLE("Have right to view all role"),
     CREATE_ROLE("Have right to create a new custom role"),
     UPDATE_ROLE("Have right to modify privileges of custom role"),
     DELETE_ROLE("Have right to delete a custom role"),

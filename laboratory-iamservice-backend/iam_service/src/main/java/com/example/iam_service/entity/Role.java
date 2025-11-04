@@ -93,6 +93,15 @@ public class Role {
 
     @Transient
     @Schema(hidden = true)
+    public boolean hasPrivilege(Privileges[] privilegeArray) {
+        if (privileges == null || privileges.isEmpty()) {
+            return false;
+        }
+        return privileges.containsAll(Arrays.asList(privilegeArray));
+    }
+
+    @Transient
+    @Schema(hidden = true)
     public boolean hasAllPrivileges(Privileges... privilegeEnum) {
         return this.privileges != null && !this.privileges.isEmpty()
                 && this.privileges.containsAll(Arrays.asList(privilegeEnum));
@@ -100,9 +109,12 @@ public class Role {
 
     @Transient
     @Schema(hidden = true)
-    public boolean hasAnyPrivilege(Privileges...privilegeEnum) {
-        return this.privileges != null && !this.privileges.isEmpty()
-                && Arrays.stream(privilegeEnum).anyMatch(this.privileges::contains);
+    public boolean hasAnyPrivileges(Privileges[] privilegeArray) {
+        if (privileges == null || privileges.isEmpty()) {
+            return false;
+        }
+        return Arrays.stream(privilegeArray)
+                .anyMatch(privileges::contains);
     }
 
     @Schema(hidden = true)

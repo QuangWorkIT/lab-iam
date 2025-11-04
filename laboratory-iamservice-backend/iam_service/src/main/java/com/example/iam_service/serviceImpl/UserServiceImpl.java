@@ -4,10 +4,12 @@ import com.example.iam_service.audit.AuditEvent;
 import com.example.iam_service.audit.AuditPublisher;
 import com.example.iam_service.dto.user.AdminUpdateUserDTO;
 import com.example.iam_service.dto.user.UpdateUserProfileDTO;
+import com.example.iam_service.entity.Enum.Privileges;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.external.PatientVerificationService;
 import com.example.iam_service.mapper.UserMapper;
 import com.example.iam_service.repository.UserRepository;
+import com.example.iam_service.security.PrivilegesRequired;
 import com.example.iam_service.service.EmailService;
 import com.example.iam_service.service.UserService;
 import com.example.iam_service.util.AuditDiffUtil;
@@ -43,6 +45,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @PrivilegesRequired(values =Privileges.CREATE_USER, requireAll = true)
     public User createUser(User user) {
         User actor = securityUtil.getCurrentUser();
         validateUniqueEmail(user.getEmail());
@@ -78,6 +81,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PrivilegesRequired(values =Privileges.VIEW_USER, requireAll = true)
     public Optional<User> getUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
@@ -87,11 +91,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PrivilegesRequired(values =Privileges.VIEW_USER, requireAll = true)
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
     @Override
+    @PrivilegesRequired(values =Privileges.VIEW_USER, requireAll = true)
     public List<User> getInactiveUsers() {
         return userRepository.findByIsActiveFalse();
     }
@@ -125,6 +131,7 @@ public class UserServiceImpl implements UserService {
                 .build());
     }
 
+    @PrivilegesRequired(values =Privileges.VIEW_USER, requireAll = true)
     public Optional<User> getUserById(UUID id) {
         return userRepository.findById(id);
     }
@@ -165,6 +172,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @PrivilegesRequired(values =Privileges.MODIFY_USER, requireAll = true)
     public User adminUpdateUser(UUID id, AdminUpdateUserDTO dto) {
         User actor = securityUtil.getCurrentUser();
         User user = userRepository.findById(id)
