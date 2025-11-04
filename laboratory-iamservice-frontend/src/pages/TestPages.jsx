@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { login, logout } from "../redux/features/userSlice";
 import api from "../configs/axios.js";
 import MainLayout from "../components/layout/MainLayout";
+import NotificationDropDown from "../components/common/NotificationDropdown.jsx"
 
 export default function TestPages() {
   const dispatch = useDispatch();
@@ -54,6 +55,8 @@ export default function TestPages() {
 
           <Button onClick={() => fetchRoles()}>Get roles</Button>
         </Card>
+
+        <NotificationDropDown></NotificationDropDown>
       </div>
     </MainLayout>
   );

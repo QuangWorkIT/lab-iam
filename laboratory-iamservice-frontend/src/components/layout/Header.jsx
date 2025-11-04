@@ -1,15 +1,34 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaHeartbeat, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { FaHeartbeat, FaCog, FaSignOutAlt, FaCheckCircle, FaExclamationCircle, FaRegDotCircle } from "react-icons/fa";
 import { logout } from "../../redux/features/userSlice";
 import UserDetailModal from "../common/UserDetailModal";
 import { DoubleRightOutlined } from "@ant-design/icons"
 import { motion, AnimatePresence } from "motion/react"
+import NotificationDropdown from "../common/NotificationDropdown";
+import { Tooltip } from "antd";
+
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.user);
-
+  const notifyItems = [
+    {
+      key: '1',
+      label: 'Success 1',
+      icon: <FaCheckCircle color="#52c41a" style={{ fontSize: "14px" }} />
+    },
+    {
+      key: '2',
+      label: 'Warning 2',
+      icon: <FaExclamationCircle color="#ffcc00" style={{ fontSize: "14px" }}/>
+    },
+    {
+      key: '3',
+      label: 'Processing 3',
+      icon: <FaRegDotCircle  color="#40a6ce" style={{ fontSize: "14px" }}/>
+    },
+  ]
   // Confirm modal state
   const [showConfirm, setShowConfirm] = useState(false);
   const confirmBtnRef = useRef(null);
@@ -198,19 +217,22 @@ export default function Header({ pageTitle }) {
               [{userInfo?.userName || "User"}]
             </span>
           </div>
-          <div style={{ display: "flex", gap: "15px" }}>
-            <FaCog
-              style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
-              title="View User Details"
-              onClick={handleViewUserDetail}
-              className="hover:scale-120 transition-all duration-300 ease-in-out"
-            />
-            <FaSignOutAlt
-              style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
-              title="Logout"
-              onClick={handleLogout}
-              className="hover:scale-120 transition-all duration-300 ease-in-out"
-            />
+          <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
+            <NotificationDropdown  items={notifyItems}/>
+            <Tooltip title={"User details"}>
+              <FaCog
+                style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
+                onClick={handleViewUserDetail}
+                className="hover:scale-120 transition-all duration-300 ease-in-out"
+              />
+            </Tooltip>
+            <Tooltip title={"Logout"} placement="bottomLeft">
+              <FaSignOutAlt
+                style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
+                onClick={handleLogout}
+                className="hover:scale-120 transition-all duration-300 ease-in-out"
+              />
+            </Tooltip>
           </div>
         </div>
       </header>
@@ -283,7 +305,7 @@ export default function Header({ pageTitle }) {
                 user={getUserDetailData()}
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}
-                onRefresh={() => {}}
+                onRefresh={() => { }}
               />
             </motion.div>
           </motion.div>

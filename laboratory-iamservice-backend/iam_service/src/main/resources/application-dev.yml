@@ -5,9 +5,9 @@ spring:
   application:
     name: iam-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/lab_db
-    username: postgres
-    password: db@pass12345
+    url: jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
+    username: postgres.ydpwctmqgqkdwciijwbt
+    password: db@pass1234511
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
