@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        return userRepository.findAllByIsDeletedFalse();
     }
 
     @Override
@@ -300,6 +300,48 @@ public class UserServiceImpl implements UserService {
                                     .collect(Collectors.joining(", ")))
                     .build());
         }
+    }
+
+    @Override
+    public List<User> getDeletedUsers() {
+        return userRepository.findAllByIsDeletedTrueOrDeletedAtIsNotNull();
+    }
+
+    @Transactional
+    public void restoreUser(UUID userId) {
+        User actor = securityUtil.getCurrentUser();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found."));
+
+        boolean isPatient = "ROLE_PATIENT".equalsIgnoreCase(user.getRoleCode());
+
+        if (isPatient) {
+            // Patient can only be restored if they’re not yet deleted, but deletion is scheduled
+            if (Boolean.TRUE.equals(user.getIsDeleted()) || user.getDeletedAt() == null) {
+                throw new IllegalStateException("Patient cannot be restored (already deleted or no deletion request found).");
+            }
+        } else {
+            // Non-patient can only be restored if fully deleted
+            if (!Boolean.TRUE.equals(user.getIsDeleted())) {
+                throw new IllegalStateException("Employee or admin is not deleted; cannot restore.");
+            }
+        }
+
+        // bring them back
+        user.setIsDeleted(false);
+        user.setDeletedAt(null);
+        user.setIsActive(true);
+
+        userRepository.save(user);
+
+        auditPublisher.publish(AuditEvent.builder()
+                .eventType("USER_RESTORED")
+                .actor(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                .target(String.valueOf(user.getUserId()))
+                .role(user.getRoleCode())
+                .timestamp(OffsetDateTime.now())
+                .details("User account restored by admin.")
+                .build());
     }
 
 

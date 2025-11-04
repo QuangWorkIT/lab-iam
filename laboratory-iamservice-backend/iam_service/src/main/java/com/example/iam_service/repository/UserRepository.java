@@ -38,4 +38,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
                         @Param("oldRoleCode") String oldRoleCode);
 
     List<User> findAllByIsDeletedFalseAndDeletedAtBefore(LocalDateTime now);
+    List<User> findAllByIsDeletedTrueOrDeletedAtIsNotNull();
+    List<User> findAllByIsDeletedFalse();
+
+
 }
