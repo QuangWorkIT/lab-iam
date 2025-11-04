@@ -39,7 +39,9 @@ CREATE TABLE "User" (
    roleCode VARCHAR(255) REFERENCES "Role"(role_code),
    isActive BOOLEAN,
    createdAt DATE,
-   version BIGINT DEFAULT 0
+   version BIGINT DEFAULT 0,
+   isDeleted BOOLEAN DEFAULT FALSE,
+   deletedAt TIMESTAMP NULL
 );
 
 CREATE TABLE "Token" (
