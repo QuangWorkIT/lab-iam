@@ -2,6 +2,7 @@ package com.example.iam_service.dto.user;
 
 import lombok.Data;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -17,4 +18,6 @@ public class UserDTO {
     private String roleCode;
     private Boolean isActive;
     private LocalDate createdAt;
+    private Boolean isDeleted;
+    private LocalDateTime deletedAt;
 }

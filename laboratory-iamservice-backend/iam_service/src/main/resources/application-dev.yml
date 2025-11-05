@@ -7,9 +7,9 @@ spring:
   application:
     name: iam-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/lab_db
+    username: postgres
+    password: db@pass12345
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -36,6 +36,7 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
+    instance-id: iam-service:8089:8089
 
 management:
   endpoints:

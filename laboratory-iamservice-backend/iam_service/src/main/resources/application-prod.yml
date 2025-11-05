@@ -34,7 +34,8 @@ eureka:
     register-with-eureka: true      # Cho phép đăng ký với Eureka
     fetch-registry: true            # Cho phép lấy danh sách các service khác
     service-url:
-      defaultZone: http://23.23.152.34:8761/eureka/
+#      defaultZone: http://23.23.152.34:8761/eureka/ -> cho deploy register server
+      defaultZone: http://service-registry:8761/eureka/
   instance:
     prefer-ip-address: true         # Dùng IP thay vì hostname (tránh lỗi trong Docker)
     instance-id : iam-service:8089

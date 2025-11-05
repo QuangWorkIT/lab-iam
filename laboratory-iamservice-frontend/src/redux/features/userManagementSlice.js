@@ -23,13 +23,16 @@ function mapUserDTOToUI(dto) {
     return {
         id: dto.userId,
         name: dto.fullName || "",
+        fullName: dto.fullName || "",
         email: dto.email || "",
         role: dto.roleCode || dto.rolecode || dto.role || "",
+        roleCode: dto.roleCode || "",
         createdAt: dto.createdAt || null,
         isActive: dto.isActive ?? true,
-        identifyNumber: dto.identityNumber || "",
+        identityNumber: dto.identityNumber || "",
         phoneNumber: dto.phoneNumber || dto.phone || "",
         gender: dto.gender || "",
+        birthdate: dto.birthdate || dto.dateOfBirth || dto.birthDate || dto.dob || null,
         dateOfBirth: dto.birthdate || dto.dateOfBirth || dto.birthDate || dto.dob || null,
         age: dto.age || null,
         address: dto.address || "",
@@ -264,6 +267,59 @@ export const fetchRolesForUser = createAsyncThunk(
     }
 );
 
+/**
+ * API: PUT /api/users/{id}/profile
+ * Update user's own profile
+ * Body: { fullName, phoneNumber, gender, dateOfBirth, address }
+ */
+export const updateOwnProfile = createAsyncThunk(
+    "userManagement/updateOwnProfile",
+    async ({ userId, profileData }, { rejectWithValue }) => {
+        try {
+            const response = await api.put(`/api/users/${userId}/profile`, {
+                fullName: profileData.fullName,
+                phoneNumber: profileData.phoneNumber,
+                gender: profileData.gender,
+                dateOfBirth: profileData.birthdate,
+                address: profileData.address
+            });
+            return mapUserDTOToUI(response.data);
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || "Failed to update profile"
+            );
+        }
+    }
+);
+
+/**
+ * API: PUT /api/users/{id}
+ * Update user by admin (full update with all fields)
+ * Body: { fullName, phoneNumber, identityNumber, gender, birthdate, address, isActive, roleCode }
+ */
+export const updateUserByAdmin = createAsyncThunk(
+    "userManagement/updateUserByAdmin",
+    async ({ userId, userData }, { rejectWithValue }) => {
+        try {
+            const response = await api.put(`/api/users/${userId}`, {
+                fullName: userData.fullName,
+                phoneNumber: userData.phoneNumber,
+                identityNumber: userData.identityNumber,
+                gender: userData.gender,
+                birthdate: userData.birthdate,
+                address: userData.address,
+                isActive: userData.isActive,
+                roleCode: userData.roleCode
+            });
+            return mapUserDTOToUI(response.data);
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || "Failed to update user"
+            );
+        }
+    }
+);
+
 const userManagementSlice = createSlice({
     name: "userManagement",
     initialState,
@@ -370,6 +426,48 @@ const userManagementSlice = createSlice({
             })
             .addCase(fetchRolesForUser.rejected, (state, action) => {
                 state.rolesLoading = false;
+                state.error = action.payload || action.error.message;
+            })
+            // Update own profile
+            .addCase(updateOwnProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateOwnProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                // Update userDetail if it's the same user
+                if (state.userDetail && state.userDetail.id === action.payload.id) {
+                    state.userDetail = action.payload;
+                }
+                // Update in users array if exists
+                const index = state.users.findIndex(u => u.id === action.payload.id);
+                if (index !== -1) {
+                    state.users[index] = action.payload;
+                }
+            })
+            .addCase(updateOwnProfile.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || action.error.message;
+            })
+            // Update user by admin
+            .addCase(updateUserByAdmin.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateUserByAdmin.fulfilled, (state, action) => {
+                state.loading = false;
+                // Update userDetail if it's the same user
+                if (state.userDetail && state.userDetail.id === action.payload.id) {
+                    state.userDetail = action.payload;
+                }
+                // Update in users array
+                const index = state.users.findIndex(u => u.id === action.payload.id);
+                if (index !== -1) {
+                    state.users[index] = action.payload;
+                }
+            })
+            .addCase(updateUserByAdmin.rejected, (state, action) => {
+                state.loading = false;
                 state.error = action.payload || action.error.message;
             });
     },
