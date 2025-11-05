@@ -1,6 +1,6 @@
-import { FaUser, FaTimes, FaSyncAlt } from "react-icons/fa";
+import { FaUser, FaTimes } from "react-icons/fa";
 import { Tooltip } from "antd";
-import { CheckCircleTwoTone, EditOutlined, ArrowLeftOutlined, ExclamationCircleTwoTone } from '@ant-design/icons';
+import { CheckCircleTwoTone, EditOutlined, ArrowLeftOutlined, ExclamationCircleTwoTone, InfoCircleOutlined } from '@ant-design/icons';
 import ResetPassWord from "../modules/auth/ResetPassWordForm.jsx";
 import { useState, useEffect } from "react"
 import { getRoleName } from "../../utils/formatter.js"
@@ -120,9 +120,8 @@ function LeftPanel({ user, statusColor, statusText }) {
 }
 
 // Right Panel Component - Detailed Information
-function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsResetPassWordOpen, userId, onOpenUpdate, onDeleteAccount }) {
+function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpen, onOpenUpdate, onDeleteAccount }) {
     const { userInfo } = useSelector((state) => state.user)
-    const dispatch = useDispatch();
     const canUpdate = userInfo.id === propUser.id;
 
     // Check if user has PATIENT role (handle both "PATIENT" and "ROLE_PATIENT" formats)
@@ -139,16 +138,6 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
         propUserId: propUser.id,
         propUser
     });
-
-    // Handle refresh - re-fetch user from API
-    const handleRefresh = () => {
-        if (userId || propUser?.id) {
-            dispatch(fetchUserById(userId || propUser.id));
-        }
-        if (onRefresh) {
-            onRefresh();
-        }
-    };
 
     // Helper function to render an information field
     const renderField = (label, value) => (
@@ -182,6 +171,22 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                         className="text-[#5170ff] hover:text-[#748cfc] transition-all duration-300 ease"
                     >
                         {label}
+                        {label === "Identity Number" && userInfo.id === propUser.id &&
+                            <Tooltip 
+                                placement="top" 
+                                title="To update your Identity Number, please contact an administrator"
+                                overlayStyle={{ maxWidth: '250px' }}
+                                color="#000000"
+                            >
+                                <InfoCircleOutlined 
+                                    className="ml-2 text-[14px] cursor-pointer"
+                                    style={{ 
+                                        color: "#000000",
+                                        verticalAlign: "middle"
+                                    }}
+                                />
+                            </Tooltip>
+                        }
                         {label === "Password" && userInfo.id === propUser.id &&
                             <Tooltip placement="top" title={"Change password"} >
                                 <button
@@ -226,46 +231,6 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                 minHeight: "400px",
             }}
         >
-            {/* Refresh Button */}
-            <button
-                onClick={handleRefresh}
-                style={{
-                    position: "absolute",
-                    bottom: "20px",
-                    right: "20px",
-                    width: "auto",
-                    height: "auto",
-                    border: "none",
-                    borderRadius: "0",
-                    backgroundColor: "transparent",
-                    color: "#6f42c1",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "none",
-                    fontSize: "18px",
-                    fontWeight: "bold",
-                    transition: "all 0.2s ease",
-                    zIndex: 9999,
-                    padding: "8px",
-                    outline: "none",
-                }}
-                onMouseEnter={(e) => {
-                    e.target.style.color = "#4c3398";
-                    e.target.style.transform = "scale(1.2)";
-                }}
-                onMouseLeave={(e) => {
-                    e.target.style.color = "#6f42c1";
-                    e.target.style.transform = "scale(1)";
-                }}
-                aria-label="Refresh"
-            >
-                <FaSyncAlt />
-            </button>
-
-            {/* Update button removed as requested */}
-
             {/* User Information Grid */}
             <div
                 style={{
@@ -314,7 +279,7 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                 </div>
             </div>
 
-            {/* Action buttons: Delete → Update → Refresh */}
+            {/* Action buttons: Delete → Update */}
             {canUpdate && (
                 <>
                     {/* Delete Account button - only for PATIENT role */}
@@ -324,7 +289,7 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                             style={{
                                 position: "absolute",
                                 bottom: "20px",
-                                right: "155px",
+                                right: "90px",
                                 padding: "8px 12px",
                                 backgroundColor: "#ff5a5f",
                                 color: "white",
@@ -349,7 +314,7 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                         style={{
                             position: "absolute",
                             bottom: "20px",
-                            right: isPatient ? "70px" : "60px",
+                            right: "20px",
                             padding: "8px 12px",
                             backgroundColor: "#28a745",
                             color: "white",
@@ -643,9 +608,9 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -40 }}
                             transition={{ duration: 0.3, ease: "easeInOut" }}
-                            className="w-full flex justify-start"
+                            className="w-full flex justify-center items-center"
                         >
-                            <div style={{ width: "320px", maxWidth: "80vw", padding: 16, marginLeft: 40, marginRight: 20, boxSizing: "border-box" }}>
+                            <div style={{ width: "100%", maxWidth: "520px", padding: "16px 30px", boxSizing: "border-box" }}>
                                 <UpdateSelfForm
                                     user={displayUser}
                                     onCancel={() => setIsSelfUpdateOpen(false)}
@@ -664,11 +629,9 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
                         >
                             <RightPanel
                                 propUser={displayUser}
-                                onRefresh={onRefresh}
                                 formatDate={formatDate}
                                 getGenderText={getGenderText}
                                 setIsResetPassWordOpen={setIsResetPassWordOpen}
-                                userId={targetUserId}
                                 onOpenUpdate={() => setIsSelfUpdateOpen(true)}
                                 onDeleteAccount={handleDeleteAccount}
                             />
