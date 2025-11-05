@@ -70,7 +70,7 @@ public class Role {
 
     @Column(name = "role_deletable", nullable = false, columnDefinition = "boolean default false")
     @Schema(description = "Indicates whether the role deletable",
-            example = "false", defaultValue = "true")
+            example = "false")
     private boolean deletable;
 
     @PrePersist

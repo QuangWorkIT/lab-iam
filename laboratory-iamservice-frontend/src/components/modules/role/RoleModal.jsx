@@ -63,6 +63,7 @@ export default function RoleModal({
     description: "",
     privileges: [],
     isActive: true,
+    deletable: true
   });
   // Inline validation for required fields
   const [errors, setErrors] = useState({ name: "", description: "" });
@@ -110,14 +111,16 @@ export default function RoleModal({
         description: role.description || "",
         privileges: privArr,
         isActive: role.isActive !== undefined ? role.isActive : true,
+         deletable: role.deletable || false,
       });
     } else {
       setFormData({
-        code: "",
-        name: "",
-        description: "",
-        privileges: [],
-        isActive: true,
+       code: "",
+      name: "",
+      description: "",
+      privileges: [],
+      isActive: true,
+      deletable: false,
       });
     }
     // Reset field errors when modal opens or role changes
@@ -166,9 +169,7 @@ export default function RoleModal({
         descRef.current.focus();
       return;
     }
-    // if (formData.privileges.length === 0) {
-    //   return alert("Please select at least one privilege");
-    // }
+    
 
     const formattedData = {
       code: "", // ← Send empty, backend generates it
@@ -176,6 +177,7 @@ export default function RoleModal({
       description: formData.description,
       privileges: formData.privileges.join(","),
       isActive: formData.isActive,
+      deletable: formData.deletable,
     };
 
     onSave(formattedData);
@@ -549,6 +551,29 @@ export default function RoleModal({
                   ))}
                 </div>
               </Field>
+
+ <div style={{ marginTop: 6 }}>
+          <label
+            style={{ display: "flex", alignItems: "center", gap: 10 }}
+          >
+            <input
+              type="checkbox"
+              name="deletable"
+              checked={formData.deletable}
+              onChange={handleChange}
+              style={{ width: 16, height: 16 }}
+            />
+            <span
+              style={{ color: "#404553", fontSize: 13, fontWeight: 600 }}
+            >
+              Allow Role Deletion (Advanced Setting)
+            </span>
+          </label>
+          <div style={{ marginLeft: 26, marginTop: 4, color: "#6b7280", fontSize: 12 }}>
+            Enable to allow role deletion. When disabled, the role cannot be deleted even if no users are assigned.
+          </div>
+        </div>
+
               <div style={{ marginTop: 6 }}>
                 <label
                   style={{ display: "flex", alignItems: "center", gap: 10 }}
