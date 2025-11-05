@@ -33,9 +33,9 @@ public class UserCleanupScheduler {
         } catch (Exception e) {
             log.error("❌ Patient deletion & anonymization job FAILED: {}", e.getMessage(), e);
             auditPublisher.publish(AuditEvent.builder()
-                    .eventType("SYSTEM_JOB_FAILURE")
-                    .actor("System Scheduler")
-                    .role("SYSTEM")
+                    .type("SYSTEM_JOB_FAILURE")
+                    .userId("System Scheduler")
+                    .targetRole("SYSTEM")
                     .timestamp(OffsetDateTime.now())
                     .details("Patient deletion & anonymization job failed with error: " + e.getMessage())
                     .build());

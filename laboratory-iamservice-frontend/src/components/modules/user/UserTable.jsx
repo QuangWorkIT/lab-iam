@@ -26,6 +26,25 @@ export default function UserTable({
   isSearching = false,
 }) {
   const [filteredUsers, setFilteredUsers] = useState(users);
+  const [confirmState, setConfirmState] = useState({ open: false, user: null });
+
+  // Handler to open confirm dialog
+  const requestDelete = (user) => {
+    setConfirmState({ open: true, user });
+  };
+
+  // Handler to confirm delete
+  const handleConfirmDelete = () => {
+    if (confirmState.user && onDelete) {
+      onDelete(confirmState.user.id);
+    }
+    setConfirmState({ open: false, user: null });
+  };
+
+  // Handler to cancel delete
+  const handleCancelDelete = () => {
+    setConfirmState({ open: false, user: null });
+  };
 
   // Fetch roles for role filter options (moved from previous wrapper)
   const dispatch = useDispatch();
@@ -435,7 +454,7 @@ export default function UserTable({
                       user={user}
                       onView={onView}
                       onEdit={onEdit}
-                      onDelete={onDelete}
+                      onDelete={requestDelete}
                     />
                   </td>
                 </tr>
@@ -454,6 +473,130 @@ export default function UserTable({
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
       />
+
+      {/* Confirmation Dialog */}
+      {confirmState.open && (
+        <ConfirmDialog
+          title="Delete User"
+          message={`Are you sure you want to delete user "${
+            confirmState.user?.name || confirmState.user?.email || "this user"
+          }"?`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
+      )}
+    </div>
+  );
+}
+
+// Confirmation Dialog Component
+function ConfirmDialog({
+  title = "Confirm",
+  message,
+  confirmText = "OK",
+  cancelText = "Cancel",
+  onConfirm,
+  onCancel,
+}) {
+  return (
+    <div
+      onClick={onCancel}
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1100,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff",
+          borderRadius: 12,
+          boxShadow: "0 12px 30px rgba(0,0,0,0.2)",
+          width: 420,
+          maxWidth: "90%",
+          padding: "24px",
+        }}
+      >
+        {/* Header */}
+        <div style={{ marginBottom: 16 }}>
+          <div
+            style={{
+              color: "#fe535b",
+              fontWeight: 800,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              fontSize: 16,
+              marginBottom: 8,
+            }}
+          >
+            {title}
+          </div>
+          <div
+            style={{
+              color: "#404553",
+              fontSize: 14,
+              lineHeight: 1.5,
+            }}
+          >
+            {message}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 10,
+            paddingTop: 16,
+            borderTop: "1px solid #f0f2f5",
+          }}
+        >
+          <button
+            onClick={onCancel}
+            style={{
+              padding: "10px 16px",
+              border: "1px solid #e1e7ef",
+              borderRadius: 8,
+              backgroundColor: "#ffffff",
+              color: "#404553",
+              cursor: "pointer",
+              fontSize: 14,
+              fontWeight: 600,
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f7f9fc")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+          >
+            {cancelText}
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              padding: "10px 18px",
+              border: "none",
+              borderRadius: 8,
+              backgroundColor: "#fe535b",
+              color: "#fff",
+              fontWeight: 700,
+              cursor: "pointer",
+              fontSize: 14,
+              transition: "background-color 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e64b52")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fe535b")}
+          >
+            {confirmText}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

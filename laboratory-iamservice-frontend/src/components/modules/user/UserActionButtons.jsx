@@ -48,7 +48,7 @@ export default function UserActionButtons({ onView, onEdit, onDelete, user }) {
                         fontSize: "18px",
                     }}
                     title="Delete"
-                    onClick={() => onDelete(user.id)}
+                    onClick={() => onDelete(user)}
                 >
                     <FiTrash2 size={18} />
                 </button>

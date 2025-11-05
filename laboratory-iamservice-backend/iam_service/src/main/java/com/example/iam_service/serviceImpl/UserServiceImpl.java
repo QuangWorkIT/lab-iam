@@ -4,7 +4,6 @@ import com.example.iam_service.audit.AuditEvent;
 import com.example.iam_service.audit.AuditPublisher;
 import com.example.iam_service.dto.user.AdminUpdateUserDTO;
 import com.example.iam_service.dto.user.UpdateUserProfileDTO;
-import com.example.iam_service.entity.Enum.Privileges;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.external.PatientVerificationService;
 import com.example.iam_service.mapper.UserMapper;
@@ -20,7 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
@@ -65,10 +63,10 @@ public class UserServiceImpl implements UserService {
         if ("ROLE_PATIENT".equalsIgnoreCase(savedUser.getRoleCode()) && plainPassword != null) {
             emailService.sendPasswordEmail(savedUser.getEmail(), plainPassword);
             auditPublisher.publish(AuditEvent.builder()
-                    .eventType("PATIENT_CREATED")
-                    .actor(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                    .type("PATIENT_CREATED")
+                    .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
                     .target(String.valueOf(savedUser.getUserId()))
-                    .role(savedUser.getRoleCode())
+                    .targetRole(savedUser.getRoleCode())
                     .timestamp(OffsetDateTime.now())
                     .details("Patient account created and credentials emailed")
                     .build());
@@ -116,10 +114,10 @@ public class UserServiceImpl implements UserService {
         userRepository.save(target);
 
         auditPublisher.publish(AuditEvent.builder()
-                .eventType("ACCOUNT_ACTIVATED")
-                .actor(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                .type("ACCOUNT_ACTIVATED")
+                .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
                 .target(String.valueOf(target.getUserId()))
-                .role(target.getRoleCode()) //
+                .targetRole(target.getRoleCode()) //
                 .timestamp(OffsetDateTime.now())
                 .details("User account activated")
                 .build());
@@ -156,10 +154,10 @@ public class UserServiceImpl implements UserService {
 
         // publish the audit log
         auditPublisher.publish(AuditEvent.builder()
-                .eventType("SELF_PROFILE_UPDATED")
-                .actor(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                .type("SELF_PROFILE_UPDATED")
+                .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
                 .target(String.valueOf(user.getUserId()))
-                .role(user.getRoleCode())
+                .targetRole(user.getRoleCode())
                 .timestamp(OffsetDateTime.now())
                 .details(diffDetails)
                 .build());
@@ -194,10 +192,10 @@ public class UserServiceImpl implements UserService {
 
         // publish the audit log
         auditPublisher.publish(AuditEvent.builder()
-                .eventType("USER_UPDATED")
-                .actor(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                .type("USER_UPDATED")
+                .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
                 .target(String.valueOf(user.getUserId()))
-                .role(user.getRoleCode())
+                .targetRole(user.getRoleCode())
                 .timestamp(OffsetDateTime.now())
                 .details(diffDetails)
                 .build());
@@ -231,10 +229,10 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         auditPublisher.publish(AuditEvent.builder()
-                .eventType("USER_SELF_DELETION")
-                .actor(user.getUserId() + " (" + user.getRoleCode() + ")")
+                .type("USER_SELF_DELETION")
+                .userId(user.getUserId() + " (" + user.getRoleCode() + ")")
                 .target(String.valueOf(user.getUserId()))
-                .role(user.getRoleCode())
+                .targetRole(user.getRoleCode())
                 .timestamp(OffsetDateTime.now())
                 .details("Patient requested their own account deletion.")
                 .build());
@@ -259,10 +257,10 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         auditPublisher.publish(AuditEvent.builder()
-                .eventType("USER_DELETE")
-                .actor(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                .type("USER_DELETE")
+                .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
                 .target(String.valueOf(user.getUserId()))
-                .role(user.getRoleCode())
+                .targetRole(user.getRoleCode())
                 .timestamp(OffsetDateTime.now())
                 .details("System admin deletes user.")
                 .build());
@@ -290,9 +288,9 @@ public class UserServiceImpl implements UserService {
 
         if (!expired.isEmpty()) {
             auditPublisher.publish(AuditEvent.builder()
-                    .eventType("SYSTEM_USER_DEACTIVATION_ANONYMIZATION_BATCH")
-                    .actor("System Scheduler")
-                    .role("SYSTEM")
+                    .type("SYSTEM_USER_DEACTIVATION_ANONYMIZATION_BATCH")
+                    .userId("System Scheduler")
+                    .targetRole("SYSTEM")
                     .timestamp(OffsetDateTime.now())
                     .details("Anonymized " + expired.size() + " user(s). IDs: " +
                             expired.stream()
@@ -335,10 +333,10 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         auditPublisher.publish(AuditEvent.builder()
-                .eventType("USER_RESTORED")
-                .actor(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                .type("USER_RESTORED")
+                .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
                 .target(String.valueOf(user.getUserId()))
-                .role(user.getRoleCode())
+                .targetRole(user.getRoleCode())
                 .timestamp(OffsetDateTime.now())
                 .details("User account restored by admin.")
                 .build());
@@ -377,20 +375,20 @@ public class UserServiceImpl implements UserService {
             // non-admin (lab manager, etc.) creates account → requires approval
             user.setIsActive(false);
             auditPublisher.publish(AuditEvent.builder()
-                    .eventType("USER_CREATED_PENDING_APPROVAL")
-                    .actor(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                    .type("USER_CREATED_PENDING_APPROVAL")
+                    .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
                     .target(String.valueOf(user.getUserId()))
-                    .role(user.getRoleCode())
+                    .targetRole(user.getRoleCode())
                     .timestamp(OffsetDateTime.now())
                     .details("Account created by non-admin and awaiting admin approval")
                     .build());
         } else {
             user.setIsActive(true);
             auditPublisher.publish(AuditEvent.builder()
-                    .eventType("USER_CREATED")
-                    .actor(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                    .type("USER_CREATED")
+                    .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
                     .target(String.valueOf(user.getUserId()))
-                    .role(user.getRoleCode())
+                    .targetRole(user.getRoleCode())
                     .timestamp(OffsetDateTime.now())
                     .details("Account created and activated by admin")
                     .build());
