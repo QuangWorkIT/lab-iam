@@ -59,7 +59,7 @@ export const updateRole = createAsyncThunk(
   "roles/updateRole",
   async ({ code, roleData }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/api/roles/${code}`, roleData);
+      const response = await api.put(`/api/roles/update/${code}`, roleData);
       return response.data;
     } catch (error) {
       const errorMsg =
@@ -76,7 +76,7 @@ export const deleteRole = createAsyncThunk(
   "roles/deleteRole",
   async (code, { rejectWithValue }) => {
     try {
-      await api.delete(`/api/roles/${code}`);
+      await api.delete(`/api/roles/delete/${code}`);
       return code;
     } catch (error) {
       const errorMsg =
