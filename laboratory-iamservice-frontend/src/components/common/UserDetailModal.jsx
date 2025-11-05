@@ -7,7 +7,7 @@ import { getRoleName } from "../../utils/formatter.js"
 import { useSelector } from "react-redux";
 import { motion as Motion, AnimatePresence } from "motion/react"
 import { useDispatch } from "react-redux";
-import { fetchUserById, updateOwnProfile } from "../../redux/features/userManagementSlice";
+import { fetchUserById, updateOwnProfile, requestSelfDeletion } from "../../redux/features/userManagementSlice";
 /**
  * User Detail Modal - Reusable modal component for displaying user/account details
  * 
@@ -522,13 +522,23 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
         setShowDeleteConfirm(true);
     };
 
-    const handleConfirmDelete = () => {
-        // TODO: Call API to delete user account when backend is ready
-        // await dispatch(deleteOwnAccount(displayUser.id)).unwrap();
+    const handleConfirmDelete = async () => {
+        try {
+            // Call API to request deletion (for PATIENT role with 7 days grace period)
+            await dispatch(requestSelfDeletion(displayUser.id)).unwrap();
 
-        toast.info("Delete account feature is under development!");
-        setShowDeleteConfirm(false);
-        // onClose(); // Uncomment when API is ready
+            toast.success("Your deletion request has been submitted. Account will be deleted after 7 days.");
+            setShowDeleteConfirm(false);
+            onClose();
+            
+            // Refresh data if callback provided
+            if (onRefresh) {
+                await onRefresh();
+            }
+        } catch (error) {
+            toast.error(error || "Failed to submit deletion request");
+            console.error("Delete account error:", error);
+        }
     };
 
     const handleCancelDelete = () => {
