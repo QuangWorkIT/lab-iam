@@ -38,7 +38,7 @@ export default function UpdateUserModal({ isOpen, user, roles, onClose, onSubmit
                     style={{
                         backgroundColor: "white",
                         borderRadius: 16,
-                        width: "420px",
+                        width: "520px",
                         maxWidth: "95vw",
                         maxHeight: "90vh",
                         overflow: "hidden",
@@ -88,7 +88,7 @@ export default function UpdateUserModal({ isOpen, user, roles, onClose, onSubmit
                     <div style={{
                         flex: 1,
                         overflow: "auto",
-                        padding: "16px 24px 24px 24px"
+                        padding: "16px 32px 24px 32px"
                     }}>
                         <UpdateUserForm
                             user={user}

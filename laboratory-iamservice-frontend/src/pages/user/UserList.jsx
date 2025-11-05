@@ -7,6 +7,7 @@ import {
   updateUserByAdmin,
   fetchRolesForUser,
   fetchUserById,
+  deleteUserByAdmin,
 } from "../../redux/features/userManagementSlice";
 import UserTable from "../../components/modules/user/UserTable";
 import AddUserModal from "../../components/modules/user/AddUserModal";
@@ -139,10 +140,34 @@ export default function UserList() {
     }
   };
 
-  const handleDeleteUser = () => {
-    // TODO: Implement delete functionality
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      alert("Delete functionality not yet implemented");
+  const handleDeleteUser = async (userId) => {
+    try {
+      console.log("=== DELETE USER DEBUG ===");
+      console.log("User ID to delete:", userId);
+      console.log("User ID type:", typeof userId);
+      
+      const result = await dispatch(deleteUserByAdmin(userId)).unwrap();
+      console.log("Delete result:", result);
+      
+      toast.success("User deleted successfully!");
+      
+      // Refresh lại danh sách users sau khi xóa
+      await dispatch(fetchUsers(searchParams));
+    } catch (error) {
+      console.error("=== DELETE USER ERROR ===");
+      console.error("Full error object:", error);
+      console.error("Error message:", error.message);
+      console.error("Error response:", error.response);
+      
+      // Show detailed error message
+      let errorMessage = "Failed to delete user!";
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     }
   };
 

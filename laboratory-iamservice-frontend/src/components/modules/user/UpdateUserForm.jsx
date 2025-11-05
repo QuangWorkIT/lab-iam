@@ -142,7 +142,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                 borderRadius: "12px",
                 marginBottom: "24px"
             }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px 16px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px 40px" }}>
                     {/* Full Name */}
                     <div>
                         <label style={{
