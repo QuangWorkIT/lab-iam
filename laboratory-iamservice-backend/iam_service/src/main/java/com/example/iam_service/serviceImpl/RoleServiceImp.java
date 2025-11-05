@@ -189,15 +189,6 @@ public class RoleServiceImp implements RoleService {
         entityManager.flush();
         entityManager.clear();
         roleRepository.delete(returnByCode(roleCode));
-        if(!isRoleCodeExists(roleCode))
-        {
-            log.info("Role deletion successful for role with code: {}",roleCode);
-        }
-        else
-        {
-            log.error("Role deletion failed for role with code: {}",roleCode);
-            throw new RoleDeletionException("Role deletion failed for role with code:"+roleCode);
-        }
     }
 
 
