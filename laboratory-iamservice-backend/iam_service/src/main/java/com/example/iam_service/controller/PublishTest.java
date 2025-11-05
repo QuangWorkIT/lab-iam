@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @AllArgsConstructor
@@ -25,6 +24,6 @@ public class PublishTest {
             ) {
         event.setTimestamp(OffsetDateTime.now());
         publisher.publish(event);
-        System.out.println("Sent message success " + event.getActor());
+        System.out.println("Sent message success " + event.getUserId());
     }
 }

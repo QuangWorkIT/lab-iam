@@ -6,7 +6,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -31,7 +30,7 @@ public class LogAuditPublisher implements AuditPublisher {
     public void publish(AuditEvent event) {
         try {
             String payload = mapper.writeValueAsString(event);
-            kafkaTemplate.send(TOPIC, event.getActor(), payload);
+            kafkaTemplate.send(TOPIC, event.getUserId(), payload);
         } catch (RuntimeException | JsonProcessingException e) {
             throw new RuntimeException(e);
         }
