@@ -20,9 +20,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.BeanUtils;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -447,6 +448,132 @@ class UserServiceImplTest {
         verify(auditPublisher, never()).publish(any(AuditEvent.class));
         verify(userRepository).saveAll(Collections.emptyList());
     }
+
+    // --- getDeletedUsers tests ---
+
+    @Test
+    void getDeletedUsers_success() {
+        User deleted = new User();
+        deleted.setUserId(UUID.randomUUID());
+        deleted.setIsDeleted(true);
+
+        when(userRepository.findAllByIsDeletedTrueOrDeletedAtIsNotNull())
+                .thenReturn(List.of(deleted));
+
+        List<User> result = userService.getDeletedUsers();
+
+        assertEquals(1, result.size());
+        verify(userRepository).findAllByIsDeletedTrueOrDeletedAtIsNotNull();
+    }
+
+
+// --- restoreUser tests ---
+
+    @Test
+    void restoreUser_success_patient_withScheduledDeletion() {
+        // patient with deletion scheduled (deletedAt != null, isDeleted = false)
+        User patient = new User();
+        patient.setUserId(UUID.randomUUID());
+        patient.setRoleCode("ROLE_PATIENT");
+        patient.setIsDeleted(false);
+        patient.setDeletedAt(LocalDateTime.now().plusDays(2));
+
+        when(securityUtil.getCurrentUser()).thenReturn(actor);
+        when(userRepository.findById(any())).thenReturn(Optional.of(patient));
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        userService.restoreUser(patient.getUserId());
+
+        assertFalse(patient.getIsDeleted());
+        assertTrue(patient.getIsActive());
+        assertNull(patient.getDeletedAt());
+        verify(userRepository).save(patient);
+        verify(auditPublisher).publish(any(AuditEvent.class));
+    }
+
+    @Test
+    void restoreUser_patient_alreadyDeleted_throws() {
+        User patient = new User();
+        patient.setUserId(UUID.randomUUID());
+        patient.setRoleCode("ROLE_PATIENT");
+        patient.setIsDeleted(true);
+        patient.setDeletedAt(LocalDateTime.now().minusDays(1));
+
+        when(userRepository.findById(any())).thenReturn(Optional.of(patient));
+
+        assertThrows(IllegalStateException.class,
+                () -> userService.restoreUser(patient.getUserId()));
+
+        verify(userRepository, never()).save(any());
+        verify(auditPublisher, never()).publish(any());
+    }
+
+    @Test
+    void restoreUser_patient_noDeletionRequest_throws() {
+        User patient = new User();
+        patient.setUserId(UUID.randomUUID());
+        patient.setRoleCode("ROLE_PATIENT");
+        patient.setIsDeleted(false);
+        patient.setDeletedAt(null); // no deletion requested
+
+        when(userRepository.findById(any())).thenReturn(Optional.of(patient));
+
+        assertThrows(IllegalStateException.class,
+                () -> userService.restoreUser(patient.getUserId()));
+
+        verify(userRepository, never()).save(any());
+        verify(auditPublisher, never()).publish(any());
+    }
+
+    @Test
+    void restoreUser_success_nonPatient_employeeDeleted() {
+        User employee = new User();
+        employee.setUserId(UUID.randomUUID());
+        employee.setRoleCode("ROLE_DOCTOR");
+        employee.setIsDeleted(true);
+        employee.setDeletedAt(LocalDateTime.now());
+
+        when(securityUtil.getCurrentUser()).thenReturn(actor);
+        when(userRepository.findById(any())).thenReturn(Optional.of(employee));
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        userService.restoreUser(employee.getUserId());
+
+        assertFalse(employee.getIsDeleted());
+        assertTrue(employee.getIsActive());
+        assertNull(employee.getDeletedAt());
+        verify(userRepository).save(employee);
+        verify(auditPublisher).publish(any(AuditEvent.class));
+    }
+
+    @Test
+    void restoreUser_nonPatient_notDeleted_throws() {
+        User employee = new User();
+        employee.setUserId(UUID.randomUUID());
+        employee.setRoleCode("ROLE_DOCTOR");
+        employee.setIsDeleted(false);
+        employee.setDeletedAt(null);
+
+        when(userRepository.findById(any())).thenReturn(Optional.of(employee));
+
+        assertThrows(IllegalStateException.class,
+                () -> userService.restoreUser(employee.getUserId()));
+
+        verify(userRepository, never()).save(any());
+        verify(auditPublisher, never()).publish(any());
+    }
+
+    @Test
+    void restoreUser_userNotFound_throws() {
+        when(userRepository.findById(any())).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.restoreUser(UUID.randomUUID()));
+
+        verify(userRepository, never()).save(any());
+        verify(auditPublisher, never()).publish(any());
+    }
+
 
 
     // --- validatePassword tests ---

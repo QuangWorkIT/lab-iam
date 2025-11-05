@@ -123,14 +123,16 @@ export default function UserTable({
                     }
                 `}
       </style>
-      {/* Toolbar & Search */}
+      {/* Toolbar & Search (Add button moved to page header) */}
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-start",
           alignItems: "center",
           marginBottom: "15px",
           width: "100%",
+          gap: 10,
+          flexWrap: "wrap",
         }}
       >
         <SearchBar
@@ -144,27 +146,6 @@ export default function UserTable({
           allRolesLabel="All Roles"
           autoSearchOnRoleChange={true}
         />
-
-        <div className="add-new-button">
-          <button
-            style={{
-              backgroundColor: "#ff5a5f",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "8px 15px",
-              fontWeight: "bold",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              fontSize: "14px",
-            }}
-            onClick={() => (onAdd ? onAdd() : console.log("Add new user"))}
-          >
-            <FaPlus style={{ marginRight: "5px" }} />
-            Add New User
-          </button>
-        </div>
       </div>
 
       {/* Bảng users */}
@@ -223,7 +204,7 @@ export default function UserTable({
         >
           <thead>
             <tr style={{ backgroundColor: "#fe535b" }}>
-              <th
+              {/* <th
                 style={{
                   padding: "12px 15px 12px 18px",
                   textAlign: "left",
@@ -236,7 +217,7 @@ export default function UserTable({
                 }}
               >
                 ID
-              </th>
+              </th> */}
               <th
                 style={{
                   padding: "12px 15px 12px 18px",
@@ -321,7 +302,7 @@ export default function UserTable({
             {usersToRender.length === 0 ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={6}
                   style={{
                     textAlign: "center",
                     padding: "60px 20px",
@@ -405,9 +386,17 @@ export default function UserTable({
                   key={user.id}
                   style={{
                     backgroundColor: "#fff",
+                    transition: "background-color 0.2s ease",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f5f5f5";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#fff";
                   }}
                 >
-                  <td
+                  {/* <td
                     style={{
                       padding: "12px 15px",
                       fontWeight: "500",
@@ -416,7 +405,7 @@ export default function UserTable({
                     title={user.id}
                   >
                     {truncateId(user.id)}
-                  </td>
+                  </td> */}
                   <td
                     style={{
                       padding: "12px 15px",
