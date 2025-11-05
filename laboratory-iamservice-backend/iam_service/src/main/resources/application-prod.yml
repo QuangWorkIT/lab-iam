@@ -26,6 +26,18 @@ spring:
   mail:
     username: ${MAIL_USERNAME:no-reply@dummy.local}
     password: ${MAIL_PASSWORD:dummy-password}
+  kafka:
+    bootstrap-servers: 34.199.182.98:9092
+    properties:
+      security.protocol: PLAINTEXT
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: iam-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
 google:
   web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
@@ -35,7 +47,7 @@ eureka:
     fetch-registry: true            # Cho phép lấy danh sách các service khác
     service-url:
 #      defaultZone: http://23.23.152.34:8761/eureka/ -> cho deploy register server
-      defaultZone: http://service-registry:8761/eureka/
+      defaultZone: https://discovery-server-zsph.onrender.com/eureka
   instance:
     prefer-ip-address: true         # Dùng IP thay vì hostname (tránh lỗi trong Docker)
     instance-id : iam-service:8089
