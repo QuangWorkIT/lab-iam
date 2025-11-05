@@ -5,28 +5,24 @@ import { logout } from "../../redux/features/userSlice";
 import UserDetailModal from "../common/UserDetailModal";
 import { DoubleRightOutlined } from "@ant-design/icons"
 import { motion, AnimatePresence } from "motion/react"
-import NotificationDropdown from "../common/NotificationDropdown";
+import NotificationComponent from "../common/NotificationComponent"
 import { Tooltip } from "antd";
-
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.user);
   const notifyItems = [
     {
-      key: '1',
-      label: 'Success 1',
-      icon: <FaCheckCircle color="#52c41a" style={{ fontSize: "14px" }} />
+      text: 'Success 1',
+      icon: <FaCheckCircle color="#52c41a"  />
     },
     {
-      key: '2',
-      label: 'Warning 2',
-      icon: <FaExclamationCircle color="#ffcc00" style={{ fontSize: "14px" }}/>
+      text: 'Warning 2',
+      icon: <FaExclamationCircle color="#ffcc00" />
     },
     {
-      key: '3',
-      label: 'Processing 3',
-      icon: <FaRegDotCircle  color="#40a6ce" style={{ fontSize: "14px" }}/>
+      text: 'Processing 3',
+      icon: <FaRegDotCircle  color="#40a6ce" />
     },
   ]
   // Confirm modal state
@@ -218,7 +214,7 @@ export default function Header({ pageTitle }) {
             </span>
           </div>
           <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
-            <NotificationDropdown  items={notifyItems}/>
+            <NotificationComponent  items={notifyItems}/>
             <Tooltip title={"User details"}>
               <FaCog
                 style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
