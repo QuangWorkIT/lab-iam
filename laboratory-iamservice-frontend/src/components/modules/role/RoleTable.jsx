@@ -20,6 +20,9 @@ export default function RoleTable({
   totalElements = 0,
   pageSize = 10,
   onPageSizeChange,
+  canViewRole = false,
+  canUpdateRole = false,
+  canDeleteRole = false,
 }) {
   const [filteredRoles, setFilteredRoles] = useState(roles);
   // Sorting: only 'code' and 'name' are sortable alphabetically
@@ -385,6 +388,9 @@ export default function RoleTable({
                       onDelete={requestDelete}
                       item={role}
                       isSystemRole={isSystemRole(role.code)}
+                      canViewRole={canViewRole}
+                      canUpdateRole={canUpdateRole}
+                      canDeleteRole={canDeleteRole}
                     />
                   </td>
                 </tr>
