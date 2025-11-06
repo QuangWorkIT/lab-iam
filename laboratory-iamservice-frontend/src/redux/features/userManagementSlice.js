@@ -25,7 +25,6 @@ function mapUserDTOToUI(dto) {
         name: dto.fullName || "",
         fullName: dto.fullName || "",
         email: dto.email || "",
-        role: dto.roleCode || dto.rolecode || dto.role || "",
         roleCode: dto.roleCode || "",
         createdAt: dto.createdAt || null,
         isActive: dto.isActive ?? true,
@@ -36,6 +35,8 @@ function mapUserDTOToUI(dto) {
         dateOfBirth: dto.birthdate || dto.dateOfBirth || dto.birthDate || dto.dob || null,
         age: dto.age || null,
         address: dto.address || "",
+        isDeleted: dto.isDeleted || false,
+        deletedAt: dto.deletedAt || null
     };
 }
 
@@ -218,7 +219,7 @@ export const fetchUserById = createAsyncThunk(
     "userManagement/fetchUserById",
     async (userId, { rejectWithValue }) => {
         try {
-            const response = await api.get(`/api/users/${userId}`);
+            const response = await api.get(`/api/users/${userId}/profile`);
             const detailUserDTO = response.data?.data || response.data;
             return mapUserDTOToUI(detailUserDTO);
         } catch (error) {
@@ -330,10 +331,10 @@ export const requestSelfDeletion = createAsyncThunk(
     async (userId, { rejectWithValue }) => {
         try {
             const response = await api.delete(`/api/users/${userId}/request-deletion`);
-            
-            return { 
-                userId, 
-                message: response.data || "Your deletion request has been submitted. Account will be deleted after 7 days." 
+
+            return {
+                userId,
+                message: response.data || "Your deletion request has been submitted. Account will be deleted after 7 days."
             };
         } catch (error) {
             return rejectWithValue(
@@ -353,13 +354,13 @@ export const deleteUserByAdmin = createAsyncThunk(
     async (userId, { rejectWithValue }) => {
         try {
             console.log("Calling DELETE API for user:", userId);
-            
+
             const response = await api.delete(`/api/users/${userId}`);
             console.log("Delete API response:", response);
-            
-            return { 
-                userId, 
-                message: response.data || "User deleted successfully." 
+
+            return {
+                userId,
+                message: response.data || "User deleted successfully."
             };
         } catch (error) {
             console.error("Delete API error details:", {
@@ -368,13 +369,13 @@ export const deleteUserByAdmin = createAsyncThunk(
                 data: error.response?.data,
                 message: error.message
             });
-            
+
             // Return backend error message directly
-            const errorMessage = error.response?.data?.message || 
-                                error.response?.data?.error || 
-                                error.message || 
-                                "Failed to delete user";
-            
+            const errorMessage = error.response?.data?.message ||
+                error.response?.data?.error ||
+                error.message ||
+                "Failed to delete user";
+
             return rejectWithValue(errorMessage);
         }
     }
