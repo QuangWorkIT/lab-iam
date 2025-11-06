@@ -128,10 +128,15 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
     const isPatient = propUser?.role === "ROLE_PATIENT" ||
         propUser?.roleCode === "ROLE_PATIENT";
 
+    // Check if user has requested account deletion (deletedAt is not null)
+    const hasRequestedDeletion = propUser?.deletedAt !== null && propUser?.deletedAt !== undefined;
+
     // Debug: Log để kiểm tra giá trị
     console.log("🔍 Debug RightPanel:", {
         canUpdate,
         isPatient,
+        hasRequestedDeletion,
+        deletedAt: propUser?.deletedAt,
         propUserRole: propUser?.role,
         propUserRoleCode: propUser?.roleCode,
         userInfoId: userInfo.id,
@@ -172,15 +177,15 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                     >
                         {label}
                         {label === "Identity Number" && userInfo.id === propUser.id &&
-                            <Tooltip 
-                                placement="top" 
+                            <Tooltip
+                                placement="top"
                                 title="To update your Identity Number, please contact an administrator"
                                 overlayStyle={{ maxWidth: '250px' }}
                                 color="#000000"
                             >
-                                <InfoCircleOutlined 
+                                <InfoCircleOutlined
                                     className="ml-2 text-[14px] cursor-pointer"
-                                    style={{ 
+                                    style={{
                                         color: "#000000",
                                         verticalAlign: "middle"
                                     }}
@@ -248,39 +253,39 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
             >
                 {/* Left Column */}
                 <div>
-                    {renderField("Identity Number", 
-                        (propUser?.identityNumber && propUser.identityNumber !== "N/A") ? propUser.identityNumber : 
-                        (propUser?.identifyNumber && propUser.identifyNumber !== "N/A") ? propUser.identifyNumber : "N/A"
+                    {renderField("Identity Number",
+                        (propUser?.identityNumber && propUser.identityNumber !== "N/A") ? propUser.identityNumber :
+                            (propUser?.identifyNumber && propUser.identifyNumber !== "N/A") ? propUser.identifyNumber : "N/A"
                     )}
-                    {renderField("Phone Number", 
+                    {renderField("Phone Number",
                         (propUser?.phoneNumber && propUser.phoneNumber !== "N/A") ? propUser.phoneNumber : "N/A"
                     )}
-                    {renderField("Gender", 
-                        (propUser?.gender && propUser.gender !== "N/A") ? 
-                        (getGenderText ? getGenderText(propUser.gender) : propUser.gender) : "N/A"
+                    {renderField("Gender",
+                        (propUser?.gender && propUser.gender !== "N/A") ?
+                            (getGenderText ? getGenderText(propUser.gender) : propUser.gender) : "N/A"
                     )}
                     {renderField("Email", propUser?.email || "N/A")}
                 </div>
 
                 {/* Right Column */}
                 <div>
-                    {renderField("Date of Birth", 
-                        (propUser?.dateOfBirth && propUser.dateOfBirth !== "N/A") ? 
-                        (formatDate ? formatDate(propUser.dateOfBirth) : propUser.dateOfBirth) : "N/A"
+                    {renderField("Date of Birth",
+                        (propUser?.dateOfBirth && propUser.dateOfBirth !== "N/A") ?
+                            (formatDate ? formatDate(propUser.dateOfBirth) : propUser.dateOfBirth) : "N/A"
                     )}
-                    {renderField("Age", 
-                        (propUser?.age !== undefined && propUser?.age !== null && propUser?.age !== "N/A") ? 
-                        `${propUser.age} years old` : "N/A"
+                    {renderField("Age",
+                        (propUser?.age !== undefined && propUser?.age !== null && propUser?.age !== "N/A") ?
+                            `${propUser.age} years old` : "N/A"
                     )}
-                    {renderField("Address", 
+                    {renderField("Address",
                         (propUser?.address && propUser.address !== "N/A") ? propUser.address : "N/A"
                     )}
                     {userInfo.id === propUser.id && (renderField("Password", "*********"))}
                 </div>
             </div>
 
-            {/* Action buttons: Delete → Update */}
-            {canUpdate && (
+            {/* Action buttons: Delete → Update - Only show if user has NOT requested deletion */}
+            {canUpdate && !hasRequestedDeletion && (
                 <>
                     {/* Delete Account button - only for PATIENT role */}
                     {isPatient && (
@@ -332,6 +337,28 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                         Update
                     </button>
                 </>
+            )}
+
+            {/* Display notification if account deletion is requested */}
+            {canUpdate && hasRequestedDeletion && (
+                <div
+                    style={{
+                        position: "absolute",
+                        bottom: "-5px",
+                        right: "20px",
+                        left: "20px",
+                        padding: "12px 16px",
+                        backgroundColor: "#fff3cd",
+                        borderLeft: "4px solid #ffc107",
+                        borderRadius: "6px",
+                        color: "#856404",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        lineHeight: "1.5"
+                    }}
+                >
+                    ⚠️ Your account deletion has been requested. You cannot update or delete your account during this period.
+                </div>
             )}
         </div>
     );
@@ -530,7 +557,7 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
             toast.success("Your deletion request has been submitted. Account will be deleted after 7 days.");
             setShowDeleteConfirm(false);
             onClose();
-            
+
             // Refresh data if callback provided
             if (onRefresh) {
                 await onRefresh();

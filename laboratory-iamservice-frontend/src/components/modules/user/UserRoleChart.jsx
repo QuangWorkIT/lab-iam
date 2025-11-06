@@ -6,7 +6,7 @@ export default function UserRoleChart({ users }) {
   const roleStats = useMemo(() => {
     const stats = {};
     users.forEach((user) => {
-      const role = user.role || "UNKNOWN";
+      const role = user.roleCode || user.role || "UNKNOWN";
       if (!stats[role]) {
         stats[role] = 0;
       }
