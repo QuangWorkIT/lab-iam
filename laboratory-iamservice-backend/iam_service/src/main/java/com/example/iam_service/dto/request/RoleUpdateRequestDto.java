@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class RoleUpdateRequestDto {
 
-    @Pattern(regexp = "^[a-zA-Z0-9_]*$")
+    @Pattern(regexp = "^[a-zA-Z0-9_ ]*$") // add space
     @NotBlank(message = "Role name is required")
     private String name;
 
@@ -28,5 +28,8 @@ public class RoleUpdateRequestDto {
 
     @Schema(description = "Role's update date")
     private LocalDate lastUpdatedAt;
+
+    @Schema(description = "Role's deletable")
+    private boolean deletable;
 
 }
