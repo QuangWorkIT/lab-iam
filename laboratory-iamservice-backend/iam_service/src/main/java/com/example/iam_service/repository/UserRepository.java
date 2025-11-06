@@ -40,6 +40,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findAllByIsDeletedFalseAndDeletedAtBefore(LocalDateTime now);
     List<User> findAllByIsDeletedTrueOrDeletedAtIsNotNull();
     List<User> findAllByIsDeletedFalse();
+    List<User> findByIsActiveFalseAndIsDeletedFalse();
 
 
 }
