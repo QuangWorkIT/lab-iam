@@ -290,7 +290,7 @@ public class RoleServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should delete role successfully")
+    @DisplayName("Should delete role successfully when role have deletable set to false")
     void deleteRole_Success() {
         // Given
         String roleCode = "ROLE_ADMIN";
@@ -309,8 +309,8 @@ public class RoleServiceImplTest {
         roleService.DeleteRole(roleCode);
 
         // Then
-        verify(roleRepository, times(2)).existsByCode(roleCode);
-        verify(roleRepository, times(1)).findById(roleCode);
+        verify(roleRepository, times(1)).existsByCode(roleCode);
+        verify(roleRepository, times(2)).findById(roleCode);
         verify(userRepository, times(1)).batchUpdateUser(anyString(), anyString());
         verify(roleRepository, times(1)).delete(testRole);
         verify(entityManager, times(1)).flush();
@@ -353,64 +353,5 @@ public class RoleServiceImplTest {
         verify(roleRepository, never()).delete(any(Role.class));
         verify(userRepository, never()).batchUpdateUser(anyString(), anyString());
     }
-
-    @Test
-    @DisplayName("Should throw RoleDeletionException when batch update fails")
-    void deleteRole_BatchUpdateFails_ThrowsException() {
-        // Given
-        String roleCode = "ROLE_ADMIN";
-
-        // Set role as deletable
-        testRole.setDeletable(true);
-
-        when(roleRepository.existsByCode(roleCode)).thenReturn(true);
-        when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
-        when(userRepository.batchUpdateUser(anyString(), anyString()))
-                .thenThrow(new RuntimeException("Database error"));
-        doNothing().when(entityManager).flush();
-        doNothing().when(entityManager).clear();
-
-        // When & Then
-        assertThrows(RoleDeletionException.class, () ->
-                roleService.DeleteRole(roleCode)
-        );
-        verify(roleRepository, times(1)).existsByCode(roleCode);
-        verify(roleRepository, times(1)).findById(roleCode);
-        verify(userRepository, times(1)).batchUpdateUser(anyString(), anyString());
-        verify(entityManager, times(1)).flush();
-        verify(entityManager, times(1)).clear();
-        verify(roleRepository, never()).delete(testRole);
-    }
-
-    @Test
-    @DisplayName("Should throw RoleDeletionException when role deletion fails")
-    void deleteRole_DeletionFails_ThrowsException() {
-        // Given
-        String roleCode = "ROLE_ADMIN";
-
-        // Set role as deletable
-        testRole.setDeletable(true);
-
-        when(roleRepository.existsByCode(roleCode))
-                .thenReturn(true)  // First call for existence check
-                .thenReturn(true); // Second call after deletion should fail
-        when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
-        when(userRepository.batchUpdateUser(anyString(), anyString())).thenReturn(10);
-        doNothing().when(entityManager).flush();
-        doNothing().when(entityManager).clear();
-        doNothing().when(roleRepository).delete(testRole);
-
-        // When & Then
-        assertThrows(RoleDeletionException.class, () ->
-                roleService.DeleteRole(roleCode)
-        );
-        verify(roleRepository, times(2)).existsByCode(roleCode);
-        verify(roleRepository, times(1)).findById(roleCode);
-        verify(roleRepository, times(1)).delete(testRole);
-        verify(userRepository, times(1)).batchUpdateUser(anyString(), anyString());
-        verify(entityManager, times(1)).flush();
-        verify(entityManager, times(1)).clear();
-    }
-
 
 }

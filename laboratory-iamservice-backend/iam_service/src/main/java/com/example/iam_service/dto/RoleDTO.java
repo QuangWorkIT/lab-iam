@@ -17,7 +17,7 @@ import java.time.LocalDate;
 public class RoleDTO {
     private String code;
 
-    @Pattern(regexp = "^[a-zA-Z0-9_]*$")
+    @Pattern(regexp = "^[a-zA-Z0-9_ ]*$") // add space
     @NotBlank(message = "Role name is required")
     private String name;
 
