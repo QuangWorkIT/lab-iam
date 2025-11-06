@@ -145,12 +145,12 @@ export default function UserList() {
       console.log("=== DELETE USER DEBUG ===");
       console.log("User ID to delete:", userId);
       console.log("User ID type:", typeof userId);
-      
+
       const result = await dispatch(deleteUserByAdmin(userId)).unwrap();
       console.log("Delete result:", result);
-      
+
       toast.success("User deleted successfully!");
-      
+
       // Refresh lại danh sách users sau khi xóa
       await dispatch(fetchUsers(searchParams));
     } catch (error) {
@@ -158,7 +158,7 @@ export default function UserList() {
       console.error("Full error object:", error);
       console.error("Error message:", error.message);
       console.error("Error response:", error.response);
-      
+
       // Show detailed error message
       let errorMessage = "Failed to delete user!";
       if (typeof error === 'string') {
@@ -166,7 +166,7 @@ export default function UserList() {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       toast.error(errorMessage);
     }
   };

@@ -386,7 +386,7 @@ export default function UserTable({
                 console.log("🔍 User data in table:", user);
                 console.log("🔍 User role field:", user.role);
                 console.log("🔍 User privileges:", user.privileges);
-                
+
                 return (
                   <tr
                     key={user.id}
