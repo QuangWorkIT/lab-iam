@@ -7,9 +7,11 @@ import { DoubleRightOutlined } from "@ant-design/icons"
 import { motion, AnimatePresence } from "motion/react"
 import NotificationComponent from "../common/NotificationComponent"
 import { Tooltip } from "antd";
+import { useNavigate } from "react-router";
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
+  const nav = useNavigate()
   const { userInfo } = useSelector((state) => state.user);
   const notifyItems = [
     {
@@ -54,6 +56,7 @@ export default function Header({ pageTitle }) {
   const confirmLogout = () => {
     dispatch(logout());
     setShowConfirm(false);
+    nav("/login", { replace: true });
   };
 
   const closeConfirm = () => setShowConfirm(false);

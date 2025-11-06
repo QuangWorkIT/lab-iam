@@ -6,7 +6,7 @@ const initialState = {
   userInfo: null,
   token: null,
   loading: false,
-  isBanned: null
+  bannedElements: []
 };
 
 export const logout = createAsyncThunk("user/logout", async (_, { rejectWithValue }) => {
@@ -27,10 +27,25 @@ const userSlice = createSlice({
       state.token = token;
       state.userInfo = userInfo;
       localStorage.setItem("token", token);
+    },
+    addBannedElement: (state, action) => {
+      state.bannedElements.push(action.payload);
+    },
+    removerBannedElement: (state, action) => {
+      state.bannedElements = state.bannedElements.filter(item => item !== action.payload)
     }
   },
   extraReducers: (builder) => {
     builder
+      // merge persisted data to the initial state
+      .addCase("persist/REHYDRATE", (state, action) => {
+        if (action.payload?.user) {
+          return {
+            ...initialState,
+            ...action.payload.user, 
+          };
+        }
+      })
       .addCase(logout.fulfilled, (state) => {
         state.token = null
         state.userInfo = null
@@ -46,5 +61,5 @@ const userSlice = createSlice({
   }
 });
 
-export const { login } = userSlice.actions;
+export const { login, addBannedElement, removerBannedElement } = userSlice.actions;
 export default userSlice.reducer;
