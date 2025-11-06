@@ -113,7 +113,7 @@ function LeftPanel({ user, statusColor, statusText }) {
                     textAlign: "center",
                 }}
             >
-                {getRoleName(user?.role) || "N/A"}
+                {getRoleName(user?.roleCode) || "N/A"}
             </p>
         </div>
     );
