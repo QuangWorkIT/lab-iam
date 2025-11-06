@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FaPlus } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -23,6 +23,13 @@ export default function UserList() {
   const dispatch = useDispatch();
   const { users, loading, error, totalPages, totalElements, roles } =
     useSelector((state) => state.users);
+
+  // ✅ Lấy privileges từ Redux store (giống RoleList)
+  const userPrivileges = useSelector(
+    (state) => state.user?.userInfo?.privileges || [],
+    (prev, next) => JSON.stringify(prev) === JSON.stringify(next)
+  );
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -44,6 +51,35 @@ export default function UserList() {
     sortDir: "asc",
   });
 
+  // ✅ Parse privileges (giống RoleList)
+  const parsePrivileges = (privs) => {
+    if (!privs) return [];
+    if (Array.isArray(privs)) return privs;
+    if (typeof privs === "string") {
+      return privs
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0);
+    }
+    return [];
+  };
+
+  const privilegesArray = useMemo(
+    () => parsePrivileges(userPrivileges),
+    [userPrivileges]
+  );
+
+  const hasPrivilege = (privilegeName) => {
+    if (!privilegesArray) return false;
+    return privilegesArray.includes(privilegeName);
+  };
+
+  // ✅ Định nghĩa các quyền (giống RoleList)
+  const canViewUser = hasPrivilege("VIEW_USER");
+  const canCreateUser = hasPrivilege("CREATE_USER");
+  const canModifyUser = hasPrivilege("MODIFY_USER");
+  const canDeleteUser = hasPrivilege("DELETE_USER");
+
   // Fetch roles when component mounts
   useEffect(() => {
     dispatch(fetchRolesForUser());
@@ -55,7 +91,6 @@ export default function UserList() {
       try {
         await dispatch(fetchUsers(searchParams));
       } finally {
-        // Clear timeout and reset loading state
         if (searchTimeout) {
           clearTimeout(searchTimeout);
           setSearchTimeout(null);
@@ -64,7 +99,6 @@ export default function UserList() {
       }
     };
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, searchParams]);
 
   // Cleanup timeout on unmount
@@ -78,15 +112,13 @@ export default function UserList() {
 
   // Handlers for UserTable
   const handleSearch = async (keyword, fromDate, toDate, roleFilter) => {
-    // Clear existing timeout
     if (searchTimeout) {
       clearTimeout(searchTimeout);
     }
 
-    // Set loading state after a small delay to avoid flicker for fast searches
     const timeout = setTimeout(() => {
       setIsSearching(true);
-    }, 150); // 150ms delay
+    }, 150);
 
     setSearchTimeout(timeout);
 
@@ -96,12 +128,10 @@ export default function UserList() {
       fromDate,
       toDate,
       roleFilter,
-      page: 0, // Reset về trang đầu khi tìm kiếm
+      page: 0,
     }));
-    // Loading state sẽ được reset khi fetchUsers hoàn thành
   };
 
-  //Handler cho phân trang
   const handlePageChange = (newPage) => {
     setSearchParams((prev) => ({
       ...prev,
@@ -109,28 +139,41 @@ export default function UserList() {
     }));
   };
 
-  //Handler cho thay đổi số items mỗi trang
   const handlePageSizeChange = (newSize) => {
     setSearchParams((prev) => ({
       ...prev,
       size: newSize,
-      page: 0, // Reset về trang đầu khi thay đổi page size
+      page: 0,
     }));
   };
 
-  // Handlers cho các action buttons
   const handleViewUser = (user) => {
+    // ✅ Kiểm tra quyền VIEW_USER
+    if (!canViewUser) {
+      toast.error("You don't have permission to view user details");
+      return;
+    }
     setViewingUser(user);
     setIsDetailModalOpen(true);
   };
 
   const handleAddUser = () => {
+    // ✅ Kiểm tra quyền CREATE_USER
+    if (!canCreateUser) {
+      toast.error("You don't have permission to create users");
+      return;
+    }
     setIsAddModalOpen(true);
   };
 
   const handleEditUser = async (user) => {
+    // ✅ Kiểm tra quyền MODIFY_USER
+    if (!canModifyUser) {
+      toast.error("You don't have permission to modify users");
+      return;
+    }
+
     try {
-      // Fetch full user details including identityNumber
       const result = await dispatch(fetchUserById(user.id)).unwrap();
       console.log("Fetched user detail:", result);
       setEditingUser(result);
@@ -142,6 +185,12 @@ export default function UserList() {
   };
 
   const handleDeleteUser = async (userId) => {
+    // ✅ Kiểm tra quyền DELETE_USER
+    if (!canDeleteUser) {
+      toast.error("You don't have permission to delete users");
+      return;
+    }
+
     try {
       console.log("=== DELETE USER DEBUG ===");
       console.log("User ID to delete:", userId);
@@ -152,7 +201,6 @@ export default function UserList() {
 
       toast.success("User deleted successfully!");
 
-      // Refresh lại danh sách users sau khi xóa
       await dispatch(fetchUsers(searchParams));
       setChartRefreshTrigger((prev) => prev + 1);
     } catch (error) {
@@ -161,7 +209,6 @@ export default function UserList() {
       console.error("Error message:", error.message);
       console.error("Error response:", error.response);
 
-      // Show detailed error message
       let errorMessage = "Failed to delete user!";
       if (typeof error === "string") {
         errorMessage = error;
@@ -173,8 +220,13 @@ export default function UserList() {
     }
   };
 
-  // Handler cho việc lưu user từ AddUserModal
   const handleSaveNewUser = async (userData) => {
+    // ✅ Kiểm tra quyền CREATE_USER
+    if (!canCreateUser) {
+      toast.error("You don't have permission to create users");
+      return;
+    }
+
     try {
       await dispatch(createUser(userData)).unwrap();
       setIsAddModalOpen(false);
@@ -187,15 +239,19 @@ export default function UserList() {
     }
   };
 
-  // Handler for refresh user detail
   const handleRefreshUser = () => {
     if (viewingUser) {
       dispatch(fetchUsers(searchParams));
     }
   };
 
-  // Handler for update user
   const handleUpdateUser = async (userData) => {
+    // ✅ Kiểm tra quyền MODIFY_USER
+    if (!canModifyUser) {
+      toast.error("You don't have permission to modify users");
+      return;
+    }
+
     try {
       await dispatch(
         updateUserByAdmin({
@@ -208,7 +264,6 @@ export default function UserList() {
       setIsUpdateModalOpen(false);
       setEditingUser(null);
 
-      // Refresh user list
       await dispatch(fetchUsers(searchParams));
       setChartRefreshTrigger((prev) => prev + 1);
     } catch (error) {
@@ -280,26 +335,29 @@ export default function UserList() {
             >
               User Lists
             </h2>
-            <button
-              type="button"
-              onClick={handleAddUser}
-              style={{
-                backgroundColor: "#ff5a5f",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                padding: "8px 15px",
-                fontWeight: "bold",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                fontSize: "14px",
-                gap: 6,
-              }}
-            >
-              <FaPlus />
-              Add New User
-            </button>
+            {/* ✅ Chỉ hiển thị nút Add nếu có quyền CREATE_USER */}
+            {canCreateUser && (
+              <button
+                type="button"
+                onClick={handleAddUser}
+                style={{
+                  backgroundColor: "#ff5a5f",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "8px 15px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  fontSize: "14px",
+                  gap: 6,
+                }}
+              >
+                <FaPlus />
+                Add New User
+              </button>
+            )}
           </div>
           {loading && !isSearching ? (
             <div style={{ textAlign: "center", padding: "20px" }}>
@@ -325,6 +383,10 @@ export default function UserList() {
               pageSize={searchParams.size}
               searchParams={searchParams}
               isSearching={isSearching}
+              // ✅ Truyền quyền xuống UserTable (giống RoleTable)
+              canViewUser={canViewUser}
+              canModifyUser={canModifyUser}
+              canDeleteUser={canDeleteUser}
             />
           )}
         </div>
@@ -332,22 +394,29 @@ export default function UserList() {
         {/* Right: User Role Chart */}
         <UserRoleChart refreshTrigger={chartRefreshTrigger} />
       </div>
-      <AddUserModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSave={handleSaveNewUser}
-      />
 
-      <UpdateUserModal
-        isOpen={isUpdateModalOpen}
-        user={editingUser}
-        roles={roles}
-        onClose={() => {
-          setIsUpdateModalOpen(false);
-          setEditingUser(null);
-        }}
-        onSubmit={handleUpdateUser}
-      />
+      {/* ✅ Chỉ render modal nếu có quyền CREATE_USER */}
+      {canCreateUser && (
+        <AddUserModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSave={handleSaveNewUser}
+        />
+      )}
+
+      {/* ✅ Chỉ render modal nếu có quyền MODIFY_USER */}
+      {canModifyUser && (
+        <UpdateUserModal
+          isOpen={isUpdateModalOpen}
+          user={editingUser}
+          roles={roles}
+          onClose={() => {
+            setIsUpdateModalOpen(false);
+            setEditingUser(null);
+          }}
+          onSubmit={handleUpdateUser}
+        />
+      )}
 
       <AnimatePresence>
         {isDetailModalOpen && (
