@@ -16,6 +16,10 @@ export default function RoleList() {
   // Redux hooks
   const dispatch = useDispatch();
   const { roles, loading, error } = useSelector((state) => state.roles);
+  const userPrivileges = useSelector(
+  (state) => state.user?.userInfo?.privileges || "",
+  (prev, next) => JSON.stringify(prev) === JSON.stringify(next)
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -43,11 +47,35 @@ export default function RoleList() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-
   // Fetch roles 1 lần khi mount
   useEffect(() => {
     dispatch(fetchRoles());
   }, [dispatch]);
+
+  const parsePrivileges = (privs) => {
+    if (!privs) return [];
+    if (Array.isArray(privs)) return privs;
+    if (typeof privs === "string") {
+      return privs
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0);
+    }
+    return [];
+  };
+
+  const privilegesArray = useMemo(() => parsePrivileges(userPrivileges), [userPrivileges]);
+
+  const hasPrivilege = (privilegeName) => {
+    if (!privilegesArray) return false;
+    return privilegesArray.includes(privilegeName);
+  };
+
+  const canCreateRole = hasPrivilege("CREATE_ROLE");
+  const canUpdateRole = hasPrivilege("UPDATE_ROLE");
+  const canDeleteRole = hasPrivilege("DELETE_ROLE");
+  const canViewRole = hasPrivilege("VIEW_ROLE");
+
 
   // Xử lý search, sort, filter hoàn toàn ở FE
   const filteredRoles = useMemo(() => {
@@ -236,25 +264,28 @@ export default function RoleList() {
           >
             User Roles
           </h2>
-          <button
-            type="button"
-            onClick={handleAddRole}
-            style={{
-              backgroundColor: "#fe535b",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "8px 15px",
-              fontWeight: "bold",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              fontSize: "14px",
-            }}
-          >
-            <FaPlus style={{ marginRight: 6 }} />
-            Add New Role
-          </button>
+          {canCreateRole && (
+            <button
+              type="button"
+              onClick={handleAddRole}
+              style={{
+                backgroundColor: "#fe535b",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "8px 15px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                fontSize: "14px",
+              }}
+            >
+              <FaPlus style={{ marginRight: 6 }} />
+              Add New Role
+            </button>
+          )}
+
         </div>
         {/* {errorText && (
           <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
@@ -276,6 +307,9 @@ export default function RoleList() {
           totalElements={filteredRoles.length}
           pageSize={pageSize}
           onPageSizeChange={handlePageSizeChange}
+          canViewRole={canViewRole}
+          canUpdateRole={canUpdateRole}
+          canDeleteRole={canDeleteRole}
         />
 
         {loading && (
