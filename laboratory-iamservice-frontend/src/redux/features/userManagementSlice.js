@@ -145,7 +145,7 @@ export const fetchUsers = createAsyncThunk(
             };
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to fetch users"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -164,7 +164,7 @@ export const createUser = createAsyncThunk(
             return mapUserDTOToUI(response.data);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.error || error.message || "Failed to create user"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -184,7 +184,7 @@ export const activateUser = createAsyncThunk(
             return response.data;
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to activate user"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -204,7 +204,7 @@ export const getUserByEmail = createAsyncThunk(
             return mapUserDTOToUI(response.data);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "User not found"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -223,7 +223,7 @@ export const fetchUserById = createAsyncThunk(
             return mapUserDTOToUI(detailUserDTO);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to fetch user details"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -242,7 +242,7 @@ export const getInactiveUsers = createAsyncThunk(
             return userDTOs.map(mapUserDTOToUI);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to fetch inactive users"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -261,7 +261,7 @@ export const fetchRolesForUser = createAsyncThunk(
             return Array.isArray(data) ? data : data.roles || [];
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to fetch roles"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -286,7 +286,7 @@ export const updateOwnProfile = createAsyncThunk(
             return mapUserDTOToUI(response.data);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to update profile"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -314,7 +314,30 @@ export const updateUserByAdmin = createAsyncThunk(
             return mapUserDTOToUI(response.data);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to update user"
+                error.response?.data?.message || error.response?.data?.error || error.message
+            );
+        }
+    }
+);
+
+/**
+ * API: DELETE /api/users/{id}/request-deletion
+ * Patient request self deletion (soft delete with 7 days grace period)
+ * Requires: ROLE_PATIENT and user must be deleting their own account
+ */
+export const requestSelfDeletion = createAsyncThunk(
+    "userManagement/requestSelfDeletion",
+    async (userId, { rejectWithValue }) => {
+        try {
+            const response = await api.delete(`/api/users/${userId}/request-deletion`);
+            
+            return { 
+                userId, 
+                message: response.data || "Your deletion request has been submitted. Account will be deleted after 7 days." 
+            };
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -324,9 +347,6 @@ export const updateUserByAdmin = createAsyncThunk(
  * API: DELETE /api/users/{id}
  * Delete user by admin
  * Requires: ROLE_ADMIN or DELETE_USER or ROLE_LAB_MANAGER
- * 
- * Note: If DELETE method is not supported by backend, this will automatically
- * fallback to POST /api/users/{id}/delete
  */
 export const deleteUserByAdmin = createAsyncThunk(
     "userManagement/deleteUserByAdmin",
@@ -334,39 +354,13 @@ export const deleteUserByAdmin = createAsyncThunk(
         try {
             console.log("Calling DELETE API for user:", userId);
             
-            // Try DELETE method first
-            try {
-                const response = await api.delete(`/api/users/${userId}`);
-                console.log("Delete API response:", response);
-                
-                return { 
-                    userId, 
-                    message: response.data || "User deleted successfully." 
-                };
-            } catch (deleteError) {
-                // If DELETE method is not supported (405 or 500 with method not supported)
-                const isMethodNotSupported = 
-                    deleteError.response?.status === 405 ||
-                    (deleteError.response?.status === 500 && 
-                     deleteError.response?.data?.message?.includes("method") &&
-                     deleteError.response?.data?.message?.includes("not supported"));
-                
-                if (isMethodNotSupported) {
-                    console.log("DELETE method not supported, trying POST fallback...");
-                    
-                    // Fallback to POST method
-                    const postResponse = await api.post(`/api/users/${userId}/delete`);
-                    console.log("POST delete response:", postResponse);
-                    
-                    return { 
-                        userId, 
-                        message: postResponse.data || "User deleted successfully." 
-                    };
-                }
-                
-                // If it's other error, throw it
-                throw deleteError;
-            }
+            const response = await api.delete(`/api/users/${userId}`);
+            console.log("Delete API response:", response);
+            
+            return { 
+                userId, 
+                message: response.data || "User deleted successfully." 
+            };
         } catch (error) {
             console.error("Delete API error details:", {
                 status: error.response?.status,
@@ -375,31 +369,11 @@ export const deleteUserByAdmin = createAsyncThunk(
                 message: error.message
             });
             
-            // Extract detailed error message
-            let errorMessage = "Failed to delete user";
-            
-            if (error.response?.status === 500) {
-                if (error.response?.data?.message?.includes("DELETE") && 
-                    error.response?.data?.message?.includes("not supported")) {
-                    errorMessage = "Backend does not support DELETE method. Please contact administrator to enable DELETE endpoint or use POST /api/users/{id}/delete";
-                } else {
-                    errorMessage = error.response?.data?.message || 
-                                  error.response?.data?.error || 
-                                  "Internal server error. The user may be referenced by other records.";
-                }
-            } else if (error.response?.status === 403) {
-                errorMessage = "You don't have permission to delete this user.";
-            } else if (error.response?.status === 404) {
-                errorMessage = "User not found.";
-            } else if (error.response?.status === 405) {
-                errorMessage = "DELETE method not allowed. Please check backend configuration.";
-            } else if (error.response?.data?.message) {
-                errorMessage = error.response.data.message;
-            } else if (error.response?.data?.error) {
-                errorMessage = error.response.data.error;
-            } else if (error.message) {
-                errorMessage = error.message;
-            }
+            // Return backend error message directly
+            const errorMessage = error.response?.data?.message || 
+                                error.response?.data?.error || 
+                                error.message || 
+                                "Failed to delete user";
             
             return rejectWithValue(errorMessage);
         }
@@ -553,6 +527,20 @@ const userManagementSlice = createSlice({
                 }
             })
             .addCase(updateUserByAdmin.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || action.error.message;
+            })
+            // Request self deletion (PATIENT)
+            .addCase(requestSelfDeletion.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(requestSelfDeletion.fulfilled, (state) => {
+                state.loading = false;
+                // Deletion request submitted successfully
+                // Backend will handle the deletion after 7 days
+            })
+            .addCase(requestSelfDeletion.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || action.error.message;
             })
