@@ -8,8 +8,8 @@ spring:
     name: iam-service
   datasource:
     url: jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
-    username: postgres.ydpwctmqgqkdwciijwbt
-    password: db@pass12345``
+    username: # contact quang for details
+    password: # contact quang for details
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
