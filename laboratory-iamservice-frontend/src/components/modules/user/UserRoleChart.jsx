@@ -1,11 +1,47 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { getRoleColor, formatRoleName } from "../role/RoleBadge";
+import api from "../../../configs/axios";
 
-export default function UserRoleChart({ users }) {
+export default function UserRoleChart({ refreshTrigger = 0 }) {
+  const [allUsers, setAllUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch toàn bộ users từ API (không qua Redux)
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/api/users", {
+          params: {
+            page: 0,
+            size: 10000, // Lấy toàn bộ users
+          },
+        });
+
+        // Handle response format
+        let users = [];
+        if (response.data.content && Array.isArray(response.data.content)) {
+          users = response.data.content;
+        } else if (Array.isArray(response.data)) {
+          users = response.data;
+        }
+
+        setAllUsers(users);
+      } catch (error) {
+        console.error("Error fetching users for chart:", error);
+        setAllUsers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllUsers();
+  }, [refreshTrigger]);
+
   // Tính toán số lượng user theo role
   const roleStats = useMemo(() => {
     const stats = {};
-    users.forEach((user) => {
+    allUsers.forEach((user) => {
       const role = user.roleCode || user.role || "UNKNOWN";
       if (!stats[role]) {
         stats[role] = 0;
@@ -22,7 +58,7 @@ export default function UserRoleChart({ users }) {
         color: getRoleColor(role),
       }))
       .sort((a, b) => b.count - a.count);
-  }, [users]);
+  }, [allUsers]);
 
   const maxCount = useMemo(() => {
     return Math.max(...roleStats.map((r) => r.count), 1);
@@ -44,6 +80,27 @@ export default function UserRoleChart({ users }) {
     }
     return points;
   }, [maxScale]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "20px",
+          borderRadius: "8px",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
+          border: "1px solid #eee",
+          height: "400px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <span style={{ color: "#666" }}>Loading chart...</span>
+      </div>
+    );
+  }
 
   return (
     <div

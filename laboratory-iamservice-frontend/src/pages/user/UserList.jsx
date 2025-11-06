@@ -30,6 +30,7 @@ export default function UserList() {
   const [editingUser, setEditingUser] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState(null);
+  const [chartRefreshTrigger, setChartRefreshTrigger] = useState(0);
 
   // Local state for search and filter params
   const [searchParams, setSearchParams] = useState({
@@ -145,38 +146,45 @@ export default function UserList() {
       console.log("=== DELETE USER DEBUG ===");
       console.log("User ID to delete:", userId);
       console.log("User ID type:", typeof userId);
-      
+
       const result = await dispatch(deleteUserByAdmin(userId)).unwrap();
       console.log("Delete result:", result);
-      
+
       toast.success("User deleted successfully!");
-      
+
       // Refresh lại danh sách users sau khi xóa
       await dispatch(fetchUsers(searchParams));
+      setChartRefreshTrigger((prev) => prev + 1);
     } catch (error) {
       console.error("=== DELETE USER ERROR ===");
       console.error("Full error object:", error);
       console.error("Error message:", error.message);
       console.error("Error response:", error.response);
-      
+
       // Show detailed error message
       let errorMessage = "Failed to delete user!";
-      if (typeof error === 'string') {
+      if (typeof error === "string") {
         errorMessage = error;
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       toast.error(errorMessage);
     }
   };
 
   // Handler cho việc lưu user từ AddUserModal
   const handleSaveNewUser = async (userData) => {
-    await dispatch(createUser(userData)).unwrap();
-    setIsAddModalOpen(false);
-    dispatch(fetchUsers(searchParams));
-    toast.success("Create user successfully!");
+    try {
+      await dispatch(createUser(userData)).unwrap();
+      setIsAddModalOpen(false);
+      await dispatch(fetchUsers(searchParams));
+      setChartRefreshTrigger((prev) => prev + 1);
+      toast.success("Create user successfully!");
+    } catch (error) {
+      toast.error(error?.message || "Failed to create user!");
+      console.error("Create user error:", error);
+    }
   };
 
   // Handler for refresh user detail
@@ -201,7 +209,8 @@ export default function UserList() {
       setEditingUser(null);
 
       // Refresh user list
-      dispatch(fetchUsers(searchParams));
+      await dispatch(fetchUsers(searchParams));
+      setChartRefreshTrigger((prev) => prev + 1);
     } catch (error) {
       toast.error(error || "Failed to update user!");
       console.error("Update user error:", error);
@@ -321,7 +330,7 @@ export default function UserList() {
         </div>
 
         {/* Right: User Role Chart */}
-        <UserRoleChart users={users} />
+        <UserRoleChart refreshTrigger={chartRefreshTrigger} />
       </div>
       <AddUserModal
         isOpen={isAddModalOpen}
