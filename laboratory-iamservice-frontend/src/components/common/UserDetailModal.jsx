@@ -21,8 +21,8 @@ import { fetchUserById, updateOwnProfile } from "../../redux/features/userManage
 function LeftPanel({ user, statusColor, statusText }) {
     const activeClass = `shadow-[0_4px_10px_rgba(82,196,26,0.4)] 
                         hover:shadow-[0_6px_14px_rgba(82,196,26,0.6)] `
-    const inActiveClass = `shadow-[0_4px_10px_rgba(220,53,69,0.4)]
-                        hover:shadow-[0_6px_14px_rgba(220,53,69,0.6)]`
+    const inActiveClass = `shadow-[0_4px_10px_rgba(150,0,0,0.4)]
+    hover:shadow-[0_6px_18px_rgba(100,0,0,0.7)`
     return (
         <div
             style={{
@@ -45,8 +45,8 @@ function LeftPanel({ user, statusColor, statusText }) {
         >
             <div
                 className={`absolute top-3 right-3 flex items-center justify-center 
-                            rounded-full text-white group transition-all
-                            duration-250 ease-in-out overflow-hidden w-[28px] hover:w-[90px] px-[10px] py-[5px]
+                            rounded-full text-white gap-1 group transition-all
+                            duration-500 ease-in-out overflow-hidden w-[28px] hover:w-[90px] px-[10px] py-[5px]
                             hover:cursor-pointer ${statusText === "Active" ? activeClass : inActiveClass}`}
                 style={{ background: statusColor }}
             >
@@ -54,19 +54,21 @@ function LeftPanel({ user, statusColor, statusText }) {
                 {
                     statusText === "Active" ? (
                         <CheckCircleTwoTone
+                            className="pl-[44px] group-hover:pl-0 transition-all duration-550 ease-in-out"
                             twoToneColor={statusColor}
                             style={{ fontSize: "18px" }}
                         />)
                         : (
                             <ExclamationCircleTwoTone
+                                className="pl-[54px] group-hover:pl-0 transition-all duration-550 ease-in-out"
                                 twoToneColor={statusColor}
                                 style={{ fontSize: "18px" }} />
                         )
                 }
 
                 <span
-                    className="hidden group-hover:block ml-[5px] text-[13px] font-semibold 
-                    transition-opacity duration-600 whitespace-nowrap"
+                    className="opacity-0 group-hover:opacity-100 text-[13px] font-semibold 
+                    transition-all duration-300 whitespace-nowrap"
                 >
                     {statusText}
                 </span>
