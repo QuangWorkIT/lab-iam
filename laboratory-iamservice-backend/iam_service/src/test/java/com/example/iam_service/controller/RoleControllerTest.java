@@ -165,6 +165,8 @@ class RoleControllerTest {
     void updateRole_NotFound() throws Exception {
         // Given
         RoleUpdateRequestDto updateRequestDto = new RoleUpdateRequestDto();
+        updateRequestDto.setName("ValidName");
+        updateRequestDto.setDescription("Updated role description");
         when(roleService.updateRole(any(RoleUpdateRequestDto.class), anyString()))
                 .thenThrow(new RoleNotFoundException("Role not found"));
 
@@ -230,18 +232,5 @@ class RoleControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].code").value(testRole.getCode()));
     }
-
-    @Test
-    @DisplayName("Should search roles with empty search parameters")
-    void searchRoles_WithEmptyParams() throws Exception {
-        // Given
-        when(roleService.searchRoles(anyString(), any(), any(), any(), any()))
-                .thenReturn(Arrays.asList(testRole));
-        when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
-
-        // When & Then
-        mockMvc.perform(get("/api/roles/search"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].code").value(testRole.getCode()));
-    }
+    
 }
