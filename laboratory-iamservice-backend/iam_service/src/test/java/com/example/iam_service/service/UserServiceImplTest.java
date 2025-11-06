@@ -238,13 +238,13 @@ class UserServiceImplTest {
 
     @Test
     void getAllUsers_success() {
-        when(userRepository.findAll()).thenReturn(List.of(testUser));
+        when(userRepository.findAllByIsDeletedFalse()).thenReturn(List.of(testUser));
         assertEquals(1, userService.getAllUsers().size());
     }
 
     @Test
     void getInactiveUsers_success() {
-        when(userRepository.findByIsActiveFalse()).thenReturn(List.of(testUser));
+        when(userRepository.findByIsActiveFalseAndIsDeletedFalse()).thenReturn(List.of(testUser));
         assertEquals(1, userService.getInactiveUsers().size());
     }
 
