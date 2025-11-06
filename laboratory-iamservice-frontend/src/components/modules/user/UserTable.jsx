@@ -381,84 +381,91 @@ export default function UserTable({
                 </td>
               </tr>
             ) : (
-              usersToRender.map((user) => (
-                <tr
-                  key={user.id}
-                  style={{
-                    backgroundColor: "#fff",
-                    transition: "background-color 0.2s ease",
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f5f5f5";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#fff";
-                  }}
-                >
-                  {/* <td
+              usersToRender.map((user) => {
+                // Debug: Log user data to check role field
+                console.log("🔍 User data in table:", user);
+                console.log("🔍 User role field:", user.role);
+                console.log("🔍 User privileges:", user.privileges);
+                
+                return (
+                  <tr
+                    key={user.id}
                     style={{
-                      padding: "12px 15px",
-                      fontWeight: "500",
-                      color: "#000",
+                      backgroundColor: "#fff",
+                      transition: "background-color 0.2s ease",
+                      cursor: "pointer",
                     }}
-                    title={user.id}
-                  >
-                    {truncateId(user.id)}
-                  </td> */}
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                      fontWeight: "500",
-                      color: "#000",
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f5f5f5";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "#fff";
                     }}
                   >
-                    {user.name}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                      color: "#000",
-                    }}
-                  >
-                    {user.email}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                    }}
-                  >
-                    <UserBadge roleName={user.role} />
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                      color: "#000",
-                    }}
-                  >
-                    {formatDate(user.createdAt)}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                    }}
-                  >
-                    <StatusBadge active={normalizeActive(user)} />
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                    }}
-                  >
-                    <UserActionButtons
-                      user={user}
-                      onView={onView}
-                      onEdit={onEdit}
-                      onDelete={requestDelete}
-                    />
-                  </td>
-                </tr>
-              ))
+                    {/* <td
+                      style={{
+                        padding: "12px 15px",
+                        fontWeight: "500",
+                        color: "#000",
+                      }}
+                      title={user.id}
+                    >
+                      {truncateId(user.id)}
+                    </td> */}
+                    <td
+                      style={{
+                        padding: "12px 15px",
+                        fontWeight: "500",
+                        color: "#000",
+                      }}
+                    >
+                      {user.name}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 15px",
+                        color: "#000",
+                      }}
+                    >
+                      {user.email}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 15px",
+                      }}
+                    >
+                      <UserBadge roleName={user.roleCode || user.role} />
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 15px",
+                        color: "#000",
+                      }}
+                    >
+                      {formatDate(user.createdAt)}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 15px",
+                      }}
+                    >
+                      <StatusBadge active={normalizeActive(user)} />
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 15px",
+                      }}
+                    >
+                      <UserActionButtons
+                        user={user}
+                        onView={onView}
+                        onEdit={onEdit}
+                        onDelete={requestDelete}
+                      />
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -478,9 +485,8 @@ export default function UserTable({
       {confirmState.open && (
         <ConfirmDialog
           title="Delete User"
-          message={`Are you sure you want to delete user "${
-            confirmState.user?.name || confirmState.user?.email || "this user"
-          }"?`}
+          message={`Are you sure you want to delete user "${confirmState.user?.name || confirmState.user?.email || "this user"
+            }"?`}
           confirmText="Delete"
           cancelText="Cancel"
           onConfirm={handleConfirmDelete}

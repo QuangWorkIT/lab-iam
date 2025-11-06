@@ -1,13 +1,13 @@
-import { FaUser, FaTimes, FaSyncAlt } from "react-icons/fa";
+import { FaUser, FaTimes } from "react-icons/fa";
 import { Tooltip } from "antd";
-import { CheckCircleTwoTone, EditOutlined, ArrowLeftOutlined, ExclamationCircleTwoTone } from '@ant-design/icons';
+import { CheckCircleTwoTone, EditOutlined, ArrowLeftOutlined, ExclamationCircleTwoTone, InfoCircleOutlined } from '@ant-design/icons';
 import ResetPassWord from "../modules/auth/ResetPassWordForm.jsx";
 import { useState, useEffect } from "react"
 import { getRoleName } from "../../utils/formatter.js"
 import { useSelector } from "react-redux";
 import { motion as Motion, AnimatePresence } from "motion/react"
 import { useDispatch } from "react-redux";
-import { fetchUserById, updateOwnProfile } from "../../redux/features/userManagementSlice";
+import { fetchUserById, updateOwnProfile, requestSelfDeletion } from "../../redux/features/userManagementSlice";
 /**
  * User Detail Modal - Reusable modal component for displaying user/account details
  * 
@@ -113,42 +113,36 @@ function LeftPanel({ user, statusColor, statusText }) {
                     textAlign: "center",
                 }}
             >
-                {getRoleName(user?.role) || "N/A"}
+                {getRoleName(user?.roleCode) || "N/A"}
             </p>
         </div>
     );
 }
 
 // Right Panel Component - Detailed Information
-function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsResetPassWordOpen, userId, onOpenUpdate, onDeleteAccount }) {
+function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpen, onOpenUpdate, onDeleteAccount }) {
     const { userInfo } = useSelector((state) => state.user)
-    const dispatch = useDispatch();
     const canUpdate = userInfo.id === propUser.id;
 
     // Check if user has PATIENT role (handle both "PATIENT" and "ROLE_PATIENT" formats)
     const isPatient = propUser?.role === "ROLE_PATIENT" ||
         propUser?.roleCode === "ROLE_PATIENT";
 
+    // Check if user has requested account deletion (deletedAt is not null)
+    const hasRequestedDeletion = propUser?.deletedAt !== null && propUser?.deletedAt !== undefined;
+
     // Debug: Log để kiểm tra giá trị
     console.log("🔍 Debug RightPanel:", {
         canUpdate,
         isPatient,
+        hasRequestedDeletion,
+        deletedAt: propUser?.deletedAt,
         propUserRole: propUser?.role,
         propUserRoleCode: propUser?.roleCode,
         userInfoId: userInfo.id,
         propUserId: propUser.id,
         propUser
     });
-
-    // Handle refresh - re-fetch user from API
-    const handleRefresh = () => {
-        if (userId || propUser?.id) {
-            dispatch(fetchUserById(userId || propUser.id));
-        }
-        if (onRefresh) {
-            onRefresh();
-        }
-    };
 
     // Helper function to render an information field
     const renderField = (label, value) => (
@@ -182,6 +176,22 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                         className="text-[#5170ff] hover:text-[#748cfc] transition-all duration-300 ease"
                     >
                         {label}
+                        {label === "Identity Number" && userInfo.id === propUser.id &&
+                            <Tooltip
+                                placement="top"
+                                title="To update your Identity Number, please contact an administrator"
+                                overlayStyle={{ maxWidth: '250px' }}
+                                color="#000000"
+                            >
+                                <InfoCircleOutlined
+                                    className="ml-2 text-[14px] cursor-pointer"
+                                    style={{
+                                        color: "#000000",
+                                        verticalAlign: "middle"
+                                    }}
+                                />
+                            </Tooltip>
+                        }
                         {label === "Password" && userInfo.id === propUser.id &&
                             <Tooltip placement="top" title={"Change password"} >
                                 <button
@@ -226,46 +236,6 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                 minHeight: "400px",
             }}
         >
-            {/* Refresh Button */}
-            <button
-                onClick={handleRefresh}
-                style={{
-                    position: "absolute",
-                    bottom: "20px",
-                    right: "20px",
-                    width: "auto",
-                    height: "auto",
-                    border: "none",
-                    borderRadius: "0",
-                    backgroundColor: "transparent",
-                    color: "#6f42c1",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "none",
-                    fontSize: "18px",
-                    fontWeight: "bold",
-                    transition: "all 0.2s ease",
-                    zIndex: 9999,
-                    padding: "8px",
-                    outline: "none",
-                }}
-                onMouseEnter={(e) => {
-                    e.target.style.color = "#4c3398";
-                    e.target.style.transform = "scale(1.2)";
-                }}
-                onMouseLeave={(e) => {
-                    e.target.style.color = "#6f42c1";
-                    e.target.style.transform = "scale(1)";
-                }}
-                aria-label="Refresh"
-            >
-                <FaSyncAlt />
-            </button>
-
-            {/* Update button removed as requested */}
-
             {/* User Information Grid */}
             <div
                 style={{
@@ -283,39 +253,39 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
             >
                 {/* Left Column */}
                 <div>
-                    {renderField("Identity Number", 
-                        (propUser?.identityNumber && propUser.identityNumber !== "N/A") ? propUser.identityNumber : 
-                        (propUser?.identifyNumber && propUser.identifyNumber !== "N/A") ? propUser.identifyNumber : "N/A"
+                    {renderField("Identity Number",
+                        (propUser?.identityNumber && propUser.identityNumber !== "N/A") ? propUser.identityNumber :
+                            (propUser?.identifyNumber && propUser.identifyNumber !== "N/A") ? propUser.identifyNumber : "N/A"
                     )}
-                    {renderField("Phone Number", 
+                    {renderField("Phone Number",
                         (propUser?.phoneNumber && propUser.phoneNumber !== "N/A") ? propUser.phoneNumber : "N/A"
                     )}
-                    {renderField("Gender", 
-                        (propUser?.gender && propUser.gender !== "N/A") ? 
-                        (getGenderText ? getGenderText(propUser.gender) : propUser.gender) : "N/A"
+                    {renderField("Gender",
+                        (propUser?.gender && propUser.gender !== "N/A") ?
+                            (getGenderText ? getGenderText(propUser.gender) : propUser.gender) : "N/A"
                     )}
                     {renderField("Email", propUser?.email || "N/A")}
                 </div>
 
                 {/* Right Column */}
                 <div>
-                    {renderField("Date of Birth", 
-                        (propUser?.dateOfBirth && propUser.dateOfBirth !== "N/A") ? 
-                        (formatDate ? formatDate(propUser.dateOfBirth) : propUser.dateOfBirth) : "N/A"
+                    {renderField("Date of Birth",
+                        (propUser?.dateOfBirth && propUser.dateOfBirth !== "N/A") ?
+                            (formatDate ? formatDate(propUser.dateOfBirth) : propUser.dateOfBirth) : "N/A"
                     )}
-                    {renderField("Age", 
-                        (propUser?.age !== undefined && propUser?.age !== null && propUser?.age !== "N/A") ? 
-                        `${propUser.age} years old` : "N/A"
+                    {renderField("Age",
+                        (propUser?.age !== undefined && propUser?.age !== null && propUser?.age !== "N/A") ?
+                            `${propUser.age} years old` : "N/A"
                     )}
-                    {renderField("Address", 
+                    {renderField("Address",
                         (propUser?.address && propUser.address !== "N/A") ? propUser.address : "N/A"
                     )}
                     {userInfo.id === propUser.id && (renderField("Password", "*********"))}
                 </div>
             </div>
 
-            {/* Action buttons: Delete → Update → Refresh */}
-            {canUpdate && (
+            {/* Action buttons: Delete → Update - Only show if user has NOT requested deletion */}
+            {canUpdate && !hasRequestedDeletion && (
                 <>
                     {/* Delete Account button - only for PATIENT role */}
                     {isPatient && (
@@ -324,7 +294,7 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                             style={{
                                 position: "absolute",
                                 bottom: "20px",
-                                right: "155px",
+                                right: "90px",
                                 padding: "8px 12px",
                                 backgroundColor: "#ff5a5f",
                                 color: "white",
@@ -349,7 +319,7 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                         style={{
                             position: "absolute",
                             bottom: "20px",
-                            right: isPatient ? "70px" : "60px",
+                            right: "20px",
                             padding: "8px 12px",
                             backgroundColor: "#28a745",
                             color: "white",
@@ -367,6 +337,28 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                         Update
                     </button>
                 </>
+            )}
+
+            {/* Display notification if account deletion is requested */}
+            {canUpdate && hasRequestedDeletion && (
+                <div
+                    style={{
+                        position: "absolute",
+                        bottom: "-5px",
+                        right: "20px",
+                        left: "20px",
+                        padding: "12px 16px",
+                        backgroundColor: "#fff3cd",
+                        borderLeft: "4px solid #ffc107",
+                        borderRadius: "6px",
+                        color: "#856404",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        lineHeight: "1.5"
+                    }}
+                >
+                    ⚠️ Your account deletion has been requested. You cannot update or delete your account during this period.
+                </div>
             )}
         </div>
     );
@@ -557,13 +549,23 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
         setShowDeleteConfirm(true);
     };
 
-    const handleConfirmDelete = () => {
-        // TODO: Call API to delete user account when backend is ready
-        // await dispatch(deleteOwnAccount(displayUser.id)).unwrap();
+    const handleConfirmDelete = async () => {
+        try {
+            // Call API to request deletion (for PATIENT role with 7 days grace period)
+            await dispatch(requestSelfDeletion(displayUser.id)).unwrap();
 
-        toast.info("Delete account feature is under development!");
-        setShowDeleteConfirm(false);
-        // onClose(); // Uncomment when API is ready
+            toast.success("Your deletion request has been submitted. Account will be deleted after 7 days.");
+            setShowDeleteConfirm(false);
+            onClose();
+
+            // Refresh data if callback provided
+            if (onRefresh) {
+                await onRefresh();
+            }
+        } catch (error) {
+            toast.error(error || "Failed to submit deletion request");
+            console.error("Delete account error:", error);
+        }
     };
 
     const handleCancelDelete = () => {
@@ -643,9 +645,9 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -40 }}
                             transition={{ duration: 0.3, ease: "easeInOut" }}
-                            className="w-full flex justify-start"
+                            className="w-full flex justify-center items-center"
                         >
-                            <div style={{ width: "320px", maxWidth: "80vw", padding: 16, marginLeft: 40, marginRight: 20, boxSizing: "border-box" }}>
+                            <div style={{ width: "100%", maxWidth: "520px", padding: "16px 30px", boxSizing: "border-box" }}>
                                 <UpdateSelfForm
                                     user={displayUser}
                                     onCancel={() => setIsSelfUpdateOpen(false)}
@@ -664,11 +666,9 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
                         >
                             <RightPanel
                                 propUser={displayUser}
-                                onRefresh={onRefresh}
                                 formatDate={formatDate}
                                 getGenderText={getGenderText}
                                 setIsResetPassWordOpen={setIsResetPassWordOpen}
-                                userId={targetUserId}
                                 onOpenUpdate={() => setIsSelfUpdateOpen(true)}
                                 onDeleteAccount={handleDeleteAccount}
                             />
