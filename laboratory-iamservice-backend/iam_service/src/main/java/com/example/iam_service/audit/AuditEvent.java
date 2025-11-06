@@ -8,11 +8,13 @@ import java.time.OffsetDateTime;
 @Data
 @Builder
 public class AuditEvent {
-    private String eventType;
-    private String actor;
+    private String type; // change to "type"
+    private String userId; // userid
     private String target;
-    private String role;
+    private String targetRole; // target role
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
     private OffsetDateTime timestamp;
     private String details;
+    @Builder.Default
+    private String source = "iam-services";
 }

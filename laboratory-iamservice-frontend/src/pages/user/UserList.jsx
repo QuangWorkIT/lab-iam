@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaPlus } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchUsers,
@@ -6,21 +7,22 @@ import {
   updateUserByAdmin,
   fetchRolesForUser,
   fetchUserById,
+  deleteUserByAdmin,
 } from "../../redux/features/userManagementSlice";
 import UserTable from "../../components/modules/user/UserTable";
 import AddUserModal from "../../components/modules/user/AddUserModal";
 import UserDetailModal from "../../components/common/UserDetailModal";
 import UpdateUserModal from "../../components/modules/user/UpdateUserModal";
+import UserRoleChart from "../../components/modules/user/UserRoleChart";
 import MainLayout from "../../components/layout/MainLayout";
 import { toast } from "react-toastify";
-import { motion as Motion, AnimatePresence } from "motion/react"
+import { motion as Motion, AnimatePresence } from "motion/react";
 
 export default function UserList() {
   //Redux hooks
   const dispatch = useDispatch();
-  const { users, loading, error, totalPages, totalElements, roles } = useSelector(
-    (state) => state.users
-  );
+  const { users, loading, error, totalPages, totalElements, roles } =
+    useSelector((state) => state.users);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -98,7 +100,6 @@ export default function UserList() {
     // Loading state sẽ được reset khi fetchUsers hoàn thành
   };
 
-
   //Handler cho phân trang
   const handlePageChange = (newPage) => {
     setSearchParams((prev) => ({
@@ -139,10 +140,34 @@ export default function UserList() {
     }
   };
 
-  const handleDeleteUser = () => {
-    // TODO: Implement delete functionality
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      alert("Delete functionality not yet implemented");
+  const handleDeleteUser = async (userId) => {
+    try {
+      console.log("=== DELETE USER DEBUG ===");
+      console.log("User ID to delete:", userId);
+      console.log("User ID type:", typeof userId);
+
+      const result = await dispatch(deleteUserByAdmin(userId)).unwrap();
+      console.log("Delete result:", result);
+
+      toast.success("User deleted successfully!");
+
+      // Refresh lại danh sách users sau khi xóa
+      await dispatch(fetchUsers(searchParams));
+    } catch (error) {
+      console.error("=== DELETE USER ERROR ===");
+      console.error("Full error object:", error);
+      console.error("Error message:", error.message);
+      console.error("Error response:", error.response);
+
+      // Show detailed error message
+      let errorMessage = "Failed to delete user!";
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast.error(errorMessage);
     }
   };
 
@@ -170,11 +195,11 @@ export default function UserList() {
           userData: userData,
         })
       ).unwrap();
-      
+
       toast.success("User updated successfully!");
       setIsUpdateModalOpen(false);
       setEditingUser(null);
-      
+
       // Refresh user list
       dispatch(fetchUsers(searchParams));
     } catch (error) {
@@ -188,52 +213,115 @@ export default function UserList() {
       pageTitle="USER MANAGEMENT"
       pageDescription="Manage user accounts"
     >
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "20px",
-          borderRadius: "5px",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
-          border: "1px solid #eee",
-          width: "100%",
-          boxSizing: "border-box",
-          overflowX: "auto",
-        }}
-      >
-        <h2
+      {/* Add responsive styles */}
+      <style>
+        {`
+          .user-list-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            width: 100%;
+            align-items: start;
+          }
+          
+          @media (max-width: 1400px) {
+            .user-list-container {
+              grid-template-columns: 1fr 350px;
+            }
+          }
+          
+          @media (max-width: 1200px) {
+            .user-list-container {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}
+      </style>
+
+      <div className="user-list-container">
+        {/* Left: User Table */}
+        <div
           style={{
-            fontSize: "18px",
-            marginBottom: "20px",
-            color: "#ff5a5f",
-            fontWeight: "600",
+            backgroundColor: "white",
+            padding: "20px",
+            borderRadius: "5px",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
+            border: "1px solid #eee",
+            width: "100%",
+            boxSizing: "border-box",
+            overflowX: "auto",
           }}
         >
-          User Lists
-        </h2>
-        {loading && !isSearching ? (
-          <div style={{ textAlign: "center", padding: "20px" }}>Loading...</div>
-        ) : error ? (
-          <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
-            Error: {error}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "20px",
+              gap: 12,
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "18px",
+                margin: 0,
+                color: "#ff5a5f",
+                fontWeight: "600",
+              }}
+            >
+              User Lists
+            </h2>
+            <button
+              type="button"
+              onClick={handleAddUser}
+              style={{
+                backgroundColor: "#ff5a5f",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "8px 15px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                fontSize: "14px",
+                gap: 6,
+              }}
+            >
+              <FaPlus />
+              Add New User
+            </button>
           </div>
-        ) : (
-          <UserTable
-            users={users}
-            onSearch={handleSearch}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            onView={handleViewUser}
-            onEdit={handleEditUser}
-            onDelete={handleDeleteUser}
-            onAdd={handleAddUser}
-            currentPage={searchParams.page}
-            totalPages={totalPages}
-            totalElements={totalElements}
-            pageSize={searchParams.size}
-            searchParams={searchParams}
-            isSearching={isSearching}
-          />
-        )}
+          {loading && !isSearching ? (
+            <div style={{ textAlign: "center", padding: "20px" }}>
+              Loading...
+            </div>
+          ) : error ? (
+            <div style={{ color: "red", textAlign: "center", padding: "20px" }}>
+              Error: {error}
+            </div>
+          ) : (
+            <UserTable
+              users={users}
+              onSearch={handleSearch}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              onView={handleViewUser}
+              onEdit={handleEditUser}
+              onDelete={handleDeleteUser}
+              onAdd={handleAddUser}
+              currentPage={searchParams.page}
+              totalPages={totalPages}
+              totalElements={totalElements}
+              pageSize={searchParams.size}
+              searchParams={searchParams}
+              isSearching={isSearching}
+            />
+          )}
+        </div>
+
+        {/* Right: User Role Chart */}
+        <UserRoleChart users={users} />
       </div>
       <AddUserModal
         isOpen={isAddModalOpen}

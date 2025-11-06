@@ -75,6 +75,7 @@ export default function Header({ pageTitle }) {
   // Convert userInfo to the format expected by UserDetailModal
   const getUserDetailData = () => {
     if (!userInfo) return null;
+    console.log("User Info in Header:", userInfo);
 
     return {
       id: userInfo.id,

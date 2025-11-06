@@ -25,7 +25,6 @@ function mapUserDTOToUI(dto) {
         name: dto.fullName || "",
         fullName: dto.fullName || "",
         email: dto.email || "",
-        role: dto.roleCode || dto.rolecode || dto.role || "",
         roleCode: dto.roleCode || "",
         createdAt: dto.createdAt || null,
         isActive: dto.isActive ?? true,
@@ -36,6 +35,8 @@ function mapUserDTOToUI(dto) {
         dateOfBirth: dto.birthdate || dto.dateOfBirth || dto.birthDate || dto.dob || null,
         age: dto.age || null,
         address: dto.address || "",
+        isDeleted: dto.isDeleted || false,
+        deletedAt: dto.deletedAt || null
     };
 }
 
@@ -145,7 +146,7 @@ export const fetchUsers = createAsyncThunk(
             };
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to fetch users"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -164,7 +165,7 @@ export const createUser = createAsyncThunk(
             return mapUserDTOToUI(response.data);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.error || error.message || "Failed to create user"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -184,7 +185,7 @@ export const activateUser = createAsyncThunk(
             return response.data;
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to activate user"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -204,7 +205,7 @@ export const getUserByEmail = createAsyncThunk(
             return mapUserDTOToUI(response.data);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "User not found"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -218,12 +219,12 @@ export const fetchUserById = createAsyncThunk(
     "userManagement/fetchUserById",
     async (userId, { rejectWithValue }) => {
         try {
-            const response = await api.get(`/api/users/${userId}`);
+            const response = await api.get(`/api/users/${userId}/profile`);
             const detailUserDTO = response.data?.data || response.data;
             return mapUserDTOToUI(detailUserDTO);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to fetch user details"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -242,7 +243,7 @@ export const getInactiveUsers = createAsyncThunk(
             return userDTOs.map(mapUserDTOToUI);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to fetch inactive users"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -261,7 +262,7 @@ export const fetchRolesForUser = createAsyncThunk(
             return Array.isArray(data) ? data : data.roles || [];
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to fetch roles"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -286,7 +287,7 @@ export const updateOwnProfile = createAsyncThunk(
             return mapUserDTOToUI(response.data);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to update profile"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -314,8 +315,68 @@ export const updateUserByAdmin = createAsyncThunk(
             return mapUserDTOToUI(response.data);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to update user"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
+        }
+    }
+);
+
+/**
+ * API: DELETE /api/users/{id}/request-deletion
+ * Patient request self deletion (soft delete with 7 days grace period)
+ * Requires: ROLE_PATIENT and user must be deleting their own account
+ */
+export const requestSelfDeletion = createAsyncThunk(
+    "userManagement/requestSelfDeletion",
+    async (userId, { rejectWithValue }) => {
+        try {
+            const response = await api.delete(`/api/users/${userId}/request-deletion`);
+
+            return {
+                userId,
+                message: response.data || "Your deletion request has been submitted. Account will be deleted after 7 days."
+            };
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.response?.data?.error || error.message
+            );
+        }
+    }
+);
+
+/**
+ * API: DELETE /api/users/{id}
+ * Delete user by admin
+ * Requires: ROLE_ADMIN or DELETE_USER or ROLE_LAB_MANAGER
+ */
+export const deleteUserByAdmin = createAsyncThunk(
+    "userManagement/deleteUserByAdmin",
+    async (userId, { rejectWithValue }) => {
+        try {
+            console.log("Calling DELETE API for user:", userId);
+
+            const response = await api.delete(`/api/users/${userId}`);
+            console.log("Delete API response:", response);
+
+            return {
+                userId,
+                message: response.data || "User deleted successfully."
+            };
+        } catch (error) {
+            console.error("Delete API error details:", {
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                message: error.message
+            });
+
+            // Return backend error message directly
+            const errorMessage = error.response?.data?.message ||
+                error.response?.data?.error ||
+                error.message ||
+                "Failed to delete user";
+
+            return rejectWithValue(errorMessage);
         }
     }
 );
@@ -467,6 +528,40 @@ const userManagementSlice = createSlice({
                 }
             })
             .addCase(updateUserByAdmin.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || action.error.message;
+            })
+            // Request self deletion (PATIENT)
+            .addCase(requestSelfDeletion.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(requestSelfDeletion.fulfilled, (state) => {
+                state.loading = false;
+                // Deletion request submitted successfully
+                // Backend will handle the deletion after 7 days
+            })
+            .addCase(requestSelfDeletion.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || action.error.message;
+            })
+            // Delete user by admin
+            .addCase(deleteUserByAdmin.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(deleteUserByAdmin.fulfilled, (state, action) => {
+                state.loading = false;
+                // Remove user from users array
+                state.users = state.users.filter(u => u.id !== action.payload.userId);
+                // Update total elements
+                state.totalElements = Math.max(0, state.totalElements - 1);
+                // Clear userDetail if it's the deleted user
+                if (state.userDetail && state.userDetail.id === action.payload.userId) {
+                    state.userDetail = null;
+                }
+            })
+            .addCase(deleteUserByAdmin.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || action.error.message;
             });

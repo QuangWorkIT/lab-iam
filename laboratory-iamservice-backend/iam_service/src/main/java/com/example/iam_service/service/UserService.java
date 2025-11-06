@@ -18,4 +18,9 @@ public interface UserService {
     Optional<User> getUserById(UUID id);
     User updateOwnProfile(UUID id, UpdateUserProfileDTO dto);
     User adminUpdateUser(UUID id, AdminUpdateUserDTO dto);
+    void requestDeletion(UUID userId);
+    void adminDeleteUser(UUID userId);
+    void deactivateAndAnonymizeExpiredUsers();
+    List<User> getDeletedUsers();
+    void restoreUser(UUID userId);
 }

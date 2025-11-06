@@ -26,6 +26,25 @@ export default function UserTable({
   isSearching = false,
 }) {
   const [filteredUsers, setFilteredUsers] = useState(users);
+  const [confirmState, setConfirmState] = useState({ open: false, user: null });
+
+  // Handler to open confirm dialog
+  const requestDelete = (user) => {
+    setConfirmState({ open: true, user });
+  };
+
+  // Handler to confirm delete
+  const handleConfirmDelete = () => {
+    if (confirmState.user && onDelete) {
+      onDelete(confirmState.user.id);
+    }
+    setConfirmState({ open: false, user: null });
+  };
+
+  // Handler to cancel delete
+  const handleCancelDelete = () => {
+    setConfirmState({ open: false, user: null });
+  };
 
   // Fetch roles for role filter options (moved from previous wrapper)
   const dispatch = useDispatch();
@@ -104,14 +123,16 @@ export default function UserTable({
                     }
                 `}
       </style>
-      {/* Toolbar & Search */}
+      {/* Toolbar & Search (Add button moved to page header) */}
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-start",
           alignItems: "center",
           marginBottom: "15px",
           width: "100%",
+          gap: 10,
+          flexWrap: "wrap",
         }}
       >
         <SearchBar
@@ -125,27 +146,6 @@ export default function UserTable({
           allRolesLabel="All Roles"
           autoSearchOnRoleChange={true}
         />
-
-        <div className="add-new-button">
-          <button
-            style={{
-              backgroundColor: "#ff5a5f",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "8px 15px",
-              fontWeight: "bold",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              fontSize: "14px",
-            }}
-            onClick={() => (onAdd ? onAdd() : console.log("Add new user"))}
-          >
-            <FaPlus style={{ marginRight: "5px" }} />
-            Add New User
-          </button>
-        </div>
       </div>
 
       {/* Bảng users */}
@@ -204,7 +204,7 @@ export default function UserTable({
         >
           <thead>
             <tr style={{ backgroundColor: "#fe535b" }}>
-              <th
+              {/* <th
                 style={{
                   padding: "12px 15px 12px 18px",
                   textAlign: "left",
@@ -217,7 +217,7 @@ export default function UserTable({
                 }}
               >
                 ID
-              </th>
+              </th> */}
               <th
                 style={{
                   padding: "12px 15px 12px 18px",
@@ -302,7 +302,7 @@ export default function UserTable({
             {usersToRender.length === 0 ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={6}
                   style={{
                     textAlign: "center",
                     padding: "60px 20px",
@@ -381,76 +381,91 @@ export default function UserTable({
                 </td>
               </tr>
             ) : (
-              usersToRender.map((user) => (
-                <tr
-                  key={user.id}
-                  style={{
-                    backgroundColor: "#fff",
-                  }}
-                >
-                  <td
+              usersToRender.map((user) => {
+                // Debug: Log user data to check role field
+                console.log("🔍 User data in table:", user);
+                console.log("🔍 User role field:", user.role);
+                console.log("🔍 User privileges:", user.privileges);
+
+                return (
+                  <tr
+                    key={user.id}
                     style={{
-                      padding: "12px 15px",
-                      fontWeight: "500",
-                      color: "#000",
+                      backgroundColor: "#fff",
+                      transition: "background-color 0.2s ease",
+                      cursor: "pointer",
                     }}
-                    title={user.id}
-                  >
-                    {truncateId(user.id)}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                      fontWeight: "500",
-                      color: "#000",
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f5f5f5";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "#fff";
                     }}
                   >
-                    {user.name}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                      color: "#000",
-                    }}
-                  >
-                    {user.email}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                    }}
-                  >
-                    <UserBadge roleName={user.role} />
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                      color: "#000",
-                    }}
-                  >
-                    {formatDate(user.createdAt)}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                    }}
-                  >
-                    <StatusBadge active={normalizeActive(user)} />
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                    }}
-                  >
-                    <UserActionButtons
-                      user={user}
-                      onView={onView}
-                      onEdit={onEdit}
-                      onDelete={onDelete}
-                    />
-                  </td>
-                </tr>
-              ))
+                    {/* <td
+                      style={{
+                        padding: "12px 15px",
+                        fontWeight: "500",
+                        color: "#000",
+                      }}
+                      title={user.id}
+                    >
+                      {truncateId(user.id)}
+                    </td> */}
+                    <td
+                      style={{
+                        padding: "12px 15px",
+                        fontWeight: "500",
+                        color: "#000",
+                      }}
+                    >
+                      {user.name}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 15px",
+                        color: "#000",
+                      }}
+                    >
+                      {user.email}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 15px",
+                      }}
+                    >
+                      <UserBadge roleName={user.roleCode || user.role} />
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 15px",
+                        color: "#000",
+                      }}
+                    >
+                      {formatDate(user.createdAt)}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 15px",
+                      }}
+                    >
+                      <StatusBadge active={normalizeActive(user)} />
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 15px",
+                      }}
+                    >
+                      <UserActionButtons
+                        user={user}
+                        onView={onView}
+                        onEdit={onEdit}
+                        onDelete={requestDelete}
+                      />
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -465,6 +480,129 @@ export default function UserTable({
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
       />
+
+      {/* Confirmation Dialog */}
+      {confirmState.open && (
+        <ConfirmDialog
+          title="Delete User"
+          message={`Are you sure you want to delete user "${confirmState.user?.name || confirmState.user?.email || "this user"
+            }"?`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
+      )}
+    </div>
+  );
+}
+
+// Confirmation Dialog Component
+function ConfirmDialog({
+  title = "Confirm",
+  message,
+  confirmText = "OK",
+  cancelText = "Cancel",
+  onConfirm,
+  onCancel,
+}) {
+  return (
+    <div
+      onClick={onCancel}
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1100,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff",
+          borderRadius: 12,
+          boxShadow: "0 12px 30px rgba(0,0,0,0.2)",
+          width: 420,
+          maxWidth: "90%",
+          padding: "24px",
+        }}
+      >
+        {/* Header */}
+        <div style={{ marginBottom: 16 }}>
+          <div
+            style={{
+              color: "#fe535b",
+              fontWeight: 800,
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+              fontSize: 16,
+              marginBottom: 8,
+            }}
+          >
+            {title}
+          </div>
+          <div
+            style={{
+              color: "#404553",
+              fontSize: 14,
+              lineHeight: 1.5,
+            }}
+          >
+            {message}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 10,
+            paddingTop: 16,
+            borderTop: "1px solid #f0f2f5",
+          }}
+        >
+          <button
+            onClick={onCancel}
+            style={{
+              padding: "10px 16px",
+              border: "1px solid #e1e7ef",
+              borderRadius: 8,
+              backgroundColor: "#ffffff",
+              color: "#404553",
+              cursor: "pointer",
+              fontSize: 14,
+              fontWeight: 600,
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f7f9fc")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+          >
+            {cancelText}
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              padding: "10px 18px",
+              border: "none",
+              borderRadius: 8,
+              backgroundColor: "#fe535b",
+              color: "#fff",
+              fontWeight: 700,
+              cursor: "pointer",
+              fontSize: 14,
+              transition: "background-color 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e64b52")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fe535b")}
+          >
+            {confirmText}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

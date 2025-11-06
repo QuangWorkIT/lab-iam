@@ -74,9 +74,9 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
     };
 
     return (
-        <form onSubmit={handleSubmit} style={{ padding: "20px 0 0 0", width: "100%" }}>
+        <form onSubmit={handleSubmit} style={{ padding: "1px 0 0 0", width: "100%" }}>
             {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
+            <div style={{ display: "flex", alignItems: "center", marginBottom: "48px" }}>
                 <div style={{ width: 30, height: 30, borderRadius: "50%", backgroundColor: "#ff5a5f", display: "flex", alignItems: "center", justifyContent: "center", marginRight: 10 }}>
                     <span style={{ color: "white", fontWeight: 700, fontSize: "14px" }}>i</span>
                 </div>
@@ -85,8 +85,9 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
 
             {/* Step indicator removed: single-step update */}
 
-            {/* Form grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
+            {/* Form grid - 2 columns */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px 25px" }}>
+                {/* LEFT COLUMN */}
                 <div>
                     <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", fontWeight: 500 }}>Full Name <span style={{ color: "#ff5a5f" }}>*</span></label>
                     <input
@@ -100,6 +101,23 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
                     />
                     {errors.fullName && <span style={{ color: "#dc3545", fontSize: 11 }}>{errors.fullName}</span>}
                 </div>
+
+                {/* RIGHT COLUMN */}
+                <div>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", fontWeight: 500 }}>Date of Birth <span style={{ color: "#ff5a5f" }}>*</span></label>
+                    <input
+                        type="date"
+                        name="birthdate"
+                        value={formData.birthdate ? dayjs(formData.birthdate).format("YYYY-MM-DD") : ""}
+                        onChange={handleChange}
+                        max={dayjs().format("YYYY-MM-DD")}
+                        {...createFocusHandlers()}
+                        style={{ width: "100%", padding: "9px 12px", border: `1px solid ${errors.birthdate ? "#dc3545" : "#ddd"}`, borderRadius: 4, borderLeft: "3px solid #ff5a5f", fontSize: "14px" }}
+                    />
+                    {errors.birthdate && <span style={{ color: "#dc3545", fontSize: 11 }}>{errors.birthdate}</span>}
+                </div>
+
+                {/* LEFT COLUMN */}
                 <div>
                     <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", fontWeight: 500 }}>Phone Number <span style={{ color: "#ff5a5f" }}>*</span></label>
                     <input
@@ -114,19 +132,7 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
                     {errors.phoneNumber && <span style={{ color: "#dc3545", fontSize: 11 }}>{errors.phoneNumber}</span>}
                 </div>
 
-                <div>
-                    <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", fontWeight: 500 }}>Date of Birth <span style={{ color: "#ff5a5f" }}>*</span></label>
-                    <input
-                        type="date"
-                        name="birthdate"
-                        value={formData.birthdate ? dayjs(formData.birthdate).format("YYYY-MM-DD") : ""}
-                        onChange={handleChange}
-                        max={dayjs().format("YYYY-MM-DD")}
-                        {...createFocusHandlers()}
-                        style={{ width: "100%", padding: "9px 12px", border: `1px solid ${errors.birthdate ? "#dc3545" : "#ddd"}`, borderRadius: 4, borderLeft: "3px solid #ff5a5f", fontSize: "14px" }}
-                    />
-                    {errors.birthdate && <span style={{ color: "#dc3545", fontSize: 11 }}>{errors.birthdate}</span>}
-                </div>
+                {/* RIGHT COLUMN */}
                 <div>
                     <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", fontWeight: 500 }}>Address <span style={{ color: "#ff5a5f" }}>*</span></label>
                     <input
@@ -141,16 +147,17 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
                     {errors.address && <span style={{ color: "#dc3545", fontSize: 11 }}>{errors.address}</span>}
                 </div>
 
-                <div>
+                {/* Gender - Full width (span 2 columns) */}
+                <div style={{ gridColumn: "1 / -1" }}>
                     <label style={{ display: "block", marginBottom: "5px", fontSize: "13px", fontWeight: 500 }}>Gender <span style={{ color: "#ff5a5f" }}>*</span></label>
                     <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                         <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "14px" }}>
                             <input type="radio" name="gender" value="MALE" checked={formData.gender === "MALE"} onChange={handleChange} style={{ accentColor: "#ff5a5f" }} />
-                            <span>M</span>
+                            <span>Male</span>
                         </label>
                         <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "14px" }}>
                             <input type="radio" name="gender" value="FEMALE" checked={formData.gender === "FEMALE"} onChange={handleChange} style={{ accentColor: "#ff5a5f" }} />
-                            <span>F</span>
+                            <span>Female</span>
                         </label>
                     </div>
                     {errors.gender && <span style={{ color: "#dc3545", fontSize: 11 }}>{errors.gender}</span>}

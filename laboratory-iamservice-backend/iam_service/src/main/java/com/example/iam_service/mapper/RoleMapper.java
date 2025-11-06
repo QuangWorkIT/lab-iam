@@ -100,7 +100,7 @@ public class RoleMapper {
                 log.warn("Role {} privileges are empty, adding READ_ONLY privilege", role.getCode());
                 role.addPrivilege(Privileges.READ_ONLY);
             }
-
+            role.setDeletable(dto.isDeletable());
             role.setUpdatedAt(LocalDate.now());
             log.info("Successfully updated role: {}", role.getCode());
 

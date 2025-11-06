@@ -63,14 +63,46 @@ export default function RoleModal({
     description: "",
     privileges: [],
     isActive: true,
+    deletable: true
   });
   // Inline validation for required fields
   const [errors, setErrors] = useState({ name: "", description: "" });
   const nameRef = useRef(null);
   const descRef = useRef(null);
 
+  // Animation: enter + exit with mounted hold
+  const ANIM_MS = 180;
+  const [animateIn, setAnimateIn] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    let raf1;
+    let raf2;
+    let timer;
+    if (isOpen) {
+      setMounted(true);
+      setAnimateIn(false);
+      // Double RAF + force reflow để đảm bảo trạng thái ban đầu được apply trước khi transition
+      raf1 = requestAnimationFrame(() => {
+        if (typeof document !== "undefined") {
+          void document.body.offsetHeight;
+        }
+        raf2 = requestAnimationFrame(() => setAnimateIn(true));
+      });
+    } else {
+      setAnimateIn(false);
+      // Giữ lại để chạy exit animation
+      timer = setTimeout(() => setMounted(false), ANIM_MS);
+    }
+    return () => {
+      if (raf1) cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+      if (timer) clearTimeout(timer);
+    };
+  }, [isOpen]);
+
   // Load dữ liệu khi mở modal (chuẩn hóa privileges thành MẢNG để dùng an toàn ở view/edit)
   useEffect(() => {
+    if (!isOpen) return;
     if (role) {
       const privArr = parsePrivileges(role.privileges);
       setFormData({
@@ -79,14 +111,16 @@ export default function RoleModal({
         description: role.description || "",
         privileges: privArr,
         isActive: role.isActive !== undefined ? role.isActive : true,
+         deletable: role.deletable || false,
       });
     } else {
       setFormData({
-        code: "",
-        name: "",
-        description: "",
-        privileges: [],
-        isActive: true,
+       code: "",
+      name: "",
+      description: "",
+      privileges: [],
+      isActive: true,
+      deletable: false,
       });
     }
     // Reset field errors when modal opens or role changes
@@ -135,9 +169,7 @@ export default function RoleModal({
         descRef.current.focus();
       return;
     }
-    // if (formData.privileges.length === 0) {
-    //   return alert("Please select at least one privilege");
-    // }
+    
 
     const formattedData = {
       code: "", // ← Send empty, backend generates it
@@ -145,12 +177,13 @@ export default function RoleModal({
       description: formData.description,
       privileges: formData.privileges.join(","),
       isActive: formData.isActive,
+      deletable: formData.deletable,
     };
 
     onSave(formattedData);
   };
 
-  if (!isOpen) return null;
+  if (!mounted) return null;
 
   const title =
     mode === "view"
@@ -169,6 +202,7 @@ export default function RoleModal({
 
   return (
     <div
+      className={`lm-role-modal-overlay ${animateIn ? "is-open" : ""}`}
       style={{
         position: "fixed",
         inset: 0,
@@ -179,7 +213,25 @@ export default function RoleModal({
         zIndex: 1000,
       }}
     >
+      {/* Scoped CSS for modal enter/exit animation */}
+      <style>
+        {`
+          .lm-role-modal-overlay { opacity: 0; transition: opacity ${ANIM_MS}ms ease-out; }
+          .lm-role-modal-overlay.is-open { opacity: 1; }
+          .lm-role-modal-card {
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+            transition: transform ${ANIM_MS}ms cubic-bezier(.2,.8,.2,1), opacity ${ANIM_MS}ms ease-out;
+            will-change: transform, opacity;
+          }
+          .lm-role-modal-card.is-open { opacity: 1; transform: translateY(0) scale(1); }
+          @media (prefers-reduced-motion: reduce) {
+            .lm-role-modal-overlay, .lm-role-modal-card { transition: none !important; }
+          }
+        `}
+      </style>
       <div
+        className={`lm-role-modal-card ${animateIn ? "is-open" : ""}`}
         style={{
           background: "#fff",
           borderRadius: 12,
@@ -499,6 +551,29 @@ export default function RoleModal({
                   ))}
                 </div>
               </Field>
+
+ <div style={{ marginTop: 6 }}>
+          <label
+            style={{ display: "flex", alignItems: "center", gap: 10 }}
+          >
+            <input
+              type="checkbox"
+              name="deletable"
+              checked={formData.deletable}
+              onChange={handleChange}
+              style={{ width: 16, height: 16 }}
+            />
+            <span
+              style={{ color: "#404553", fontSize: 13, fontWeight: 600 }}
+            >
+              Allow Role Deletion (Advanced Setting)
+            </span>
+          </label>
+          <div style={{ marginLeft: 26, marginTop: 4, color: "#6b7280", fontSize: 12 }}>
+            Enable to allow role deletion. When disabled, the role cannot be deleted even if no users are assigned.
+          </div>
+        </div>
+
               <div style={{ marginTop: 6 }}>
                 <label
                   style={{ display: "flex", alignItems: "center", gap: 10 }}
@@ -744,7 +819,7 @@ function parsePrivileges(value) {
           .map((x) => (typeof x === "string" ? x : x?.code || x?.name || ""))
           .filter(Boolean);
       }
-    } catch (_) {
+    } catch {
       // không phải JSON, tiếp tục tách theo dấu phẩy
     }
     return value

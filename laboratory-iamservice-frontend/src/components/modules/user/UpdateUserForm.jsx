@@ -110,7 +110,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
     return (
         <form onSubmit={handleSubmit} style={{ padding: "0", width: "100%", maxWidth: "420px", margin: "0 auto" }}>
             {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px", marginTop: "15px" }}>
                 <div style={{
                     width: 36,
                     height: 36,
@@ -142,7 +142,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                 borderRadius: "12px",
                 marginBottom: "24px"
             }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px 16px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px 40px" }}>
                     {/* Full Name */}
                     <div>
                         <label style={{

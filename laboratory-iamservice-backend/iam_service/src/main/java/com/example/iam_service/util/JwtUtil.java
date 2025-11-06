@@ -96,6 +96,10 @@ public class JwtUtil {
         payload.put("address", user.getAddress());
         payload.put("phone", user.getPhoneNumber());
         payload.put("isActive", user.getIsActive().toString());
+        payload.put("isDeleted", user.getIsDeleted().toString());
+        payload.put("deletedAt",
+                user.getDeletedAt() != null ? user.getDeletedAt().toString() : null
+        );
 
         return payload;
     }

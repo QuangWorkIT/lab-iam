@@ -1,13 +1,13 @@
-import { FaUser, FaTimes, FaSyncAlt } from "react-icons/fa";
+import { FaUser, FaTimes } from "react-icons/fa";
 import { Tooltip } from "antd";
-import { CheckCircleTwoTone, EditOutlined, ArrowLeftOutlined, ExclamationCircleTwoTone } from '@ant-design/icons';
+import { CheckCircleTwoTone, EditOutlined, ArrowLeftOutlined, ExclamationCircleTwoTone, InfoCircleOutlined } from '@ant-design/icons';
 import ResetPassWord from "../modules/auth/ResetPassWordForm.jsx";
 import { useState, useEffect } from "react"
 import { getRoleName } from "../../utils/formatter.js"
 import { useSelector } from "react-redux";
 import { motion as Motion, AnimatePresence } from "motion/react"
 import { useDispatch } from "react-redux";
-import { fetchUserById, updateOwnProfile } from "../../redux/features/userManagementSlice";
+import { fetchUserById, updateOwnProfile, requestSelfDeletion } from "../../redux/features/userManagementSlice";
 /**
  * User Detail Modal - Reusable modal component for displaying user/account details
  * 
@@ -115,27 +115,36 @@ function LeftPanel({ user, statusColor, statusText }) {
                     textAlign: "center",
                 }}
             >
-                {getRoleName(user?.role) || "N/A"}
+                {getRoleName(user?.roleCode) || "N/A"}
             </p>
         </div>
     );
 }
 
 // Right Panel Component - Detailed Information
-function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsResetPassWordOpen, userId, onOpenUpdate }) {
+function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpen, onOpenUpdate, onDeleteAccount }) {
     const { userInfo } = useSelector((state) => state.user)
-    const dispatch = useDispatch();
     const canUpdate = userInfo.id === propUser.id;
 
-    // Handle refresh - re-fetch user from API
-    const handleRefresh = () => {
-        if (userId || propUser?.id) {
-            dispatch(fetchUserById(userId || propUser.id));
-        }
-        if (onRefresh) {
-            onRefresh();
-        }
-    };
+    // Check if user has PATIENT role (handle both "PATIENT" and "ROLE_PATIENT" formats)
+    const isPatient = propUser?.role === "ROLE_PATIENT" ||
+        propUser?.roleCode === "ROLE_PATIENT";
+
+    // Check if user has requested account deletion (deletedAt is not null)
+    const hasRequestedDeletion = propUser?.deletedAt !== null && propUser?.deletedAt !== undefined;
+
+    // Debug: Log để kiểm tra giá trị
+    console.log("🔍 Debug RightPanel:", {
+        canUpdate,
+        isPatient,
+        hasRequestedDeletion,
+        deletedAt: propUser?.deletedAt,
+        propUserRole: propUser?.role,
+        propUserRoleCode: propUser?.roleCode,
+        userInfoId: userInfo.id,
+        propUserId: propUser.id,
+        propUser
+    });
 
     // Helper function to render an information field
     const renderField = (label, value) => (
@@ -169,6 +178,22 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                         className="text-[#5170ff] hover:text-[#748cfc] transition-all duration-300 ease"
                     >
                         {label}
+                        {label === "Identity Number" && userInfo.id === propUser.id &&
+                            <Tooltip
+                                placement="top"
+                                title="To update your Identity Number, please contact an administrator"
+                                overlayStyle={{ maxWidth: '250px' }}
+                                color="#000000"
+                            >
+                                <InfoCircleOutlined
+                                    className="ml-2 text-[14px] cursor-pointer"
+                                    style={{
+                                        color: "#000000",
+                                        verticalAlign: "middle"
+                                    }}
+                                />
+                            </Tooltip>
+                        }
                         {label === "Password" && userInfo.id === propUser.id &&
                             <Tooltip placement="top" title={"Change password"} >
                                 <button
@@ -213,46 +238,6 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
                 minHeight: "400px",
             }}
         >
-            {/* Refresh Button */}
-            <button
-                onClick={handleRefresh}
-                style={{
-                    position: "absolute",
-                    bottom: "20px",
-                    right: "20px",
-                    width: "auto",
-                    height: "auto",
-                    border: "none",
-                    borderRadius: "0",
-                    backgroundColor: "transparent",
-                    color: "#6f42c1",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "none",
-                    fontSize: "18px",
-                    fontWeight: "bold",
-                    transition: "all 0.2s ease",
-                    zIndex: 9999,
-                    padding: "8px",
-                    outline: "none",
-                }}
-                onMouseEnter={(e) => {
-                    e.target.style.color = "#4c3398";
-                    e.target.style.transform = "scale(1.2)";
-                }}
-                onMouseLeave={(e) => {
-                    e.target.style.color = "#6f42c1";
-                    e.target.style.transform = "scale(1)";
-                }}
-                aria-label="Refresh"
-            >
-                <FaSyncAlt />
-            </button>
-
-            {/* Update button removed as requested */}
-
             {/* User Information Grid */}
             <div
                 style={{
@@ -270,44 +255,112 @@ function RightPanel({ propUser, onRefresh, formatDate, getGenderText, setIsReset
             >
                 {/* Left Column */}
                 <div>
-                    {renderField("Identity Number", propUser?.identityNumber || propUser?.identifyNumber || "N/A")}
-                    {renderField("Phone Number", propUser?.phoneNumber || "N/A")}
-                    {renderField("Gender", getGenderText ? getGenderText(propUser?.gender) : (propUser?.gender || "N/A"))}
+                    {renderField("Identity Number",
+                        (propUser?.identityNumber && propUser.identityNumber !== "N/A") ? propUser.identityNumber :
+                            (propUser?.identifyNumber && propUser.identifyNumber !== "N/A") ? propUser.identifyNumber : "N/A"
+                    )}
+                    {renderField("Phone Number",
+                        (propUser?.phoneNumber && propUser.phoneNumber !== "N/A") ? propUser.phoneNumber : "N/A"
+                    )}
+                    {renderField("Gender",
+                        (propUser?.gender && propUser.gender !== "N/A") ?
+                            (getGenderText ? getGenderText(propUser.gender) : propUser.gender) : "N/A"
+                    )}
                     {renderField("Email", propUser?.email || "N/A")}
                 </div>
 
                 {/* Right Column */}
                 <div>
-                    {renderField("Date of Birth", formatDate ? formatDate(propUser?.dateOfBirth) : (propUser?.dateOfBirth || "N/A"))}
-                    {renderField("Age", propUser?.age !== undefined && propUser?.age !== null ? `${propUser.age} years old` : "N/A")}
-                    {renderField("Address", propUser?.address || "N/A")}
+                    {renderField("Date of Birth",
+                        (propUser?.dateOfBirth && propUser.dateOfBirth !== "N/A") ?
+                            (formatDate ? formatDate(propUser.dateOfBirth) : propUser.dateOfBirth) : "N/A"
+                    )}
+                    {renderField("Age",
+                        (propUser?.age !== undefined && propUser?.age !== null && propUser?.age !== "N/A") ?
+                            `${propUser.age} years old` : "N/A"
+                    )}
+                    {renderField("Address",
+                        (propUser?.address && propUser.address !== "N/A") ? propUser.address : "N/A"
+                    )}
                     {userInfo.id === propUser.id && (renderField("Password", "*********"))}
                 </div>
             </div>
 
-            {/* Update button for self - bottom-right near refresh */}
-            {canUpdate && (
-                <button
-                    onClick={onOpenUpdate}
+            {/* Action buttons: Delete → Update - Only show if user has NOT requested deletion */}
+            {canUpdate && !hasRequestedDeletion && (
+                <>
+                    {/* Delete Account button - only for PATIENT role */}
+                    {isPatient && (
+                        <button
+                            onClick={onDeleteAccount}
+                            style={{
+                                position: "absolute",
+                                bottom: "20px",
+                                right: "90px",
+                                padding: "8px 12px",
+                                backgroundColor: "#ff5a5f",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                zIndex: 9999,
+                                transition: "all 0.2s ease"
+                            }}
+                            onMouseEnter={(e) => { e.target.style.backgroundColor = "#ff5a5f"; }}
+                            onMouseLeave={(e) => { e.target.style.backgroundColor = "#ff5a5f"; }}
+                        >
+                            Delete Account
+                        </button>
+                    )}
+
+                    {/* Update button */}
+                    <button
+                        onClick={onOpenUpdate}
+                        style={{
+                            position: "absolute",
+                            bottom: "20px",
+                            right: "20px",
+                            padding: "8px 12px",
+                            backgroundColor: "#28a745",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            zIndex: 9999,
+                            transition: "all 0.2s ease"
+                        }}
+                        onMouseEnter={(e) => { e.target.style.backgroundColor = "#218838"; }}
+                        onMouseLeave={(e) => { e.target.style.backgroundColor = "#28a745"; }}
+                    >
+                        Update
+                    </button>
+                </>
+            )}
+
+            {/* Display notification if account deletion is requested */}
+            {canUpdate && hasRequestedDeletion && (
+                <div
                     style={{
                         position: "absolute",
-                        bottom: "20px",
-                        right: "70px",
-                        padding: "10px 18px",
-                        backgroundColor: "#28a745",
-                        color: "white",
-                        border: "none",
+                        bottom: "-5px",
+                        right: "20px",
+                        left: "20px",
+                        padding: "12px 16px",
+                        backgroundColor: "#fff3cd",
+                        borderLeft: "4px solid #ffc107",
                         borderRadius: "6px",
-                        cursor: "pointer",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        zIndex: 9999
+                        color: "#856404",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        lineHeight: "1.5"
                     }}
-                    onMouseEnter={(e) => { e.target.style.backgroundColor = "#218838"; }}
-                    onMouseLeave={(e) => { e.target.style.backgroundColor = "#28a745"; }}
                 >
-                    Update
-                </button>
+                    ⚠️ Your account deletion has been requested. You cannot update or delete your account during this period.
+                </div>
             )}
         </div>
     );
@@ -321,6 +374,7 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
     const dispatch = useDispatch();
     const [isResetPassWordOpen, setIsResetPassWordOpen] = useState(false);
     const [isSelfUpdateOpen, setIsSelfUpdateOpen] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Get user detail from Redux store or use passed user prop
     const { userDetail, userDetailLoading, error } = useSelector((state) => state.users);
@@ -338,6 +392,17 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
 
     // Use fetched user detail (from API) or passed user prop as fallback
     const displayUser = userDetail || user;
+
+    // Debug log
+    console.log("🔍 UserDetailModal Debug:", {
+        isOpen,
+        userDetail,
+        user,
+        displayUser,
+        userDetailLoading,
+        error,
+        targetUserId
+    });
 
     // Show loading state
     if (isOpen && !displayUser && userDetailLoading) {
@@ -414,7 +479,54 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
         );
     }
 
-    if (!isOpen || !displayUser) return null;
+    // Don't render if modal is not open
+    if (!isOpen) return null;
+
+    // If no user data available at all, show a message
+    if (!displayUser) {
+        return (
+            <div
+                style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: "rgba(0, 0, 0, 0.8)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 1000,
+                }}
+                onClick={onClose}
+            >
+                <div
+                    style={{
+                        backgroundColor: "white",
+                        borderRadius: "12px",
+                        padding: "40px",
+                        textAlign: "center",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div style={{ marginBottom: "20px" }}>No user data available</div>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            padding: "10px 20px",
+                            backgroundColor: "#ff5a5f",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "5px",
+                            cursor: "pointer",
+                        }}
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     // Helper functions
     const formatDate = (dateString) => {
@@ -435,6 +547,33 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
         return isActive ? "Active" : "Inactive";
     };
 
+    const handleDeleteAccount = () => {
+        setShowDeleteConfirm(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        try {
+            // Call API to request deletion (for PATIENT role with 7 days grace period)
+            await dispatch(requestSelfDeletion(displayUser.id)).unwrap();
+
+            toast.success("Your deletion request has been submitted. Account will be deleted after 7 days.");
+            setShowDeleteConfirm(false);
+            onClose();
+
+            // Refresh data if callback provided
+            if (onRefresh) {
+                await onRefresh();
+            }
+        } catch (error) {
+            toast.error(error || "Failed to submit deletion request");
+            console.error("Delete account error:", error);
+        }
+    };
+
+    const handleCancelDelete = () => {
+        setShowDeleteConfirm(false);
+    };
+
     const handleUpdateSubmit = async (formData) => {
         try {
             // Dispatch Redux action to update profile
@@ -446,12 +585,12 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
             ).unwrap(); // unwrap() to get result or throw error
 
             toast.success("Update user successfully!");
-            
+
             // Refresh data if callback provided
             if (onRefresh) {
                 await onRefresh();
             }
-            
+
             // Close modal completely
             setIsSelfUpdateOpen(false);
             onClose();
@@ -464,97 +603,202 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
     // integrated update form via AnimatePresence below
 
     return (
-        <div
-            style={{
-                background: "white",
-                borderRadius: "12px",
-                width: "650px",
-                height: "450px",
-                display: "flex",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-                position: "relative",
-                left: "20px"
-            }}
-        >
-            <div style={{ width: "150px" }}>
-                <LeftPanel
-                    user={user}
-                    statusColor={getStatusColor(user.isActive)}
-                    statusText={getStatusText(user.isActive)}
-                />
+        <>
+            <div
+                style={{
+                    background: "white",
+                    borderRadius: "12px",
+                    width: "650px",
+                    height: "450px",
+                    display: "flex",
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+                    position: "relative",
+                    left: "20px"
+                }}
+            >
+                <div style={{ width: "150px" }}>
+                    <LeftPanel
+                        user={displayUser}
+                        statusColor={getStatusColor(displayUser.isActive)}
+                        statusText={getStatusText(displayUser.isActive)}
+                    />
+                </div>
+
+                <AnimatePresence mode="wait">
+                    {isResetPassWordOpen ? (
+                        <Motion.div
+                            key="reset"
+                            initial={{ opacity: 0, x: 40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -40 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="ml-[70px]"
+                        >
+                            <ResetPassWord
+                                setIsResetPassWord={setIsResetPassWordOpen}
+                                userId={user.id}
+                                updateOption="change"
+                            />
+                        </Motion.div>
+                    ) : isSelfUpdateOpen ? (
+                        <Motion.div
+                            key="update"
+                            initial={{ opacity: 0, x: 40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -40 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="w-full flex justify-center items-center"
+                        >
+                            <div style={{ width: "100%", maxWidth: "520px", padding: "16px 30px", boxSizing: "border-box" }}>
+                                <UpdateSelfForm
+                                    user={displayUser}
+                                    onCancel={() => setIsSelfUpdateOpen(false)}
+                                    onSubmit={handleUpdateSubmit}
+                                />
+                            </div>
+                        </Motion.div>
+                    ) : (
+                        <Motion.div
+                            key="info"
+                            initial={{ opacity: 0, x: -40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -40 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="w-full"
+                        >
+                            <RightPanel
+                                propUser={displayUser}
+                                formatDate={formatDate}
+                                getGenderText={getGenderText}
+                                setIsResetPassWordOpen={setIsResetPassWordOpen}
+                                onOpenUpdate={() => setIsSelfUpdateOpen(true)}
+                                onDeleteAccount={handleDeleteAccount}
+                            />
+                        </Motion.div>
+                    )}
+
+                    {/* Update form now integrated with animation */}
+                </AnimatePresence>
+
+                {/* Close Button */}
+                <button
+                    onClick={isResetPassWordOpen ? () => setIsResetPassWordOpen(false) : isSelfUpdateOpen ? () => setIsSelfUpdateOpen(false) : onClose}
+                    className={`absolute ${isResetPassWordOpen ? "top-10 right-10" : "top-5 right-5"} 
+                    text-white hover:text-[#dc3545] hover:scale-120 flex items-center justify-center
+                    cursor-pointer font-bold text-[20px] transition-all duration-400 ease-in-out z-[9999] p-2`}
+                >
+                    {isResetPassWordOpen ? (
+                        <ArrowLeftOutlined className="!text-[#ff5a5f] text-[25px]" />
+                    ) : (
+                        <FaTimes className="text-[#ff5a5f] text-[20px]" />
+                    )}
+                </button>
             </div>
 
-            <AnimatePresence mode="wait">
-                {isResetPassWordOpen ? (
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 10000,
+                    }}
+                    onClick={handleCancelDelete}
+                >
                     <Motion.div
-                        key="reset"
-                        initial={{ opacity: 0, x: 40 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="ml-[70px]"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                        style={{
+                            backgroundColor: "white",
+                            borderRadius: "12px",
+                            padding: "30px",
+                            maxWidth: "400px",
+                            width: "90%",
+                            boxShadow: "0 8px 32px rgba(0,0,0,0.2)"
+                        }}
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        <ResetPassWord
-                            setIsResetPassWord={setIsResetPassWordOpen}
-                            userId={user.id}
-                            updateOption="change"
-                        />
-                    </Motion.div>
-                ) : isSelfUpdateOpen ? (
-                    <Motion.div
-                        key="update"
-                        initial={{ opacity: 0, x: 40 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="w-full flex justify-start"
-                    >
-                        <div style={{ width: "320px", maxWidth: "80vw", padding: 16, marginLeft: 40, marginRight: 20, boxSizing: "border-box" }}>
-                            <UpdateSelfForm
-                                user={displayUser}
-                                onCancel={() => setIsSelfUpdateOpen(false)}
-                                onSubmit={handleUpdateSubmit}
-                            />
+                        <h3 style={{
+                            color: "#ff5a5f",
+                            marginBottom: "15px",
+                            fontSize: "20px",
+                            fontWeight: "bold"
+                        }}>
+                            Confirm Delete Account
+                        </h3>
+                        <p style={{
+                            marginBottom: "20px",
+                            color: "#333",
+                            fontSize: "14px",
+                            lineHeight: "1.6"
+                        }}>
+                            Are you sure you want to delete your account?
+                        </p>
+                        <p style={{
+                            marginBottom: "25px",
+                            color: "#666",
+                            fontSize: "13px",
+                            lineHeight: "1.6",
+                            padding: "12px",
+                            backgroundColor: "#fff3cd",
+                            borderLeft: "4px solid #ffc107",
+                            borderRadius: "4px"
+                        }}>
+                            <strong>⚠️ Important:</strong> You will have <strong>7 days</strong> to continue accessing your account. After <strong>7 days</strong>, your account will be permanently locked and cannot be recovered.
+                        </p>
+                        <div style={{
+                            display: "flex",
+                            gap: "10px",
+                            justifyContent: "flex-end"
+                        }}>
+                            <button
+                                onClick={handleCancelDelete}
+                                style={{
+                                    padding: "10px 20px",
+                                    backgroundColor: "#6c757d",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    fontWeight: 600
+                                }}
+                                onMouseEnter={(e) => { e.target.style.backgroundColor = "#5a6268"; }}
+                                onMouseLeave={(e) => { e.target.style.backgroundColor = "#6c757d"; }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                style={{
+                                    padding: "10px 20px",
+                                    backgroundColor: "#dc3545",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    fontWeight: 600
+                                }}
+                                onMouseEnter={(e) => { e.target.style.backgroundColor = "#c82333"; }}
+                                onMouseLeave={(e) => { e.target.style.backgroundColor = "#dc3545"; }}
+                            >
+                                Delete
+                            </button>
                         </div>
                     </Motion.div>
-                ) : (
-                    <Motion.div
-                        key="info"
-                        initial={{ opacity: 0, x: -40 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="w-full"
-                    >
-                        <RightPanel
-                            propUser={displayUser}
-                            onRefresh={onRefresh}
-                            formatDate={formatDate}
-                            getGenderText={getGenderText}
-                            setIsResetPassWordOpen={setIsResetPassWordOpen}
-                            userId={targetUserId}
-                            onOpenUpdate={() => setIsSelfUpdateOpen(true)}
-                        />
-                    </Motion.div>
-                )}
-
-                {/* Update form now integrated with animation */}
-            </AnimatePresence>
-
-            {/* Close Button */}
-            <button
-                onClick={isResetPassWordOpen ? () => setIsResetPassWordOpen(false) : isSelfUpdateOpen ? () => setIsSelfUpdateOpen(false) : onClose}
-                className={`absolute ${isResetPassWordOpen ? "top-10 right-10" : "top-5 right-5"} 
-                text-white hover:text-[#dc3545] hover:scale-120 flex items-center justify-center
-                cursor-pointer font-bold text-[20px] transition-all duration-400 ease-in-out z-[9999] p-2`}
-            >
-                {isResetPassWordOpen ? (
-                    <ArrowLeftOutlined className="!text-[#ff5a5f] text-[25px]" />
-                ) : (
-                    <FaTimes className="text-[#ff5a5f] text-[20px]" />
-                )}
-            </button>
-        </div>
+                </div>
+            )}
+        </>
     );
 }
 

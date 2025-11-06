@@ -7,4 +7,5 @@ import lombok.Setter;
 @Setter
 public class DetailUserDTO extends UserDTO {
     private String identityNumber;
+    private Boolean isDeleted;
 }

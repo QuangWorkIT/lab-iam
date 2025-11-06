@@ -18,6 +18,15 @@ export const logout = createAsyncThunk("user/logout", async (_, { rejectWithValu
   }
 })
 
+export const fetchCurrentUser = createAsyncThunk("user/fetchCurrentUser", async (_, { rejectWithValue }) => {
+  try {
+    const response = await api.get("/api/auth/user-info");
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || "Failed to fetch user info");
+  }
+})
+
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -27,6 +36,9 @@ const userSlice = createSlice({
       state.token = token;
       state.userInfo = userInfo;
       localStorage.setItem("token", token);
+    },
+    updateUserInfo: (state, action) => {
+      state.userInfo = { ...state.userInfo, ...action.payload };
     },
     addBannedElement: (state, action) => {
       state.bannedElements.push(action.payload);
@@ -42,7 +54,7 @@ const userSlice = createSlice({
         if (action.payload?.user) {
           return {
             ...initialState,
-            ...action.payload.user, 
+            ...action.payload.user,
           };
         }
       })
@@ -58,8 +70,19 @@ const userSlice = createSlice({
         localStorage.removeItem("token")
         console.error(action.payload)
       })
+      .addCase(fetchCurrentUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userInfo = { ...state.userInfo, ...action.payload };
+      })
+      .addCase(fetchCurrentUser.rejected, (state, action) => {
+        state.loading = false;
+        console.error("Failed to fetch user info:", action.payload);
+      })
   }
 });
 
-export const { login, addBannedElement, removerBannedElement } = userSlice.actions;
+export const { login, updateUserInfo,addBannedElement, removerBannedElement} = userSlice.actions;
 export default userSlice.reducer;
