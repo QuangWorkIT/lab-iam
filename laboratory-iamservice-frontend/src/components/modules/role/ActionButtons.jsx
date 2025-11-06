@@ -8,6 +8,9 @@ export default function ActionButtons({
   onDelete,
   item,
   isSystemRole = false,
+  canViewRole = true,
+  canUpdateRole = true,
+  canDeleteRole = true,
 }) {
   const iconColor = "#fe535b";
 
@@ -30,6 +33,7 @@ export default function ActionButtons({
 
   return (
     <div style={{ display: "flex", justifyContent: "center", gap: "16px" }}>
+      {canViewRole&&(
       <button
         type="button"
         style={btnStyle}
@@ -38,8 +42,9 @@ export default function ActionButtons({
         onClick={() => onView(item)}
       >
         <FiEye size={18} />
-      </button>
-      <button
+      </button>)}
+
+      {canUpdateRole&&(<button
         type="button"
         style={btnStyle}
         title="Edit"
@@ -47,8 +52,10 @@ export default function ActionButtons({
         onClick={() => onEdit(item)}
       >
         <FiEdit size={18} />
-      </button>
-      <button
+      </button>)}
+
+
+      {canDeleteRole&&(<button
         type="button"
         style={isSystemRole ? disabledBtnStyle : btnStyle}
         title={isSystemRole ? "System role cannot be deleted" : "Delete"}
@@ -57,7 +64,7 @@ export default function ActionButtons({
         disabled={isSystemRole}
       >
         <FiTrash2 size={18} />
-      </button>
+      </button>)}
     </div>
   );
 }
