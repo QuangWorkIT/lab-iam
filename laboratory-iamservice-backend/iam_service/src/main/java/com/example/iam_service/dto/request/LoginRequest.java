@@ -18,9 +18,5 @@ public class LoginRequest {
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z]).{8,}$",
-            message = "Password must be at least 8 characters long and include at least one uppercase and one lowercase letter"
-    )
     private String password;
 }

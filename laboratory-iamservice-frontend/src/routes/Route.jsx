@@ -62,7 +62,7 @@ const routes = [
   {
     path: "/test",
     element: (
-      <ProtectedRoute element={TestPages} />
+      <TestPages />
     ),
   },
 

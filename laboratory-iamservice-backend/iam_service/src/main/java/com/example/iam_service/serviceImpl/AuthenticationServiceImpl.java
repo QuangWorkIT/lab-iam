@@ -4,10 +4,7 @@ import com.example.iam_service.entity.Token;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.repository.RefreshTokenRepository;
 import com.example.iam_service.repository.UserRepository;
-import com.example.iam_service.service.authen.GoogleService;
-import com.example.iam_service.service.authen.LoginService;
-import com.example.iam_service.service.authen.RefreshTokenService;
-import com.example.iam_service.service.authen.ResetPassWordService;
+import com.example.iam_service.service.authen.*;
 import com.example.iam_service.util.JwtUtil;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -29,7 +26,6 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
     private final RefreshTokenRepository refreshRepo;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
     private final JwtUtil jwtUtil;
-
     // helper function for verification
     private User authenticate(String email, String password) {
         Optional<User> userFound = userRepository.findByEmail(email);
@@ -164,14 +160,18 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
     @Override
     public User updateUserPassword(String userid, String password, String currentPassword, String option) {
         User user = userRepository.findById(UUID.fromString(userid)).orElseThrow(
-                () -> new RuntimeException("User not found")
+                () -> new IllegalArgumentException("User not found")
         );
+
+        // Check if the provided password is correct
         if(currentPassword != null && !encoder.matches(currentPassword, user.getPassword()))
             throw new IllegalArgumentException("Current password does not match");
 
+        // Check the new password if user want to change current password
         if (option.equals("change") && encoder.matches(password, user.getPassword())) {
             throw new IllegalArgumentException("Password must be different from the old one");
         }
+
         user.setPassword(encoder.encode(password));
         return userRepository.save(user);
     }

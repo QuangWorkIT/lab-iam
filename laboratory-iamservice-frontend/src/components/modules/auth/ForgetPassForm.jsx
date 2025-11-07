@@ -55,7 +55,7 @@ function ForgetPassForm({ setIsResetPassWord }) {
                         transition={{ duration: 0.5, ease: "easeInOut" }}
                         className="h-full"
                     >
-                        <ResetPassWord setIsResetPassWord={setIsResetPassWord} userId={currentUser.userId} />
+                        <ResetPassWord setIsResetPassWord={setIsResetPassWord} userId={currentUser?.userId || ""} />
                     </motion.div>
                 )
                     : isOptOpen ? (
