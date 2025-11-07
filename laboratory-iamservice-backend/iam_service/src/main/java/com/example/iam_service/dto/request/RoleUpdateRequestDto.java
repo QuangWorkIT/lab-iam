@@ -29,7 +29,7 @@ public class RoleUpdateRequestDto {
     @Schema(description = "Role's update date")
     private LocalDate lastUpdatedAt;
 
-    @Schema(description = "Role's deletable")
+    @Schema(description = "Role's deletable", defaultValue ="true")
     private boolean deletable;
 
 }
