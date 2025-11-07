@@ -4,8 +4,13 @@ import { Button, Form, Input } from "antd";
 import { motion, AnimatePresence } from "motion/react";
 import { CheckOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { addBannedElement, removerBannedElement } from "../../../redux/features/userSlice";
 const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) => {
+    const { bannedElements } = useSelector(state => state.user)
+    const dispath = useDispatch()
     const [resetPassWordState, setResetPassWordState] = useState(null)
+    const [form] = Form.useForm();
 
     const resetPassWord = async (values) => {
         try {
@@ -19,6 +24,9 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
 
             await publicApi.put("/api/auth/password-reset", payload)
             setResetPassWordState("success")
+
+            dispath(removerBannedElement("resetPasswordBanned"))
+
             setTimeout(() => {
                 setIsResetPassWord(false)
                 toast.success("Reset password successfully!")
@@ -28,15 +36,22 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
             console.error("Error reset password", error)
             setResetPassWordState(null)
             const errMess = error.response.data?.message
-            if(errMess) toast.error(errMess)
-            else if(error.response.data?.error) toast.error(error.response.data.error)
+            if (errMess) {
+                toast.error(errMess)
+                if (errMess === "Too many reset password attempts")
+                    dispath(addBannedElement("resetPasswordBanned"))
+            }
+            else if (error.response.data?.error) toast.error(error.response.data.error)
             else toast.error(`Error ${updateOption} password`)
+        } finally {
+            form.resetFields()
         }
     }
 
     return (
         <div className="flex flex-col h-full items-center justify-center">
             <Form
+                form={form}
                 name="resetPassword"
                 initialValues={{ remember: true }}
                 onFinish={resetPassWord}
@@ -82,42 +97,52 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
 
                 <Form.Item
                     label={null}
-                    className="flex justify-center"
                     style={{ marginTop: "40px" }}
                 >
-                    <Button
-                        className={`hover:bg-[#fca9ad] transition-all duration-300 ease-in-out 
+
+                    <div className="flex flex-col items-center">
+                        {
+                            bannedElements.includes("resetPasswordBanned")
+                            && (<span
+                            className="font-bold italic mb-1 text-red-500">
+                                Too many attempts! Please try again later.
+                                </span>
+                        )}
+                        <Button
+                            className={`hover:bg-[#fca9ad] transition-all duration-300 ease-in-out 
                         ${resetPassWordState === "success" ? "w-50" : "w-30"}`}
-                        color="danger"
-                        variant="solid"
-                        htmlType="submit"
-                        loading={resetPassWordState === "reseting"}
-                    >
-                        <AnimatePresence mode="wait">
-                            {resetPassWordState === "success" ? (
-                                <motion.div
-                                    key="success"
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                                    className="flex items-center justify-center gap-1"
-                                >
-                                    <CheckOutlined /> Password changed
-                                </motion.div>
-                            ) : (
-                                <motion.span
-                                    key="reset"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    {updateOption === "reset" ? "Reset" : "Save"}
-                                </motion.span>
-                            )}
-                        </AnimatePresence>
-                    </Button>
+                            color="danger"
+                            variant="solid"
+                            htmlType="submit"
+                            disabled={bannedElements.includes("resetPasswordBanned")}
+                            loading={resetPassWordState === "reseting"}
+                        >
+                            <AnimatePresence mode="wait">
+                                {resetPassWordState === "success" ? (
+                                    <motion.div
+                                        key="success"
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                                        className="flex items-center justify-center gap-1"
+                                    >
+                                        <CheckOutlined /> Password changed
+                                    </motion.div>
+                                ) : (
+                                    <motion.span
+                                        key="reset"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        {updateOption === "reset" ? "Reset" : "Save"}
+                                    </motion.span>
+                                )}
+                            </AnimatePresence>
+                        </Button>
+                    </div>
                 </Form.Item>
             </Form>
         </div>

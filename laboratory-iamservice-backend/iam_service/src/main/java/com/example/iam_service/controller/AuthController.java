@@ -8,6 +8,7 @@ import com.example.iam_service.entity.Token;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.mapper.UserMapper;
 import com.example.iam_service.service.EmailService;
+import com.example.iam_service.service.authen.ResetPasswordRateLimiterService;
 import com.example.iam_service.serviceImpl.AuthenticationServiceImpl;
 import com.example.iam_service.serviceImpl.LoginLimiterServiceImpl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
@@ -29,6 +30,7 @@ public class AuthController {
 
     private final AuthenticationServiceImpl authService;
     private final LoginLimiterServiceImpl loginLimiterService;
+    private final ResetPasswordRateLimiterService resetPasswordRateLimiterService;
     private final UserMapper userMapper;
     private final EmailService emailService;
 
@@ -235,12 +237,23 @@ public class AuthController {
 
     @PutMapping("/password-reset")
     public ResponseEntity<ApiResponse<UserDTO>> resetPassWord(
-            @Valid @RequestBody ResetPassWordRequest request) {
+            @Valid @RequestBody ResetPassWordRequest request,
+            HttpServletRequest servletRequest) {
+        String ip = servletRequest.getRemoteAddr();
+        if(resetPasswordRateLimiterService.isBannedFromResetPassword(ip)){
+            return ResponseEntity
+                    .status(429)
+                    .body(new ApiResponse<>("Error", "Too many reset password attempts"));
+        }
+
         if (request.getOption().equals("change") && request.getCurrentPassword() == null) {
             return ResponseEntity
                     .badRequest()
                     .body(new ApiResponse<>("Error", "Current password is missing for change password process"));
         }
+
+        // record new reset-password attempts
+        resetPasswordRateLimiterService.recordResetPassAttempt(ip);
 
         User updatedUser = authService.updateUserPassword(
                 request.getUserid(),

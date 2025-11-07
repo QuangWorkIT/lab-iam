@@ -16,7 +16,7 @@ import {
 } from "react-icons/fa";
 
 const MENU_PRIVILEGES = {
-  HOME: "READ_ONLY", 
+  HOME: "READ_ONLY",
   ROLE_MANAGEMENT: "VIEW_ROLE",
   USER_MANAGEMENT: "VIEW_USER",
   LAB_TESTS: "READ_ONLY",
@@ -24,7 +24,6 @@ const MENU_PRIVILEGES = {
   BLOOD_TESTING_MANAGEMENT: "EXECUTE_BLOOD_TESTING",
   ANALYTICS: "VIEW_EVENT_LOGS",
 };
-
 
 // Inline component
 function SidebarIcon({ icon, active, to = "#", isSideBarOpen }) {
@@ -67,16 +66,19 @@ export default function Sidebar() {
   const hasPrivilege = (privilege) => {
     if (!privilege) return true;
     if (!userInfo?.privileges) return false;
-    return Array.isArray(userInfo.privileges) &&
-      userInfo.privileges.includes(privilege);
+    return (
+      Array.isArray(userInfo.privileges) &&
+      userInfo.privileges.includes(privilege)
+    );
   };
 
   // Định nghĩa menu items
   const menuItems = [
-    { path: "/home"
-      , icon: <FaHome size={20} />
-      , privilege: MENU_PRIVILEGES.HOME
-      , desc: "Home" 
+    {
+      path: "/home",
+      icon: <FaHome size={20} />,
+      privilege: MENU_PRIVILEGES.HOME,
+      desc: "Home",
     },
     {
       path: "/roles",
@@ -117,7 +119,7 @@ export default function Sidebar() {
     {
       path: "/test",
       icon: <FaCalendarAlt size={20} />,
-      privilege:MENU_PRIVILEGES.BLOOD_TESTING_MANAGEMENT,
+      privilege: MENU_PRIVILEGES.BLOOD_TESTING_MANAGEMENT,
       desc: "Laboratory test",
     },
     {
@@ -127,6 +129,10 @@ export default function Sidebar() {
       desc: "Analytics",
     },
   ];
+
+  const visibleMenuItems = menuItems.filter((item) =>
+    hasPrivilege(item.privilege)
+  );
 
 const visibleMenuItems = menuItems.filter((item) =>
     hasPrivilege(item.privilege)
@@ -159,13 +165,11 @@ const visibleMenuItems = menuItems.filter((item) =>
         </motion.div>
       </div>
 
-      {visibleMenuItems.map(
-        (item, index) =>
-        (
-            <Link
-              to={item.path}
-              key={index}
-              className={`flex items-center w-full px-2 mb-5 transition-all duration-200 ease-in-out
+      {visibleMenuItems.map((item, index) => (
+        <Link
+          to={item.path}
+          key={index}
+          className={`flex items-center w-full px-2 mb-5 transition-all duration-200 ease-in-out
                hover:cursor-pointer hover:scale-110
                   ${
                     isSideBarOpen
@@ -177,23 +181,22 @@ const visibleMenuItems = menuItems.filter((item) =>
                     location.pathname === item.path &&
                     "bg-[#FFFFFF33]"
                   }`}
-            >
-              <div className="pl-[22px]">
-                <SidebarIcon
-                  icon={item.icon}
-                  to={item.path}
-                  active={!isSideBarOpen && location.pathname === item.path}
-                  isSideBarOpen={isSideBarOpen}
-                />
-              </div>
-              {isSideBarOpen && (
-                <span className="pt-1 whitespace-nowrap text-[14px] transition-all duration-300 ease-in-out hover:cursor-pointer">
-                  {item.desc}
-                </span>
-              )}
-            </Link>
-          )
-      )}
+        >
+          <div className="pl-[22px]">
+            <SidebarIcon
+              icon={item.icon}
+              to={item.path}
+              active={!isSideBarOpen && location.pathname === item.path}
+              isSideBarOpen={isSideBarOpen}
+            />
+          </div>
+          {isSideBarOpen && (
+            <span className="pt-1 whitespace-nowrap text-[14px] transition-all duration-300 ease-in-out hover:cursor-pointer">
+              {item.desc}
+            </span>
+          )}
+        </Link>
+      ))}
     </div>
   );
 }

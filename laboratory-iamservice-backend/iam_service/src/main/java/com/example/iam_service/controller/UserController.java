@@ -110,7 +110,7 @@ public class UserController {
 
     @Operation(
             summary = "Update account information",
-            description = "Admins or users with MODIFY_USER permission can create new accounts. Age is automatically calculated"
+            description = "User can update their own account information excluding identityNumber."
     )
     @PutMapping("/{id}/profile")
     public ResponseEntity<DetailUserDTO> updateOwnProfile(
@@ -129,8 +129,8 @@ public class UserController {
 
 
     @Operation(
-            summary = "Get a user's detailed account information",
-            description = "A user retrieve their own account information."
+            summary = "Update account information",
+            description = "Admins or users with MODIFY_USER permission can create new accounts. Age is automatically calculated"
     )
     @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('MODIFY_USER') or hasAuthority('ROLE_LAB_MANAGER')")
     @PutMapping("/{id}")
@@ -143,8 +143,8 @@ public class UserController {
     }
 
     @Operation(
-            summary = "Update account information",
-            description = "User can update their own account information excluding identityNumber."
+            summary = "Get a user's detailed account information",
+            description = "A user retrieve their own account information."
     )
     @GetMapping("/{id}/profile")
     public ResponseEntity<DetailUserDTO> viewDetailedInformation (@PathVariable UUID id) {

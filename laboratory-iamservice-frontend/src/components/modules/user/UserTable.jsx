@@ -24,6 +24,9 @@ export default function UserTable({
   pageSize = 10,
   searchParams = {},
   isSearching = false,
+  canViewUser = true,
+  canModifyUser = true,
+  canDeleteUser = true,
 }) {
   const [filteredUsers, setFilteredUsers] = useState(users);
   const [confirmState, setConfirmState] = useState({ open: false, user: null });
@@ -386,7 +389,7 @@ export default function UserTable({
                 console.log("🔍 User data in table:", user);
                 console.log("🔍 User role field:", user.role);
                 console.log("🔍 User privileges:", user.privileges);
-                
+
                 return (
                   <tr
                     key={user.id}
@@ -457,10 +460,13 @@ export default function UserTable({
                       }}
                     >
                       <UserActionButtons
-                        user={user}
                         onView={onView}
                         onEdit={onEdit}
-                        onDelete={requestDelete}
+                        onDelete={onDelete}
+                        user={user}
+                        canViewUser={canViewUser}
+                        canModifyUser={canModifyUser}
+                        canDeleteUser={canDeleteUser}
                       />
                     </td>
                   </tr>
@@ -485,8 +491,9 @@ export default function UserTable({
       {confirmState.open && (
         <ConfirmDialog
           title="Delete User"
-          message={`Are you sure you want to delete user "${confirmState.user?.name || confirmState.user?.email || "this user"
-            }"?`}
+          message={`Are you sure you want to delete user "${
+            confirmState.user?.name || confirmState.user?.email || "this user"
+          }"?`}
           confirmText="Delete"
           cancelText="Cancel"
           onConfirm={handleConfirmDelete}
@@ -578,8 +585,12 @@ function ConfirmDialog({
               fontWeight: 600,
               transition: "all 0.2s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f7f9fc")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#f7f9fc")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#ffffff")
+            }
           >
             {cancelText}
           </button>
@@ -596,8 +607,12 @@ function ConfirmDialog({
               fontSize: 14,
               transition: "background-color 0.2s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e64b52")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fe535b")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#e64b52")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#fe535b")
+            }
           >
             {confirmText}
           </button>

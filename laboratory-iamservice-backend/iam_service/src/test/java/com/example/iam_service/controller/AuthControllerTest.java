@@ -11,6 +11,7 @@ import com.example.iam_service.mapper.UserMapper;
 import com.example.iam_service.service.EmailService;
 import com.example.iam_service.serviceImpl.AuthenticationServiceImpl;
 import com.example.iam_service.serviceImpl.LoginLimiterServiceImpl;
+import com.example.iam_service.serviceImpl.ResetPasswordRateLimiterImpl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Nested;
@@ -49,6 +50,9 @@ public class AuthControllerTest {
 
     @Mock
     private EmailService emailService;
+
+    @Mock
+    private ResetPasswordRateLimiterImpl resetPasswordRateLimiterService;
 
     @InjectMocks
     AuthController authController;
@@ -539,6 +543,7 @@ public class AuthControllerTest {
 
     @Nested
     class PasswordResetTestGroup {
+
         // ✅ 1. Missing current password when option is "change"
         @Test
         void resetPassword_ShouldReturn400_WhenCurrentPasswordMissingForChange() {
@@ -546,20 +551,24 @@ public class AuthControllerTest {
             request.setUserid("abc-123");
             request.setPassword("newPassword123");
             request.setOption("change");
-            request.setCurrentPassword(null); // Missing current password
+            request.setCurrentPassword(null);
 
-            ResponseEntity<ApiResponse<UserDTO>> response = authController.resetPassWord(request);
+            when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+            when(resetPasswordRateLimiterService.isBannedFromResetPassword("127.0.0.1")).thenReturn(false);
+
+            ResponseEntity<ApiResponse<UserDTO>> response = authController.resetPassWord(request, servletRequest);
 
             assertEquals(400, response.getStatusCode().value());
             assertEquals("Error", response.getBody().getStatus());
             assertEquals("Current password is missing for change password process", response.getBody().getMessage());
 
             verify(authService, never()).updateUserPassword(any(), any(), any(), any());
+            verify(resetPasswordRateLimiterService, never()).recordResetPassAttempt(any());
         }
 
+        // ✅ 2. Success case (option = "change")
         @Test
         void resetPassword_ShouldReturn200_WhenPasswordUpdatedSuccessfully() {
-            // Arrange
             ResetPassWordRequest request = new ResetPassWordRequest();
             request.setUserid("abc-123");
             request.setPassword("newPass123");
@@ -567,58 +576,105 @@ public class AuthControllerTest {
             request.setOption("change");
 
             User user = new User();
-            user.setUserId(java.util.UUID.randomUUID());
+            user.setUserId(UUID.randomUUID());
             user.setEmail("user@example.com");
 
             UserDTO userDTO = new UserDTO();
             userDTO.setEmail("user@example.com");
 
-            when(authService.updateUserPassword(
-                    request.getUserid(),
-                    request.getPassword(),
-                    request.getCurrentPassword(),
-                    request.getOption()
-            )).thenReturn(user);
+            when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
+            when(resetPasswordRateLimiterService.isBannedFromResetPassword("127.0.0.1")).thenReturn(false);
+            when(authService.updateUserPassword(any(), any(), any(), any())).thenReturn(user);
             when(userMapper.toDto(user)).thenReturn(userDTO);
 
-            // Act
-            ResponseEntity<ApiResponse<UserDTO>> response = authController.resetPassWord(request);
+            ResponseEntity<ApiResponse<UserDTO>> response = authController.resetPassWord(request, servletRequest);
 
-            // Assert
             assertEquals(200, response.getStatusCode().value());
             assertEquals("success", response.getBody().getStatus());
             assertEquals("Update password successfully!", response.getBody().getMessage());
             assertEquals("user@example.com", response.getBody().getData().getEmail());
 
             verify(authService, times(1)).updateUserPassword(
-                    request.getUserid(),
-                    request.getPassword(),
-                    request.getCurrentPassword(),
-                    request.getOption()
-            );
+                    request.getUserid(), request.getPassword(), request.getCurrentPassword(), request.getOption());
+            verify(resetPasswordRateLimiterService, times(1)).recordResetPassAttempt("127.0.0.1");
         }
 
-        // ✅ 3. authService throws RuntimeException (User not found)
+        // ✅ 3. Rate limit exceeded (429)
         @Test
-        void resetPassword_ShouldReturn500_WhenUserNotFound() {
+        void resetPassword_ShouldReturn429_WhenRateLimitExceeded() {
+            ResetPassWordRequest request = new ResetPassWordRequest();
+            request.setUserid("abc-123");
+            request.setPassword("newPass");
+            request.setOption("change");
+
+            when(servletRequest.getRemoteAddr()).thenReturn("192.168.0.1");
+            when(resetPasswordRateLimiterService.isBannedFromResetPassword("192.168.0.1")).thenReturn(true);
+
+            ResponseEntity<ApiResponse<UserDTO>> response = authController.resetPassWord(request, servletRequest);
+
+            assertEquals(429, response.getStatusCode().value());
+            assertEquals("Error", response.getBody().getStatus());
+            assertEquals("Too many reset password attempts", response.getBody().getMessage());
+
+            verify(authService, never()).updateUserPassword(any(), any(), any(), any());
+            verify(resetPasswordRateLimiterService, never()).recordResetPassAttempt(any());
+        }
+
+        // ✅ 4. Successful password reset with option = "reset" (no current password required)
+        @Test
+        void resetPassword_ShouldReturn200_WhenOptionIsReset() {
+            ResetPassWordRequest request = new ResetPassWordRequest();
+            request.setUserid("abc-123");
+            request.setPassword("resetPass123");
+            request.setOption("reset");
+            request.setCurrentPassword(null);
+
+            User user = new User();
+            user.setUserId(UUID.randomUUID());
+            user.setEmail("reset@example.com");
+
+            UserDTO userDTO = new UserDTO();
+            userDTO.setEmail("reset@example.com");
+
+            when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.2");
+            when(resetPasswordRateLimiterService.isBannedFromResetPassword("127.0.0.2")).thenReturn(false);
+            when(authService.updateUserPassword(any(), any(), any(), any())).thenReturn(user);
+            when(userMapper.toDto(user)).thenReturn(userDTO);
+
+            ResponseEntity<ApiResponse<UserDTO>> response = authController.resetPassWord(request, servletRequest);
+
+            assertEquals(200, response.getStatusCode().value());
+            assertEquals("success", response.getBody().getStatus());
+            assertEquals("Update password successfully!", response.getBody().getMessage());
+            assertEquals("reset@example.com", response.getBody().getData().getEmail());
+
+            verify(authService, times(1)).updateUserPassword(any(), any(), any(), any());
+            verify(resetPasswordRateLimiterService, times(1)).recordResetPassAttempt("127.0.0.2");
+        }
+
+        // ✅ 5. authService throws RuntimeException (User not found)
+        @Test
+        void resetPassword_ShouldThrowIllegalArgument_WhenUserNotFound() {
             ResetPassWordRequest request = new ResetPassWordRequest();
             request.setUserid("abc-123");
             request.setPassword("newPass");
             request.setCurrentPassword("oldPass");
             request.setOption("change");
 
+            when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.3");
+            when(resetPasswordRateLimiterService.isBannedFromResetPassword("127.0.0.3")).thenReturn(false);
             when(authService.updateUserPassword(any(), any(), any(), any()))
-                    .thenThrow(new RuntimeException("User not found"));
+                    .thenThrow(new IllegalArgumentException("User not found"));
 
-            // Act & Assert
-            RuntimeException thrown = assertThrows(RuntimeException.class, () ->
-                    authController.resetPassWord(request)
+            IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () ->
+                    authController.resetPassWord(request, servletRequest)
             );
 
             assertEquals("User not found", thrown.getMessage());
+            verify(resetPasswordRateLimiterService, times(1)).recordResetPassAttempt("127.0.0.3");
         }
 
-        // ✅ 4. authService throws IllegalArgumentException (Password same as old one)
+        // ✅ 6. authService throws IllegalArgumentException (Password same as old one)
         @Test
         void resetPassword_ShouldThrowIllegalArgument_WhenPasswordSameAsOld() {
             ResetPassWordRequest request = new ResetPassWordRequest();
@@ -627,15 +683,43 @@ public class AuthControllerTest {
             request.setCurrentPassword("samePassword");
             request.setOption("change");
 
+            when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.4");
+            when(resetPasswordRateLimiterService.isBannedFromResetPassword("127.0.0.4")).thenReturn(false);
             when(authService.updateUserPassword(any(), any(), any(), any()))
                     .thenThrow(new IllegalArgumentException("Password must be different from the old one"));
 
             IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                    authController.resetPassWord(request)
+                    authController.resetPassWord(request, servletRequest)
             );
 
             assertEquals("Password must be different from the old one", ex.getMessage());
+            verify(resetPasswordRateLimiterService, times(1)).recordResetPassAttempt("127.0.0.4");
+        }
+
+        @Test
+        void resetPassword_ShouldThrowIllegalArgument_WhenCurrentPasswordNotMatch() {
+            ResetPassWordRequest request = new ResetPassWordRequest();
+            request.setUserid("abc-123");
+            request.setPassword("samePassword");
+            request.setCurrentPassword("samePassword");
+            request.setOption("change");
+
+            User mockUser = new User();
+            mockUser.setPassword("notSamePassword");
+
+            when(servletRequest.getRemoteAddr()).thenReturn("127.0.0.4");
+            when(resetPasswordRateLimiterService.isBannedFromResetPassword("127.0.0.4")).thenReturn(false);
+            when(authService.updateUserPassword(any(), any(), any(), any()))
+                    .thenThrow(new IllegalArgumentException("Current password does not match"));
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                    authController.resetPassWord(request, servletRequest)
+            );
+
+            assertEquals("Current password does not match", ex.getMessage());
+            verify(resetPasswordRateLimiterService, times(1)).recordResetPassAttempt("127.0.0.4");
         }
     }
+
 
 }

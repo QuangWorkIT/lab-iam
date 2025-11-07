@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FiEye, FiUnlock } from "react-icons/fi";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRolesForUser } from "../../../redux/features/userManagementSlice";
 import SearchBar from "../../common/SearchBar";
 import StatusBadge from "../../common/StatusBadge";
 import UserBadge from "../user/UserBadge";
+import Pagination from "../../common/Pagination";
 import { formatDate, truncateId } from "../../../utils/formatter";
 
 export default function AccountTable({
@@ -14,6 +17,27 @@ export default function AccountTable({
   searchParams = {},
 }) {
   const [filteredAccounts, setFilteredAccounts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(4);
+  const [paginatedAccounts, setPaginatedAccounts] = useState([]);
+
+  // Fetch roles for role filter options
+  const dispatch = useDispatch();
+  const { roles } = useSelector((state) => state.users || {});
+  
+  useEffect(() => {
+    dispatch(fetchRolesForUser());
+  }, [dispatch]);
+
+  const roleOptions = useMemo(() => {
+    if (roles && roles.length > 0) {
+      return roles.map((role) => ({
+        code: role.roleCode || role.code,
+        name: role.roleName || role.name,
+      }));
+    }
+    return [];
+  }, [roles]);
 
   // Client-side filtering
   useEffect(() => {
@@ -44,11 +68,32 @@ export default function AccountTable({
 
     // Apply role filter
     if (searchParams.roleFilter) {
-      result = result.filter((acc) => acc.role === searchParams.roleFilter);
+      result = result.filter(
+        (acc) => acc.role === searchParams.roleFilter || acc.roleCode === searchParams.roleFilter
+      );
     }
 
     setFilteredAccounts(result);
+    setCurrentPage(0); // Reset to first page when filters change
   }, [accounts, searchParams]);
+
+  // Pagination logic
+  useEffect(() => {
+    const startIndex = currentPage * pageSize;
+    const endIndex = startIndex + pageSize;
+    setPaginatedAccounts(filteredAccounts.slice(startIndex, endIndex));
+  }, [filteredAccounts, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredAccounts.length / pageSize);
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setCurrentPage(0); // Reset to first page when page size changes
+  };
 
   const handleSearch = (keyword, fromDate, toDate, roleFilter) => {
     if (onSearch) {
@@ -74,7 +119,7 @@ export default function AccountTable({
           initialFromDate={searchParams.fromDate || ""}
           initialToDate={searchParams.toDate || ""}
           initialRoleFilter={searchParams.roleFilter || ""}
-          roleOptions={[]}
+          roleOptions={roleOptions}
           placeholder="Search by name, email..."
           allRolesLabel="All Roles"
           autoSearchOnRoleChange={true}
@@ -150,7 +195,7 @@ export default function AccountTable({
               </th>
               <th
                 style={{
-                  padding: "12px 15px 12px 22px",
+                  padding: "12px 15px",
                   textAlign: "left",
                   borderBottom: "none",
                   color: "white",
@@ -171,7 +216,7 @@ export default function AccountTable({
                   color: "white",
                   fontWeight: "600",
                   fontSize: "14px",
-                  minWidth: "100px",
+                  minWidth: "120px",
                   whiteSpace: "nowrap",
                   verticalAlign: "middle",
                 }}
@@ -186,7 +231,7 @@ export default function AccountTable({
                   color: "white",
                   fontWeight: "600",
                   fontSize: "14px",
-                  minWidth: "120px",
+                  minWidth: "140px",
                   whiteSpace: "nowrap",
                   verticalAlign: "middle",
                 }}
@@ -201,6 +246,7 @@ export default function AccountTable({
                   color: "white",
                   fontWeight: "600",
                   fontSize: "14px",
+                  minWidth: "180px",
                 }}
               >
                 Action
@@ -284,7 +330,7 @@ export default function AccountTable({
                 </td>
               </tr>
             ) : (
-              filteredAccounts.map((account) => (
+              paginatedAccounts.map((account) => (
                 <tr
                   key={account.id}
                   style={{
@@ -433,6 +479,16 @@ export default function AccountTable({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalElements={filteredAccounts.length}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+      />
 
       {/* Summary info */}
       {!loading && filteredAccounts.length > 0 && (

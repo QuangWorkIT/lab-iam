@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getInactiveUsers() {
-        return userRepository.findByIsActiveFalse();
+        return userRepository.findByIsActiveFalseAndIsDeletedFalse();
     }
 
     @Override
