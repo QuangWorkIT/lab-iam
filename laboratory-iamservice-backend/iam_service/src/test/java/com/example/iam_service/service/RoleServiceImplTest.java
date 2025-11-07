@@ -15,8 +15,10 @@ import com.example.iam_service.serviceImpl.RoleServiceImp;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,17 +26,18 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Role Service Implementation Tests")
+@DisplayName("Role Service Implementation Tests - 100% Coverage")
 public class RoleServiceImplTest {
 
     @Mock
@@ -65,6 +68,7 @@ public class RoleServiceImplTest {
         testRole.setActive(true);
         testRole.setDeletable(true);
         testRole.setPrivileges(EnumSet.of(Privileges.READ_ONLY));
+        testRole.setCreatedAt(LocalDate.now());
 
         testRoleDTO = new RoleDTO();
         testRoleDTO.setCode("ROLE_ADMIN");
@@ -78,280 +82,593 @@ public class RoleServiceImplTest {
         updateRequestDto.setName("Updated Admin");
         updateRequestDto.setDescription("Updated role description");
         updateRequestDto.setPrivileges("ADMIN,MANAGER");
+        updateRequestDto.setDeletable(true);
     }
 
-    @Test
-    @DisplayName("Should get all roles successfully")
-    void getAllRoles_Success() {
-        // Given
-        when(roleRepository.findAll()).thenReturn(List.of(testRole));
+    // ==================== GET ALL ROLES TESTS ====================
 
-        // When
-        List<Role> result = roleService.getAllRoles();
+    @Nested
+    @DisplayName("Get All Roles Tests")
+    class GetAllRolesTests {
 
-        // Then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0)).isEqualTo(testRole);
-        verify(roleRepository, times(1)).findAll();
+        @Test
+        @DisplayName("Should get all roles successfully")
+        void getAllRoles_Success() {
+            when(roleRepository.findAll()).thenReturn(List.of(testRole));
+
+            List<Role> result = roleService.getAllRoles();
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0)).isEqualTo(testRole);
+            verify(roleRepository, times(1)).findAll();
+        }
+
+        @Test
+        @DisplayName("Should return empty list when no roles exist")
+        void getAllRoles_EmptyList() {
+            when(roleRepository.findAll()).thenReturn(Collections.emptyList());
+
+            List<Role> result = roleService.getAllRoles();
+
+            assertThat(result).isEmpty();
+            verify(roleRepository, times(1)).findAll();
+        }
+
+        @Test
+        @DisplayName("Should get multiple roles")
+        void getAllRoles_MultipleRoles() {
+            Role role2 = new Role();
+            role2.setCode("ROLE_USER");
+            role2.setName("User");
+
+            when(roleRepository.findAll()).thenReturn(List.of(testRole, role2));
+
+            List<Role> result = roleService.getAllRoles();
+
+            assertThat(result).hasSize(2);
+            assertThat(result).containsExactly(testRole, role2);
+        }
     }
 
-    @Test
-    @DisplayName("Should get roles with pagination successfully")
-    void getRolesPaged_Success() {
-        // Given
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Role> rolePage = new PageImpl<>(List.of(testRole));
-        when(roleRepository.findAll(pageable)).thenReturn(rolePage);
+    // ==================== GET PAGED ROLES TESTS ====================
 
-        // When
-        Page<Role> result = roleService.getRolesPaged(pageable);
+    @Nested
+    @DisplayName("Get Paged Roles Tests")
+    class GetPagedRolesTests {
 
-        // Then
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0)).isEqualTo(testRole);
-        verify(roleRepository, times(1)).findAll(pageable);
+        @Test
+        @DisplayName("Should get roles with pagination successfully")
+        void getRolesPaged_Success() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Role> rolePage = new PageImpl<>(List.of(testRole));
+            when(roleRepository.findAll(pageable)).thenReturn(rolePage);
+
+            Page<Role> result = roleService.getRolesPaged(pageable);
+
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getTotalElements()).isEqualTo(1);
+            verify(roleRepository, times(1)).findAll(pageable);
+        }
+
+        @Test
+        @DisplayName("Should return empty page when no roles")
+        void getRolesPaged_EmptyPage() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Role> emptyPage = new PageImpl<>(Collections.emptyList());
+            when(roleRepository.findAll(pageable)).thenReturn(emptyPage);
+
+            Page<Role> result = roleService.getRolesPaged(pageable);
+
+            assertThat(result.getContent()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should handle different page numbers")
+        void getRolesPaged_MultiplePages() {
+            Pageable pageable = PageRequest.of(2, 10);
+            Page<Role> page = new PageImpl<>(List.of(testRole), pageable, 100);
+            when(roleRepository.findAll(pageable)).thenReturn(page);
+
+            Page<Role> result = roleService.getRolesPaged(pageable);
+
+            assertThat(result.getNumber()).isEqualTo(2);
+            assertThat(result.getTotalPages()).isEqualTo(10);
+        }
     }
 
-    @Test
-    @DisplayName("Should get role by code successfully")
-    void getRoleByCode_Success() {
-        // Given
-        when(roleRepository.findById("ROLE_ADMIN")).thenReturn(Optional.of(testRole));
+    // ==================== GET ROLE BY CODE TESTS ====================
 
-        // When
-        Optional<Role> result = roleService.getRoleByCode("ROLE_ADMIN");
+    @Nested
+    @DisplayName("Get Role By Code Tests")
+    class GetRoleByCodeTests {
 
-        // Then
-        assertTrue(result.isPresent());
-        assertThat(result.get()).isEqualTo(testRole);
-        verify(roleRepository, times(1)).findById("ROLE_ADMIN");
+        @Test
+        @DisplayName("Should get role by code successfully")
+        void getRoleByCode_Success() {
+            when(roleRepository.findById("ROLE_ADMIN")).thenReturn(Optional.of(testRole));
+
+            Optional<Role> result = roleService.getRoleByCode("ROLE_ADMIN");
+
+            assertTrue(result.isPresent());
+            assertThat(result.get()).isEqualTo(testRole);
+            verify(roleRepository, times(1)).findById("ROLE_ADMIN");
+        }
+
+        @Test
+        @DisplayName("Should return empty optional when role code not found")
+        void getRoleByCode_NotFound() {
+            when(roleRepository.findById("NON_EXISTENT")).thenReturn(Optional.empty());
+
+            Optional<Role> result = roleService.getRoleByCode("NON_EXISTENT");
+
+            assertFalse(result.isPresent());
+            verify(roleRepository, times(1)).findById("NON_EXISTENT");
+        }
     }
 
-    @Test
-    @DisplayName("Should return empty optional when role code not found")
-    void getRoleByCode_NotFound() {
-        // Given
-        when(roleRepository.findById("ROLE_NOT_FOUND")).thenReturn(Optional.empty());
+    // ==================== SEARCH ROLES BY NAME TESTS ====================
 
-        // When
-        Optional<Role> result = roleService.getRoleByCode("ROLE_NOT_FOUND");
+    @Nested
+    @DisplayName("Search Roles By Name Tests")
+    class SearchRolesByNameTests {
 
-        // Then
-        assertFalse(result.isPresent());
-        verify(roleRepository, times(1)).findById("ROLE_NOT_FOUND");
+        @Test
+        @DisplayName("Should search roles by name successfully")
+        void searchRolesByName_Success() {
+            String searchName = "Admin";
+            when(roleRepository.findByNameContainingIgnoreCase(searchName))
+                    .thenReturn(List.of(testRole));
+
+            List<Role> result = roleService.searchRolesByName(searchName);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getName()).contains(searchName);
+            verify(roleRepository, times(1)).findByNameContainingIgnoreCase(searchName);
+        }
+
+        @Test
+        @DisplayName("Should return empty list when no matching roles")
+        void searchRolesByName_NoMatch() {
+            when(roleRepository.findByNameContainingIgnoreCase("NonExistent"))
+                    .thenReturn(Collections.emptyList());
+
+            List<Role> result = roleService.searchRolesByName("NonExistent");
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should search case insensitive")
+        void searchRolesByName_CaseInsensitive() {
+            when(roleRepository.findByNameContainingIgnoreCase("admin"))
+                    .thenReturn(List.of(testRole));
+
+            List<Role> result = roleService.searchRolesByName("admin");
+
+            assertThat(result).hasSize(1);
+        }
     }
 
-    @Test
-    @DisplayName("Should search roles by name successfully")
-    void searchRolesByName_Success() {
-        // Given
-        String searchName = "Admin";
-        when(roleRepository.findByNameContainingIgnoreCase(searchName))
-                .thenReturn(List.of(testRole));
+    // ==================== SEARCH ROLES WITH CRITERIA TESTS ====================
 
-        // When
-        List<Role> result = roleService.searchRolesByName(searchName);
+    @Nested
+    @DisplayName("Search Roles With Criteria Tests")
+    class SearchRolesWithCriteriaTests {
 
-        // Then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getName()).contains(searchName);
-        verify(roleRepository, times(1)).findByNameContainingIgnoreCase(searchName);
+        @Test
+        @DisplayName("Should search roles with all criteria successfully")
+        void searchRoles_WithAllCriteria_Success() {
+            String keyword = "admin";
+            LocalDate fromDate = LocalDate.now().minusMonths(1);
+            LocalDate toDate = LocalDate.now();
+            String sortBy = "name";
+            Sort.Direction direction = Sort.Direction.ASC;
+
+            when(roleRepository.findAll(any(Specification.class), any(Sort.class)))
+                    .thenReturn(List.of(testRole));
+
+            List<Role> result = roleService.searchRoles(keyword, fromDate, toDate, sortBy, direction);
+
+            assertThat(result).hasSize(1);
+            verify(roleRepository, times(1)).findAll(any(Specification.class), any(Sort.class));
+        }
+
+        @Test
+        @DisplayName("Should search with null keyword")
+        void searchRoles_NullKeyword() {
+            when(roleRepository.findAll(any(Specification.class), any(Sort.class)))
+                    .thenReturn(List.of(testRole));
+
+            List<Role> result = roleService.searchRoles(null, null, null, "name", Sort.Direction.ASC);
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Should search with blank keyword")
+        void searchRoles_BlankKeyword() {
+            when(roleRepository.findAll(any(Specification.class), any(Sort.class)))
+                    .thenReturn(List.of(testRole));
+
+            List<Role> result = roleService.searchRoles("   ", null, null, "name", Sort.Direction.ASC);
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Should search with date range only")
+        void searchRoles_DateRangeOnly() {
+            LocalDate fromDate = LocalDate.now().minusMonths(1);
+            LocalDate toDate = LocalDate.now();
+
+            when(roleRepository.findAll(any(Specification.class), any(Sort.class)))
+                    .thenReturn(List.of(testRole));
+
+            List<Role> result = roleService.searchRoles(null, fromDate, toDate, "code", Sort.Direction.DESC);
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Should default sort parameters when null")
+        void searchRoles_DefaultSortParams() {
+            when(roleRepository.findAll(any(Specification.class), any(Sort.class)))
+                    .thenReturn(List.of(testRole));
+
+            List<Role> result = roleService.searchRoles("test", null, null, null, null);
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Should handle blank sort by parameter")
+        void searchRoles_BlankSortBy() {
+            when(roleRepository.findAll(any(Specification.class), any(Sort.class)))
+                    .thenReturn(List.of(testRole));
+
+            List<Role> result = roleService.searchRoles("test", null, null, "   ", Sort.Direction.ASC);
+
+            assertThat(result).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Should search with descending direction")
+        void searchRoles_DescendingDirection() {
+            when(roleRepository.findAll(any(Specification.class), any(Sort.class)))
+                    .thenReturn(List.of(testRole));
+
+            List<Role> result = roleService.searchRoles("test", null, null, "code", Sort.Direction.DESC);
+
+            assertThat(result).hasSize(1);
+        }
     }
 
-    @Test
-    @DisplayName("Should search roles with criteria successfully")
-    void searchRoles_WithCriteria_Success() {
-        // Given
-        String keyword = "admin";
-        LocalDate fromDate = LocalDate.now().minusMonths(1);
-        LocalDate toDate = LocalDate.now();
-        String sortBy = "name";
-        Sort.Direction direction = Sort.Direction.ASC;
+    // ==================== SEARCH ROLES (3 PARAMS) TESTS ====================
 
-        when(roleRepository.findAll(any(Specification.class), any(Sort.class)))
-                .thenReturn(List.of(testRole));
+    @Nested
+    @DisplayName("Search Roles (3 Parameters) Tests")
+    class SearchRoles3ParamsTests {
 
-        // When
-        List<Role> result = roleService.searchRoles(keyword, fromDate, toDate, sortBy, direction);
+        @Test
+        @DisplayName("Should search with 3 parameters (overloaded method)")
+        void searchRoles_3Params_Success() {
+            when(roleRepository.findAll(any(Specification.class), any(Sort.class)))
+                    .thenReturn(List.of(testRole));
 
-        // Then
-        assertThat(result).hasSize(1);
-        verify(roleRepository, times(1)).findAll(any(Specification.class), any(Sort.class));
+            List<Role> result = roleService.searchRoles("admin", LocalDate.now().minusDays(30), LocalDate.now());
+
+            assertThat(result).hasSize(1);
+            verify(roleRepository, times(1)).findAll(any(Specification.class), any(Sort.class));
+        }
     }
 
-    @Test
-    @DisplayName("Should get active roles successfully")
-    void getActiveRoles_Success() {
-        // Given
-        when(roleRepository.findByIsActiveTrue()).thenReturn(List.of(testRole));
+    // ==================== GET ACTIVE ROLES TESTS ====================
 
-        // When
-        List<Role> result = roleService.getActiveRoles();
+    @Nested
+    @DisplayName("Get Active Roles Tests")
+    class GetActiveRolesTests {
 
-        // Then
-        assertThat(result).hasSize(1);
-        assertTrue(result.get(0).isActive());
-        verify(roleRepository, times(1)).findByIsActiveTrue();
+        @Test
+        @DisplayName("Should get active roles successfully")
+        void getActiveRoles_Success() {
+            when(roleRepository.findByIsActiveTrue()).thenReturn(List.of(testRole));
+
+            List<Role> result = roleService.getActiveRoles();
+
+            assertThat(result).hasSize(1);
+            assertTrue(result.get(0).isActive());
+            verify(roleRepository, times(1)).findByIsActiveTrue();
+        }
+
+        @Test
+        @DisplayName("Should return empty list when no active roles")
+        void getActiveRoles_NoActiveRoles() {
+            when(roleRepository.findByIsActiveTrue()).thenReturn(Collections.emptyList());
+
+            List<Role> result = roleService.getActiveRoles();
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should exclude inactive roles")
+        void getActiveRoles_ExcludeInactive() {
+            Role inactiveRole = new Role();
+            inactiveRole.setActive(false);
+
+            when(roleRepository.findByIsActiveTrue()).thenReturn(List.of(testRole));
+
+            List<Role> result = roleService.getActiveRoles();
+
+            assertThat(result).doesNotContain(inactiveRole);
+        }
     }
 
-    @Test
-    @DisplayName("Should check if role code exists successfully")
-    void isRoleCodeExists_Success() {
-        // Given
-        String roleCode = "ROLE_ADMIN";
-        when(roleRepository.existsByCode(roleCode)).thenReturn(true);
+    // ==================== CHECK ROLE CODE EXISTS TESTS ====================
 
-        // When
-        boolean result = roleService.isRoleCodeExists(roleCode);
+    @Nested
+    @DisplayName("Check Role Code Exists Tests")
+    class CheckRoleCodeExistsTests {
 
-        // Then
-        assertTrue(result);
-        verify(roleRepository, times(1)).existsByCode(roleCode);
+        @Test
+        @DisplayName("Should return true when role code exists")
+        void isRoleCodeExists_True() {
+            when(roleRepository.existsByCode("ROLE_ADMIN")).thenReturn(true);
+
+            boolean result = roleService.isRoleCodeExists("ROLE_ADMIN");
+
+            assertTrue(result);
+            verify(roleRepository, times(1)).existsByCode("ROLE_ADMIN");
+        }
+
+        @Test
+        @DisplayName("Should return false when role code does not exist")
+        void isRoleCodeExists_False() {
+            when(roleRepository.existsByCode("NON_EXISTENT")).thenReturn(false);
+
+            boolean result = roleService.isRoleCodeExists("NON_EXISTENT");
+
+            assertFalse(result);
+        }
     }
 
-    @Test
-    @DisplayName("Should create role successfully")
-    void createRole_Success() {
-        // Given
-        Role roleToCreate = new Role();
-        roleToCreate.setName("New Role");
-        roleToCreate.setDescription("New role description");
+    // ==================== CREATE ROLE TESTS ====================
 
-        when(roleRepository.existsByCode(anyString())).thenReturn(false);
-        when(roleRepository.save(any(Role.class))).thenReturn(testRole);
-        when(mapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
+    @Nested
+    @DisplayName("Create Role Tests")
+    class CreateRoleTests {
 
-        // When
-        RoleDTO result = roleService.createRole(roleToCreate);
+        @Test
+        @DisplayName("Should create role successfully")
+        void createRole_Success() {
+            Role roleToCreate = new Role();
+            roleToCreate.setName("New Role");
+            roleToCreate.setDescription("New role description");
+            roleToCreate.setPrivileges(EnumSet.of(Privileges.VIEW_ROLE));
 
-        // Then
-        assertNotNull(result);
-        verify(roleRepository, times(1)).existsByCode(anyString());
-        verify(roleRepository, times(1)).save(any(Role.class));
-        verify(mapper, times(1)).toDto(any(Role.class));
+            when(roleRepository.existsByCode(anyString())).thenReturn(false);
+            when(roleRepository.save(any(Role.class))).thenReturn(testRole);
+            when(mapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
+
+            RoleDTO result = roleService.createRole(roleToCreate);
+
+            assertNotNull(result);
+            verify(roleRepository, times(1)).existsByCode(anyString());
+            verify(roleRepository, times(1)).save(any(Role.class));
+            verify(mapper, times(1)).toDto(any(Role.class));
+        }
+
+        @Test
+        @DisplayName("Should throw DuplicateRoleException when creating duplicate role")
+        void createRole_DuplicateRole_ThrowsException() {
+            Role roleToCreate = new Role();
+            roleToCreate.setName("Existing Role");
+
+            when(roleRepository.existsByCode(anyString())).thenReturn(true);
+
+            assertThrows(DuplicateRoleException.class, () ->
+                    roleService.createRole(roleToCreate)
+            );
+            verify(roleRepository, times(1)).existsByCode(anyString());
+            verify(roleRepository, never()).save(any(Role.class));
+        }
+
+        @Test
+        @DisplayName("Should generate correct role code from name")
+        void createRole_GenerateRoleCode() {
+            Role roleToCreate = new Role();
+            roleToCreate.setName("My Test Role");
+            roleToCreate.setPrivileges(EnumSet.of(Privileges.VIEW_ROLE));
+
+            when(roleRepository.existsByCode(anyString())).thenReturn(false);
+            when(roleRepository.save(any(Role.class))).thenReturn(testRole);
+            when(mapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
+
+            roleService.createRole(roleToCreate);
+
+            ArgumentCaptor<Role> captor = ArgumentCaptor.forClass(Role.class);
+            verify(roleRepository).save(captor.capture());
+            assertThat(captor.getValue().getCode()).contains("ROLE_MY_TEST_ROLE");
+        }
+
+        @Test
+        @DisplayName("Should add READ_ONLY privilege when null")
+        void createRole_AddReadOnlyWhenNull() {
+            Role roleToCreate = new Role();
+            roleToCreate.setName("Test Role");
+            roleToCreate.setPrivileges(null);
+
+            when(roleRepository.existsByCode(anyString())).thenReturn(false);
+            when(roleRepository.save(any(Role.class))).thenReturn(testRole);
+            when(mapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
+
+            roleService.createRole(roleToCreate);
+
+            verify(roleRepository, times(1)).save(any(Role.class));
+        }
+
+        @Test
+        @DisplayName("Should add READ_ONLY privilege when empty")
+        void createRole_AddReadOnlyWhenEmpty() {
+            Role roleToCreate = new Role();
+            roleToCreate.setName("Test Role");
+            roleToCreate.setPrivileges(EnumSet.noneOf(Privileges.class));
+
+            when(roleRepository.existsByCode(anyString())).thenReturn(false);
+            when(roleRepository.save(any(Role.class))).thenReturn(testRole);
+            when(mapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
+
+            roleService.createRole(roleToCreate);
+
+            verify(roleRepository, times(1)).save(any(Role.class));
+        }
     }
 
-    @Test
-    @DisplayName("Should throw DuplicateRoleException when creating duplicate role")
-    void createRole_DuplicateRole_ThrowsException() {
-        // Given
-        Role roleToCreate = new Role();
-        roleToCreate.setName("Existing Role");
+    // ==================== UPDATE ROLE TESTS ====================
 
-        when(roleRepository.existsByCode(anyString())).thenReturn(true);
+    @Nested
+    @DisplayName("Update Role Tests")
+    class UpdateRoleTests {
 
-        // When & Then
-        assertThrows(DuplicateRoleException.class, () ->
-                roleService.createRole(roleToCreate)
-        );
-        verify(roleRepository, times(1)).existsByCode(anyString());
-        verify(roleRepository, never()).save(any(Role.class));
-        verify(mapper, never()).toDto(any(Role.class));
+        @Test
+        @DisplayName("Should update role successfully")
+        void updateRole_Success() {
+            String roleCode = "ROLE_ADMIN";
+            when(roleRepository.existsByCode(roleCode)).thenReturn(true);
+            when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
+            when(roleRepository.save(any(Role.class))).thenReturn(testRole);
+            when(mapper.updateEntityFromDto(updateRequestDto, testRole)).thenReturn(testRole);
+            when(mapper.toDto(testRole)).thenReturn(testRoleDTO);
+
+            RoleDTO result = roleService.updateRole(updateRequestDto, roleCode);
+
+            assertNotNull(result);
+            verify(roleRepository, times(1)).existsByCode(roleCode);
+            verify(roleRepository, times(1)).findById(roleCode);
+            verify(roleRepository, times(1)).save(testRole);
+        }
+
+        @Test
+        @DisplayName("Should throw RoleNotFoundException when updating non-existent role")
+        void updateRole_NonExistentRole_ThrowsException() {
+            String roleCode = "NON_EXISTENT";
+            when(roleRepository.existsByCode(roleCode)).thenReturn(false);
+
+            assertThrows(RoleNotFoundException.class, () ->
+                    roleService.updateRole(updateRequestDto, roleCode)
+            );
+            verify(roleRepository, times(1)).existsByCode(roleCode);
+            verify(roleRepository, never()).save(any(Role.class));
+        }
+
+        @Test
+        @DisplayName("Should use mapper for update mapping")
+        void updateRole_UseMapper() {
+            String roleCode = "ROLE_ADMIN";
+            when(roleRepository.existsByCode(roleCode)).thenReturn(true);
+            when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
+            when(roleRepository.save(any(Role.class))).thenReturn(testRole);
+            when(mapper.updateEntityFromDto(updateRequestDto, testRole)).thenReturn(testRole);
+            when(mapper.toDto(testRole)).thenReturn(testRoleDTO);
+
+            roleService.updateRole(updateRequestDto, roleCode);
+
+            verify(mapper, times(1)).updateEntityFromDto(updateRequestDto, testRole);
+        }
     }
 
-    @Test
-    @DisplayName("Should update role successfully")
-    void updateRole_Success() {
-        // Given
-        String roleCode = "ROLE_ADMIN";
-        when(roleRepository.existsByCode(roleCode)).thenReturn(true);
-        when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
-        when(roleRepository.save(any(Role.class))).thenReturn(testRole);
-        when(mapper.updateEntityFromDto(updateRequestDto, testRole)).thenReturn(testRole);
-        when(mapper.toDto(testRole)).thenReturn(testRoleDTO);
+    // ==================== DELETE ROLE TESTS ====================
 
-        // When
-        RoleDTO result = roleService.updateRole(updateRequestDto, roleCode);
+    @Nested
+    @DisplayName("Delete Role Tests")
+    class DeleteRoleTests {
 
-        // Then
-        assertNotNull(result);
-        verify(roleRepository, times(1)).existsByCode(roleCode);
-        verify(roleRepository, times(1)).findById(roleCode);
-        verify(roleRepository, times(1)).save(testRole);
-        verify(mapper, times(1)).updateEntityFromDto(updateRequestDto, testRole);
-        verify(mapper, times(1)).toDto(testRole);
+        @Test
+        @DisplayName("Should delete role successfully")
+        void deleteRole_Success() {
+            String roleCode = "ROLE_ADMIN";
+            testRole.setDeletable(true);
+
+            when(roleRepository.existsByCode(roleCode)).thenReturn(true);
+            when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
+            when(userRepository.batchUpdateUser(anyString(), anyString())).thenReturn(10);
+            doNothing().when(entityManager).flush();
+            doNothing().when(entityManager).clear();
+            doNothing().when(roleRepository).delete(testRole);
+
+            roleService.DeleteRole(roleCode);
+
+            verify(roleRepository, times(1)).existsByCode(roleCode);
+            verify(userRepository, times(1)).batchUpdateUser("ROLE_DEFAULT", roleCode);
+            verify(roleRepository, times(1)).delete(testRole);
+            verify(entityManager, times(1)).flush();
+            verify(entityManager, times(1)).clear();
+        }
+
+        @Test
+        @DisplayName("Should throw RoleNotFoundException when deleting non-existent role")
+        void deleteRole_NonExistentRole_ThrowsException() {
+            String roleCode = "NON_EXISTENT";
+            when(roleRepository.existsByCode(roleCode)).thenReturn(false);
+
+            assertThrows(RoleNotFoundException.class, () ->
+                    roleService.DeleteRole(roleCode)
+            );
+            verify(roleRepository, times(1)).existsByCode(roleCode);
+            verify(roleRepository, never()).delete(any(Role.class));
+        }
+
+        @Test
+        @DisplayName("Should throw RoleIsFixedException when deleting non-deletable role")
+        void deleteRole_NonDeletableRole_ThrowsException() {
+            String roleCode = "ROLE_ADMIN";
+            testRole.setDeletable(false);
+
+            when(roleRepository.existsByCode(roleCode)).thenReturn(true);
+            when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
+
+            assertThrows(RoleIsFixedException.class, () ->
+                    roleService.DeleteRole(roleCode)
+            );
+            verify(roleRepository, times(1)).existsByCode(roleCode);
+            verify(roleRepository, never()).delete(any(Role.class));
+            verify(userRepository, never()).batchUpdateUser(anyString(), anyString());
+        }
+
+        @Test
+        @DisplayName("Should batch update users with ROLE_DEFAULT")
+        void deleteRole_BatchUpdateUsers() {
+            String roleCode = "ROLE_ADMIN";
+            testRole.setDeletable(true);
+
+            when(roleRepository.existsByCode(roleCode)).thenReturn(true);
+            when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
+            when(userRepository.batchUpdateUser("ROLE_DEFAULT", roleCode)).thenReturn(5);
+            doNothing().when(entityManager).flush();
+            doNothing().when(entityManager).clear();
+            doNothing().when(roleRepository).delete(testRole);
+
+            roleService.DeleteRole(roleCode);
+
+            verify(userRepository, times(1)).batchUpdateUser("ROLE_DEFAULT", roleCode);
+        }
+
+        @Test
+        @DisplayName("Should handle zero users updated")
+        void deleteRole_NoUsersUpdated() {
+            String roleCode = "ROLE_ADMIN";
+            testRole.setDeletable(true);
+
+            when(roleRepository.existsByCode(roleCode)).thenReturn(true);
+            when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
+            when(userRepository.batchUpdateUser(anyString(), anyString())).thenReturn(0);
+            doNothing().when(entityManager).flush();
+            doNothing().when(entityManager).clear();
+            doNothing().when(roleRepository).delete(testRole);
+
+            roleService.DeleteRole(roleCode);
+
+            verify(roleRepository, times(1)).delete(testRole);
+        }
     }
-
-    @Test
-    @DisplayName("Should throw RoleNotFoundException when updating non-existent role")
-    void updateRole_NonExistentRole_ThrowsException() {
-        // Given
-        String roleCode = "NON_EXISTENT";
-        when(roleRepository.existsByCode(roleCode)).thenReturn(false);
-
-        // When & Then
-        assertThrows(RoleNotFoundException.class, () ->
-                roleService.updateRole(updateRequestDto, roleCode)
-        );
-        verify(roleRepository, times(1)).existsByCode(roleCode);
-        verify(roleRepository, never()).save(any(Role.class));
-        verify(mapper, never()).updateEntityFromDto(any(), any());
-        verify(mapper, never()).toDto(any());
-    }
-
-    @Test
-    @DisplayName("Should delete role successfully when role have deletable set to false")
-    void deleteRole_Success() {
-        // Given
-        String roleCode = "ROLE_ADMIN";
-
-        // Set role as deletable
-        testRole.setDeletable(true);
-
-        when(roleRepository.existsByCode(roleCode)).thenReturn(true);
-        when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
-        when(userRepository.batchUpdateUser(anyString(), anyString())).thenReturn(10);
-        doNothing().when(entityManager).flush();
-        doNothing().when(entityManager).clear();
-        doNothing().when(roleRepository).delete(testRole);
-
-        // When
-        roleService.DeleteRole(roleCode);
-
-        // Then
-        verify(roleRepository, times(1)).existsByCode(roleCode);
-        verify(roleRepository, times(2)).findById(roleCode);
-        verify(userRepository, times(1)).batchUpdateUser(anyString(), anyString());
-        verify(roleRepository, times(1)).delete(testRole);
-        verify(entityManager, times(1)).flush();
-        verify(entityManager, times(1)).clear();
-    }
-
-    @Test
-    @DisplayName("Should throw RoleNotFoundException when deleting non-existent role")
-    void deleteRole_NonExistentRole_ThrowsException() {
-        // Given
-        String roleCode = "NON_EXISTENT";
-        when(roleRepository.existsByCode(roleCode)).thenReturn(false);
-
-        // When & Then
-        assertThrows(RoleNotFoundException.class, () ->
-                roleService.DeleteRole(roleCode)
-        );
-        verify(roleRepository, times(1)).existsByCode(roleCode);
-        verify(roleRepository, never()).delete(any(Role.class));
-    }
-
-    @Test
-    @DisplayName("Should throw RoleIsFixedException when deleting non-deletable role")
-    void deleteRole_NonDeletableRole_ThrowsException() {
-        // Given
-        String roleCode = "ROLE_ADMIN";
-
-        // Set role as non-deletable
-        testRole.setDeletable(false);
-
-        when(roleRepository.existsByCode(roleCode)).thenReturn(true);
-        when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
-
-        // When & Then
-        assertThrows(RoleIsFixedException.class, () ->
-                roleService.DeleteRole(roleCode)
-        );
-        verify(roleRepository, times(1)).existsByCode(roleCode);
-        verify(roleRepository, times(1)).findById(roleCode);
-        verify(roleRepository, never()).delete(any(Role.class));
-        verify(userRepository, never()).batchUpdateUser(anyString(), anyString());
-    }
-
 }

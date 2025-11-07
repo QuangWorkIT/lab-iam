@@ -123,7 +123,7 @@ export default function Sidebar() {
       desc: "Laboratory test",
     },
     {
-      path: "/test",
+    path: "/test",
       icon: <FaChartLine size={20} />,
       privilege: MENU_PRIVILEGES.ANALYTICS,
       desc: "Analytics",
@@ -131,6 +131,10 @@ export default function Sidebar() {
   ];
 
   const visibleMenuItems = menuItems.filter((item) =>
+    hasPrivilege(item.privilege)
+  );
+
+const visibleMenuItems = menuItems.filter((item) =>
     hasPrivilege(item.privilege)
   );
 
