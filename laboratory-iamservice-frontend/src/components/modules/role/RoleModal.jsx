@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaTimes, FaInfoCircle } from "react-icons/fa";
+import { useSelector } from "react-redux";
 
 const AVAILABLE_PRIVILEGES = [
   // Test Order Management
@@ -57,13 +58,36 @@ export default function RoleModal({
   onSave,
   mode = "create",
 }) {
+
+const userInfo = useSelector((state) => state.user.userInfo);
+
+const isAdmin = (() => {
+  if (!userInfo) return false;
+
+  // Handle object or string role
+  const roleCode =
+    typeof userInfo.role === "string"
+      ? userInfo.role
+      : userInfo.role?.code || "";
+
+  // Handle privileges (string or array)
+  const privileges =
+    typeof userInfo.privileges === "string"
+      ? userInfo.privileges.split(",").map((p) => p.trim())
+      : Array.isArray(userInfo.privileges)
+        ? userInfo.privileges
+        : [];
+
+  return roleCode === "ROLE_ADMIN";
+})();
+
   const [formData, setFormData] = useState({
     code: "",
     name: "",
     description: "",
     privileges: [],
     isActive: true,
-    deletable: true
+    deletable: true,
   });
   // Inline validation for required fields
   const [errors, setErrors] = useState({ name: "", description: "" });
@@ -111,16 +135,16 @@ export default function RoleModal({
         description: role.description || "",
         privileges: privArr,
         isActive: role.isActive !== undefined ? role.isActive : true,
-         deletable: role.deletable || false,
+        deletable: role.deletable !== undefined ? role.deletable : true,
       });
     } else {
       setFormData({
-       code: "",
-      name: "",
-      description: "",
-      privileges: [],
-      isActive: true,
-      deletable: false,
+        code: "",
+        name: "",
+        description: "",
+        privileges: [],
+        isActive: true,
+        deletable: true,
       });
     }
     // Reset field errors when modal opens or role changes
@@ -169,7 +193,7 @@ export default function RoleModal({
         descRef.current.focus();
       return;
     }
-    
+
 
     const formattedData = {
       code: "", // ← Send empty, backend generates it
@@ -177,7 +201,7 @@ export default function RoleModal({
       description: formData.description,
       privileges: formData.privileges.join(","),
       isActive: formData.isActive,
-      deletable: formData.deletable,
+      deletable: isAdmin ? formData.deletable : true,
     };
 
     onSave(formattedData);
@@ -189,16 +213,16 @@ export default function RoleModal({
     mode === "view"
       ? "View Role"
       : mode === "edit"
-      ? "Update Role"
-      : "Add New Role";
+        ? "Update Role"
+        : "Add New Role";
   const primaryText = mode === "edit" ? "Update" : "Create";
   // Accent theo mode (chỉ ảnh hưởng UI header)
   const accent =
     mode === "create"
       ? { bg: "#e8f5e9", color: "#1f7a3f" }
       : mode === "edit"
-      ? { bg: "#fff7e6", color: "rgb(255, 191, 13)" }
-      : { bg: "#e6f0ff", color: "#5170ff" };
+        ? { bg: "#fff7e6", color: "rgb(255, 191, 13)" }
+        : { bg: "#e6f0ff", color: "#5170ff" };
 
   return (
     <div
@@ -286,8 +310,8 @@ export default function RoleModal({
                   {mode === "create"
                     ? "Create a new role for your system"
                     : mode === "edit"
-                    ? "Modify role details"
-                    : "View role details"}
+                      ? "Modify role details"
+                      : "View role details"}
                 </div>
               </div>
             </div>
@@ -331,6 +355,14 @@ export default function RoleModal({
                     label="Last Updated"
                     value={role.lastUpdatedAt || "—"}
                   />
+
+                  {isAdmin && mode === "edit"  && (
+                    <Item
+                      label="Deletable"
+                      value={role.deletable ? "Yes" : "No"}
+                    />
+                  )}
+
                   {/* Status: hiển thị badge màu (Active xanh lá, Inactive xám) */}
                   <div style={{ marginBottom: 10 }}>
                     <div
@@ -383,9 +415,9 @@ export default function RoleModal({
                     (e.currentTarget.style.boxShadow = focusShadow)
                   }
                   onBlur={(e) =>
-                    (e.currentTarget.style.boxShadow = errors.name
-                      ? "0 0 0 3px rgba(239,68,68,0.15)"
-                      : "none")
+                  (e.currentTarget.style.boxShadow = errors.name
+                    ? "0 0 0 3px rgba(239,68,68,0.15)"
+                    : "none")
                   }
                 />
                 {!errors.name && <NameGuidance raw={formData.name} />}
@@ -412,9 +444,9 @@ export default function RoleModal({
                     (e.currentTarget.style.boxShadow = focusShadow)
                   }
                   onBlur={(e) =>
-                    (e.currentTarget.style.boxShadow = errors.description
-                      ? "0 0 0 3px rgba(239,68,68,0.15)"
-                      : "none")
+                  (e.currentTarget.style.boxShadow = errors.description
+                    ? "0 0 0 3px rgba(239,68,68,0.15)"
+                    : "none")
                   }
                 />
               </Field>
@@ -552,27 +584,29 @@ export default function RoleModal({
                 </div>
               </Field>
 
- <div style={{ marginTop: 6 }}>
-          <label
-            style={{ display: "flex", alignItems: "center", gap: 10 }}
-          >
-            <input
-              type="checkbox"
-              name="deletable"
-              checked={formData.deletable}
-              onChange={handleChange}
-              style={{ width: 16, height: 16 }}
-            />
-            <span
-              style={{ color: "#404553", fontSize: 13, fontWeight: 600 }}
-            >
-              Allow Role Deletion (Advanced Setting)
-            </span>
-          </label>
-          <div style={{ marginLeft: 26, marginTop: 4, color: "#6b7280", fontSize: 12 }}>
-            Enable to allow role deletion. When disabled, the role cannot be deleted even if no users are assigned.
-          </div>
-        </div>
+            {isAdmin && mode === "edit" &&(
+              <div style={{ marginTop: 6 }}>
+                <label
+                  style={{ display: "flex", alignItems: "center", gap: 10 }}
+                >
+                  <input
+                    type="checkbox"
+                    name="deletable"
+                    checked={formData.deletable}
+                    onChange={handleChange}
+                    style={{ width: 16, height: 16 }}
+                  />
+                  <span
+                    style={{ color: "#404553", fontSize: 13, fontWeight: 600 }}
+                  >
+                    Allow Role Deletion (Advanced Setting)
+                  </span>
+                </label>
+                <div style={{ marginLeft: 26, marginTop: 4, color: "#6b7280", fontSize: 12 }}>
+                  Enable to allow role deletion. When disabled, the role cannot be deleted even if no users are assigned.
+                </div>
+              </div>
+            )} 
 
               <div style={{ marginTop: 6 }}>
                 <label
