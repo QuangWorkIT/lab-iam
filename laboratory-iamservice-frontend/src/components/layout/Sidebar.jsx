@@ -134,10 +134,6 @@ export default function Sidebar() {
     hasPrivilege(item.privilege)
   );
 
-const visibleMenuItems = menuItems.filter((item) =>
-    hasPrivilege(item.privilege)
-  );
-
   return (
     <div
       className={`bg-[#fe535b] text-white flex flex-col items-center pt-[18px]
