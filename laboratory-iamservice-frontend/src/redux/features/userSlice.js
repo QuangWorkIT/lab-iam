@@ -44,7 +44,7 @@ const userSlice = createSlice({
       state.bannedElements.push(action.payload);
     },
     removerBannedElement: (state, action) => {
-      state.bannedElements = state.bannedElements.filter(item => item !== action.payload)
+      state.bannedElements = state.bannedElements.filter(e => e.type !== action.payload)
     }
   },
   extraReducers: (builder) => {
@@ -53,7 +53,7 @@ const userSlice = createSlice({
       .addCase("persist/REHYDRATE", (state, action) => {
         if (action.payload?.user) {
           return {
-            ...initialState,
+            ...state,
             ...action.payload.user,
           };
         }
@@ -84,5 +84,5 @@ const userSlice = createSlice({
   }
 });
 
-export const { login, updateUserInfo,addBannedElement, removerBannedElement} = userSlice.actions;
+export const { login, updateUserInfo, addBannedElement, removerBannedElement } = userSlice.actions;
 export default userSlice.reducer;

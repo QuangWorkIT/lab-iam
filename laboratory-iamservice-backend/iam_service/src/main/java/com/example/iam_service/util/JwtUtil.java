@@ -90,7 +90,7 @@ public class JwtUtil {
         payload.put("role", user.getRoleCode());
         payload.put("email", user.getEmail());
         payload.put("gender", user.getGender());
-        payload.put("identifyNumber", user.getIdentityNumber());
+        payload.put("identityNumber", user.getIdentityNumber());
         payload.put("age", user.getAge() != null ? user.getAge().toString() : null);
         payload.put("dob", user.getBirthdate() != null ? user.getBirthdate().toString() : null);
         payload.put("address", user.getAddress());

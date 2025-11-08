@@ -130,9 +130,9 @@ export default function Sidebar() {
     },
   ];
 
-  const visibleMenuItems = menuItems.filter((item) =>
-    hasPrivilege(item.privilege)
-  );
+  // const visibleMenuItems = menuItems.filter((item) =>
+  //   hasPrivilege(item.privilege)
+  // );
 
 const visibleMenuItems = menuItems.filter((item) =>
     hasPrivilege(item.privilege)

@@ -1,16 +1,16 @@
 import { Button, Form, Input, ConfigProvider, Checkbox } from 'antd';
 import { Spin } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router";
-import { login } from '../../redux/features/userSlice.js';
+import { login, addBannedElement } from '../../redux/features/userSlice.js';
 import { toast } from 'react-toastify';
 import api from '../../configs/axios.js';
 import { parseClaims } from '../../utils/jwtUtil.js';
 import GoogleButton from './GoogleButton.jsx';
 import { formatBannedDate } from '../../utils/formatter.js';
-
+import CountDownTimer from "../common/CountDownTimer.jsx"
 
 // custom input theme 
 export const theme = {
@@ -40,32 +40,15 @@ const passwordRules = [
 ];
 
 
-function LoginForm({setIsResetPassWord}) {
+function LoginForm({ setIsResetPassWord }) {
     const [form] = Form.useForm();
     const [isEmailExpanded, setIsEmailExpanded] = useState(false);
     const [isPasswordExpanded, setIsPasswordExpanded] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isGoogleLogin, setIsGoogleLogin] = useState(false)
-    const [banUntil, setbanUntil] = useState(null)
     const dispatch = useDispatch()
     const nav = useNavigate()
-
-    // Load banUntil from localStorage once at mount
-    useEffect(() => {
-        const stored = localStorage.getItem("banUntil");
-        if (stored && stored !== "null") {
-            setbanUntil(stored);
-        }
-    }, []);
-
-    // Save banUntil to localStorage when it changes
-    useEffect(() => {
-        if (banUntil) {
-            localStorage.setItem("banUntil", banUntil);
-        } else {
-            localStorage.removeItem("banUntil");
-        }
-    }, [banUntil]);
+    const { bannedElements } = useSelector(state => state.user)
 
     const onFinish = async (values) => {
         try {
@@ -86,7 +69,7 @@ function LoginForm({setIsResetPassWord}) {
                     email: payload.email,
                     role: payload.role,
                     privileges: payload.privileges,
-                    identifyNumber: payload.identifyNumber,
+                    identityNumber: payload.identityNumber,
                     phoneNumber: payload.phone,
                     gender: payload.gender,
                     dateOfBirth: payload.dob,
@@ -95,13 +78,15 @@ function LoginForm({setIsResetPassWord}) {
                     isActive: payload.isActive === "true",
                 }
             }))
-            setbanUntil(null)
             toast.success("Login successfully!")
             if (payload.role === "ROLE_ADMIN" || payload.role === "ROLE_LAB_MANAGER") {
                 nav("/roles", { replace: true });
             } else {
                 nav("/home", { replace: true });
             }
+            form.resetFields()
+            setIsEmailExpanded(false)
+            setIsPasswordExpanded(false)
         } catch (error) {
             const errMess = error.response?.data?.message
             if (errMess) {
@@ -109,15 +94,18 @@ function LoginForm({setIsResetPassWord}) {
                     errMess.split(".")[0] === "Too many attempts"
                 ) {
                     toast.error("Too many attempts!")
-                    setbanUntil(formatBannedDate(error.response.data.status))
+                    dispatch(addBannedElement(
+                        {
+                            type: "loginBanned",
+                            banUntil: formatBannedDate(error.response.data.status)
+                        })
+                    )
                 } else toast.error("Invalid credentials!")
             }
             else toast.error("Login failed!")
+            console.log(error)
         } finally {
-            form.resetFields()
             setIsSubmitting(false)
-            setIsEmailExpanded(false)
-            setIsPasswordExpanded(false)
         }
     }
 
@@ -182,19 +170,25 @@ function LoginForm({setIsResetPassWord}) {
                     <div className="text-[14px]">
                         <Checkbox className="font-semibold">Remember me</Checkbox>
                     </div>
-                    <p 
-                    onClick={() => setIsResetPassWord(true)}
-                    className="italic text-[#5170ff] font-semibold hover:cursor-pointer 
-                    hover:text-[#a3b4ff] transition-all duration-300">
+                    <p
+                        onClick={() => setIsResetPassWord(true)}
+                        className="italic text-[#5170ff] font-semibold hover:cursor-pointer 
+                        hover:text-[#a3b4ff] transition-all duration-300">
                         Forget password?
                     </p>
                 </div>
 
                 <div className="mt-13">
-                    {banUntil !== null && (<h2 className="text-center italic text-red-500">
-                        Your account is locked! <br />
-                        Please try later at <span className='font-bold'>{banUntil}</span>
-                    </h2>)}
+                    {bannedElements.some(e => e.type === "loginBanned") &&
+                        (<h2 className="text-center italic text-red-500">
+                            Your account is locked!
+                            Please try again after <span className='font-bold'>
+                                <CountDownTimer
+                                    endTime={new Date((bannedElements.find(e => e.type === "loginBanned")).banUntil).getTime()}
+                                    clearItem={"loginBanned"} />
+                            </span>
+                        </h2>)
+                    }
                     <Form.Item className='flex justify-center' style={{ margin: "0" }}>
                         <Button
                             className='md:w-[200px] w-20 hover:bg-[#fca9ad]'
@@ -202,7 +196,7 @@ function LoginForm({setIsResetPassWord}) {
                             variant='solid'
                             htmlType='submit'
                             loading={isSubmitting}
-                            disabled={banUntil !== null}
+                            disabled={bannedElements.some(e => e.type === "loginBanned")}
                         >
                             Login
                         </Button>
@@ -219,7 +213,7 @@ function LoginForm({setIsResetPassWord}) {
                             <Spin size='large' />
                         ) : (
                             <div className={`hover:opacity-70 transition 
-                            ${banUntil !== null
+                            ${bannedElements.some(e => e.type === "loginBanned")
                                     ? "pointer-events-none opacity-50"
                                     : "opacity-100 cursor-pointer"}`}>
                                 <GoogleButton setIsGoogleLogin={setIsGoogleLogin} />

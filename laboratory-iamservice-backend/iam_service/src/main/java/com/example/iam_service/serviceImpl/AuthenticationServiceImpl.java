@@ -9,6 +9,7 @@ import com.example.iam_service.util.JwtUtil;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.BadRequestException;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,10 +34,14 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
         if (userFound.isEmpty())
             throw new UsernameNotFoundException("Email not found");
 
-        if (!encoder.matches(password, userFound.get().getPassword()))
+        User user = userFound.get();
+        if(!user.getIsActive())
+            throw new BadRequestException("User is deleted");
+
+        if (!encoder.matches(password, user.getPassword()))
             throw new BadCredentialsException("Password is invalid");
 
-        return userFound.get();
+        return user;
     }
 
     public Map<String, String> getTokens(User user) {
@@ -45,7 +50,6 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
         tokens.put("refreshToken", generateRefreshToken(user).getTokenId());
         return tokens;
     }
-
     @Override
     public Map<String, String> login(String email, String password) {
         User authenticatedUser = authenticate(email, password);
@@ -86,7 +90,7 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
                 insertUser.setFullName(lastName.concat(" " + firstName));
 
                 // default value when not updated
-                insertUser.setIdentityNumber(UUID.randomUUID().toString());
+                insertUser.setIdentityNumber("N/A");
                 insertUser.setPassword(
                         encoder.encode("Aa" + UUID.randomUUID().toString().substring(0, 10))
                 );
@@ -163,15 +167,21 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
                 () -> new IllegalArgumentException("User not found")
         );
 
-        // Check if the provided password is correct
-        if(currentPassword != null && !encoder.matches(currentPassword, user.getPassword()))
-            throw new IllegalArgumentException("Current password does not match");
+        if(!user.getIsActive() || user.getDeletedAt() != null || user.getIsDeleted())
+            throw new IllegalArgumentException("User is deleted");
 
-        // Check the new password if user want to change current password
-        if (option.equals("change") && encoder.matches(password, user.getPassword())) {
-            throw new IllegalArgumentException("Password must be different from the old one");
+        if(option.equals("change")) {
+            // Check if the provided password is correct
+            if(!encoder.matches(currentPassword, user.getPassword()))
+                throw new IllegalArgumentException("Current password does not match");
+
+            // Check the difference between current and new password
+            if (encoder.matches(password, user.getPassword())) {
+                throw new IllegalArgumentException("Password must be different from the old one");
+            }
         }
 
+        // save new password directly if option "reset"
         user.setPassword(encoder.encode(password));
         return userRepository.save(user);
     }
