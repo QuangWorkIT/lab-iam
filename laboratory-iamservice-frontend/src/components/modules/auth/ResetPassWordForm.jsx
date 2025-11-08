@@ -31,10 +31,11 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                 setIsResetPassWord(false)
                 toast.success("Reset password successfully!")
             }, 1000);
-
+            form.resetFields()
         } catch (error) {
             console.error("Error reset password", error)
             setResetPassWordState(null)
+
             const errMess = error.response.data?.message
             if (errMess) {
                 toast.error(errMess)
@@ -48,8 +49,6 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
             }
             else if (error.response.data?.error) toast.error(error.response.data.error)
             else toast.error(`Error ${updateOption} password`)
-        } finally {
-            form.resetFields()
         }
     }
 
@@ -61,7 +60,7 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                 initialValues={{ remember: true }}
                 onFinish={resetPassWord}
                 autoComplete="off"
-                className="w-[300px]"
+                className="w-[250px] md:w-[300px]"
             >
                 {
                     updateOption !== "reset" && (
@@ -86,15 +85,16 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                     name="confirm"
                     dependencies={["password"]}
                     validateTrigger="onBlur"
-                    rules={[{ required: true, message: "Please confirm your password" },
-                    ({ getFieldValue }) => ({
-                        validator(_, value) {
-                            if (getFieldValue("password") !== value) {
-                                return Promise.reject(new Error("Password does not match"))
+                    rules={[
+                        { required: true, message: "Please confirm your password" },
+                        ({ getFieldValue }) => ({
+                            validator(_, value) {
+                                if (getFieldValue("password") !== value) {
+                                    return Promise.reject(new Error("Password does not match"))
+                                }
+                                return Promise.resolve()
                             }
-                            return Promise.resolve()
-                        }
-                    })
+                        })
                     ]}
                 >
                     <Input.Password visibilityToggle={true} placeholder="Confirm new password" />
@@ -120,7 +120,7 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                         }
                         <Button
                             className={`hover:bg-[#fca9ad] transition-all duration-300 ease-in-out 
-                        ${resetPassWordState === "success" ? "w-50" : "w-30"}`}
+                            ${resetPassWordState === "success" ? "w-50 !bg-[#52c41a]" : "w-30"}`}
                             color="danger"
                             variant="solid"
                             htmlType="submit"
@@ -142,7 +142,7 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                                 ) : (
                                     <motion.span
                                         key="reset"
-                                        initial={{ opacity: 0 }}
+                                        initial={{ opacity: 0 }}q
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
                                         transition={{ duration: 0.2 }}

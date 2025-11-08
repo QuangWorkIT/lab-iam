@@ -42,8 +42,6 @@ const passwordRules = [
 
 function LoginForm({ setIsResetPassWord }) {
     const [form] = Form.useForm();
-    const [isEmailExpanded, setIsEmailExpanded] = useState(false);
-    const [isPasswordExpanded, setIsPasswordExpanded] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isGoogleLogin, setIsGoogleLogin] = useState(false)
     const dispatch = useDispatch()
@@ -85,8 +83,6 @@ function LoginForm({ setIsResetPassWord }) {
                 nav("/home", { replace: true });
             }
             form.resetFields()
-            setIsEmailExpanded(false)
-            setIsPasswordExpanded(false)
         } catch (error) {
             const errMess = error.response?.data?.message
             if (errMess) {
@@ -110,10 +106,10 @@ function LoginForm({ setIsResetPassWord }) {
     }
 
     return (
-        <div className='flex flex-col items-center justify-center h-full mt-3'>
+        <div className='flex flex-col items-center justify-center h-full w-full mt-5'>
             <p
-                className='text-xl md:text-3xl text-center font-bold'
-                style={{ marginBottom: "35px" }}
+                className='text-xl md:text-3xl text-center font-bold ml-2'
+                style={{ marginBottom: "30px" }}
             >
                 Lab Management
             </p>
@@ -122,7 +118,6 @@ function LoginForm({ setIsResetPassWord }) {
                 form={form}
                 name='login'
                 onFinish={onFinish}
-                className='w-[200px] md:w-[360px]'
             >
                 <ConfigProvider theme={theme}>
                     <Form.Item
@@ -130,16 +125,11 @@ function LoginForm({ setIsResetPassWord }) {
                         rules={emailRules}
                         hasFeedback
                     >
-                        <div className={`m-auto transition-all duration-500 ease-in-out 
-                        ${isEmailExpanded ? "w-full" : "md:w-80"}`}>
+                        <div className={`m-auto transition-all duration-500 ease-in-out w-70 md:w-100`}>
                             <Input
                                 prefix={<UserOutlined style={{ color: "#FE535B" }} />}
                                 placeholder="Email"
                                 variant='underlined'
-                                onFocus={() => setIsEmailExpanded(true)}
-                                onBlur={() => {
-                                    if (!form.getFieldValue("email")) setIsEmailExpanded(false);
-                                }}
                             />
                         </div>
                     </Form.Item>
@@ -150,39 +140,34 @@ function LoginForm({ setIsResetPassWord }) {
                         rules={passwordRules}
                         hasFeedback
                     >
-                        <div className={`m-auto transition-all duration-500 ease-in-out 
-                        ${isPasswordExpanded ? "w-full" : "md:w-80"}`}>
+                        <div className={`m-auto transition-all duration-500 ease-in-out w-70 md:w-100`}>
                             <Input.Password
                                 className="bg-transparent"
                                 prefix={<LockOutlined style={{ color: "#FE535B" }} />}
                                 placeholder="Password"
                                 variant='underlined'
-                                onFocus={() => setIsPasswordExpanded(true)}
-                                onBlur={() => {
-                                    if (!form.getFieldValue("password")) setIsPasswordExpanded(false);
-                                }}
                             />
                         </div>
                     </Form.Item>
                 </ConfigProvider>
 
-                <div className="flex justify-between px-5 mb-10">
-                    <div className="text-[14px]">
-                        <Checkbox className="font-semibold">Remember me</Checkbox>
+                <div className="flex justify-between w-full mb-10">
+                    <div>
+                        <Checkbox className="font-semibold !text-[12px] md:!text-[14px]">Remember me</Checkbox>
                     </div>
                     <p
                         onClick={() => setIsResetPassWord(true)}
                         className="italic text-[#5170ff] font-semibold hover:cursor-pointer 
-                        hover:text-[#a3b4ff] transition-all duration-300">
+                        hover:text-[#a3b4ff] transition-all duration-300 text-[12px] md:text-[14px]">
                         Forget password?
                     </p>
                 </div>
 
-                <div className="mt-13">
+                <div className="mt-15">
                     {bannedElements.some(e => e.type === "loginBanned") &&
                         (<h2 className="text-center italic text-red-500">
-                            Your account is locked!
-                            Please try again after <span className='font-bold'>
+                            Your account is locked! Please try again after
+                            <span className='font-bold'>
                                 <CountDownTimer
                                     endTime={new Date((bannedElements.find(e => e.type === "loginBanned")).banUntil).getTime()}
                                     clearItem={"loginBanned"} />
@@ -191,7 +176,7 @@ function LoginForm({ setIsResetPassWord }) {
                     }
                     <Form.Item className='flex justify-center' style={{ margin: "0" }}>
                         <Button
-                            className='md:w-[200px] w-20 hover:bg-[#fca9ad]'
+                            className='md:w-[200px] w-50 hover:bg-[#fca9ad]'
                             color='danger'
                             variant='solid'
                             htmlType='submit'

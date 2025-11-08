@@ -12,9 +12,10 @@ export default function MainLayout({ children, pageTitle, pageDescription }) {
         width: "100%",
         maxWidth: "100%",
         overflowX: "hidden",
+        position: "relative"
       }}
     >
-      <Sidebar />
+      <Sidebar classes={"absolute  md:relative"}/>
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <Header pageTitle={pageTitle} />
