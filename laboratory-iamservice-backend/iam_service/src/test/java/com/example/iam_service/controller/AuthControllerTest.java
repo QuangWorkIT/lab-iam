@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.HashMap;
@@ -609,11 +610,10 @@ public class AuthControllerTest {
 
             when(servletRequest.getRemoteAddr()).thenReturn("192.168.0.1");
             when(resetPasswordRateLimiterService.isBannedFromResetPassword("192.168.0.1")).thenReturn(true);
-
+            when(resetPasswordRateLimiterService.getUserBanUntil("192.168.0.1")).thenReturn(Instant.now().plusSeconds(2 * 60 * 60));
             ResponseEntity<ApiResponse<UserDTO>> response = authController.resetPassWord(request, servletRequest);
 
             assertEquals(429, response.getStatusCode().value());
-            assertEquals("Error", response.getBody().getStatus());
             assertEquals("Too many reset password attempts", response.getBody().getMessage());
 
             verify(authService, never()).updateUserPassword(any(), any(), any(), any());

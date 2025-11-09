@@ -57,12 +57,12 @@ public class ResetPasswordLimiterServiceTest {
     }
 
     /**
-     * ✅ Test: Tokens should reset after REFILL_SECONDS has passed.
+     * ✅ Test: Ban should expire after BAN_DURATION has passed.
      * This uses reflection to simulate time passing.
      */
     @Test
-    @DisplayName("Should reset ban after refill period has passed")
-    void isBannedFromResetPassword_ShouldResetAfterRefillTimePassed() throws Exception {
+    @DisplayName("Should reset ban after ban duration has passed")
+    void isBannedFromResetPassword_ShouldResetAfterBanTimePassed() throws Exception {
         String ip = "10.0.0.5";
 
         // Reach max attempts to trigger ban
@@ -78,15 +78,15 @@ public class ResetPasswordLimiterServiceTest {
         Map<String, Object> buckets = (Map<String, Object>) userBucketsField.get(rateLimiter);
 
         Object bucket = buckets.get(ip);
-        Field lastAttemptField = bucket.getClass().getDeclaredField("lastAttempt");
-        lastAttemptField.setAccessible(true);
+        Field banUntilField = bucket.getClass().getDeclaredField("banUntil");
+        banUntilField.setAccessible(true);
 
-        // Set lastAttempt to 2 hours ago ( > REFILL_SECONDS )
-        lastAttemptField.set(bucket, Instant.now().minusSeconds(7200));
+        // Set banUntil to 2 hours ago (simulate ban expired)
+        banUntilField.set(bucket, Instant.now().minusSeconds(7200));
 
         // Act again — should now reset
         boolean bannedAfterReset = rateLimiter.isBannedFromResetPassword(ip);
-        assertFalse(bannedAfterReset, "User should no longer be banned after refill time passed");
+        assertFalse(bannedAfterReset, "User should no longer be banned after ban duration passed");
     }
 
 
