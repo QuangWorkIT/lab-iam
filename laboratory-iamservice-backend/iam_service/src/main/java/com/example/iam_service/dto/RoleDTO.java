@@ -37,6 +37,6 @@ public class RoleDTO {
     @Schema(description = "Role's active status", example = "true")
     private Boolean isActive;
 
-    @Schema(description = "Role's active status", example = "true", defaultValue = "true")
+    @Schema(description = "Role's deletable status")
     private Boolean deletable;
 }
