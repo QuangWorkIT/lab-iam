@@ -1,5 +1,7 @@
 package com.example.iam_service.serviceImpl;
 
+import com.example.iam_service.audit.AuditEvent;
+import com.example.iam_service.audit.AuditPublisher;
 import com.example.iam_service.entity.Token;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.repository.RefreshTokenRepository;
@@ -17,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 @Service
@@ -27,6 +30,8 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
     private final RefreshTokenRepository refreshRepo;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
     private final JwtUtil jwtUtil;
+    private final AuditPublisher auditPublisher;
+
     // helper function for verification
     private User authenticate(String email, String password) {
         Optional<User> userFound = userRepository.findByEmail(email);
@@ -35,7 +40,7 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
             throw new UsernameNotFoundException("Email not found");
 
         User user = userFound.get();
-        if(!user.getIsActive())
+        if (!user.getIsActive())
             throw new BadRequestException("User is deleted");
 
         if (!encoder.matches(password, user.getPassword()))
@@ -50,6 +55,7 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
         tokens.put("refreshToken", generateRefreshToken(user).getTokenId());
         return tokens;
     }
+
     @Override
     public Map<String, String> login(String email, String password) {
         User authenticatedUser = authenticate(email, password);
@@ -167,12 +173,15 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
                 () -> new IllegalArgumentException("User not found")
         );
 
-        if(!user.getIsActive() || user.getDeletedAt() != null || user.getIsDeleted())
+        if (!user.getIsActive() || user.getDeletedAt() != null || user.getIsDeleted())
             throw new IllegalArgumentException("User is deleted");
 
-        if(option.equals("change")) {
+        String auditPrefix = option.equals("change") ? "USER_CHANGE_PASSWORD" : "USER_RESET_PASSWORD";
+        String details = option.equals("change") ? "User changed their own password" : "User reset their own password";
+
+        if (option.equals("change")) {
             // Check if the provided password is correct
-            if(!encoder.matches(currentPassword, user.getPassword()))
+            if (!encoder.matches(currentPassword, user.getPassword()))
                 throw new IllegalArgumentException("Current password does not match");
 
             // Check the difference between current and new password
@@ -180,6 +189,15 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
                 throw new IllegalArgumentException("Password must be different from the old one");
             }
         }
+
+        auditPublisher.publish(AuditEvent.builder()
+                .type(auditPrefix)
+                .userId(user.getUserId().toString())
+                .target(user.getUserId().toString())
+                .targetRole(user.getRoleCode())
+                .timestamp(OffsetDateTime.now())
+                .details(details)
+                .build());
 
         // save new password directly if option "reset"
         user.setPassword(encoder.encode(password));
