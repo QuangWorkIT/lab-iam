@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react"
 import {
   FaHome,
   FaUsers,
@@ -26,24 +26,22 @@ const MENU_PRIVILEGES = {
 };
 
 // Inline component
-function SidebarIcon({ icon, active, to = "#", isSideBarOpen }) {
+function SidebarIcon({ icon, active, isSideBarOpen }) {
   return (
-    <Link to={to}>
-      <div
-        className={`w-10 h-10 rounded-[5px] flex justify-center items-center cursor-pointer transition-all duration-300 ease-in-out
+    <div
+      className={`w-10 h-10 rounded-[5px] flex justify-center items-center
+      cursor-pointer transition-all duration-300 ease-in-out
       ${active ? "bg-[#FFFFFF33]" : "bg-transparent"}
       ${!isSideBarOpen && "hover:bg-[#FFFFFF33]"}`}
-      >
-        {icon}
-      </div>
-    </Link>
+    >
+      {icon}
+    </div>
   );
 }
 
-export default function Sidebar() {
+export default function Sidebar({ classes }) {
   const location = useLocation();
   const { userInfo } = useSelector((state) => state.user);
-  const [rotation, setRotation] = useState(0);
   const [isSideBarOpen, setIsSideBarOpen] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme) {
@@ -53,9 +51,9 @@ export default function Sidebar() {
     return false;
   });
 
-  const handleRotate = () => {
-    setRotation((prev) => prev + 360);
+  const handleOpenSideBar = () => {
     setIsSideBarOpen(!isSideBarOpen);
+
     const theme = { isSideBarOpen: !isSideBarOpen };
     localStorage.setItem("theme", JSON.stringify(theme));
   };
@@ -123,7 +121,7 @@ export default function Sidebar() {
       desc: "Laboratory test",
     },
     {
-    path: "/test",
+      path: "/test",
       icon: <FaChartLine size={20} />,
       privilege: MENU_PRIVILEGES.ANALYTICS,
       desc: "Analytics",
@@ -134,65 +132,77 @@ export default function Sidebar() {
     hasPrivilege(item.privilege)
   );
 
+  // disable scroll on tablet and mobile viewport
+  useEffect(() => {
+    const handleScrollLock = () => {
+      const isMobile = window.innerWidth <= 780;
+      if (isSideBarOpen && isMobile) {
+        document.body.style.overflowY = "hidden";
+      } else {
+        document.body.style.overflowY = "auto";
+      }
+    };
+
+    handleScrollLock(); // apply on mount or change
+    window.addEventListener("resize", handleScrollLock); // update on resize
+
+    return () => {
+      document.body.style.overflowY = "auto";
+      window.removeEventListener("resize", handleScrollLock);
+    };
+  }, [isSideBarOpen]);
+
   return (
     <div
-      className={`bg-[#fe535b] text-white flex flex-col items-center pt-[18px]
-          z-[100] transition-all duration-200 ease-in-out
-        ${isSideBarOpen ? "w-[250px] " : "w-[100px]"}`}
+      className={` text-white flex flex-col items-center
+          z-[100] transition-all duration-200 ease-in-out ${classes}
+        ${isSideBarOpen ? "w-screen md:w-[250px]" : "w-[100px]"}`}
     >
       <div
-        style={{
-          padding: "6px",
-          borderBottom: "1px solid rgba(255,255,255,0.2)",
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          marginBottom: "20px",
-        }}
+        className={`p-[6px] border-b border-white/20 w-full flex 
+        justify-start md:justify-center items-center h-[96px] md:h-[58px]
+        md:bg-[#fe535b]`}
       >
         <motion.div
-          animate={{ rotate: rotation }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          className={`p-2 rounded-[5px] hover:cursor-pointer hover:scale-120 transition-all duration-200
+          ${location.pathname === "/" && "bg-[#FFFFFF33]" }`}
         >
           <FaBars
-            onClick={handleRotate}
-            className="text-[24px] hover:cursor-pointer hover:scale-120 transition-all duration-200"
+            onClick={handleOpenSideBar}
+            className="text-[24px] md:text-white text-black"
           />
         </motion.div>
       </div>
 
-      {visibleMenuItems.map((item, index) => (
-        <Link
-          to={item.path}
-          key={index}
-          className={`flex items-center w-full px-2 mb-5 transition-all duration-200 ease-in-out
-               hover:cursor-pointer hover:scale-110
-                  ${
-                    isSideBarOpen
-                      ? " hover:bg-white/20 rounded-r-full "
-                      : "bg-transparent hover:bg-transparent"
-                  }
-                  ${
-                    isSideBarOpen &&
-                    location.pathname === item.path &&
-                    "bg-[#FFFFFF33]"
-                  }`}
-        >
-          <div className="pl-[22px]">
-            <SidebarIcon
-              icon={item.icon}
+      <div className={`pt-5 bg-[#fe535b] w-full h-screen md:h-full md:opacity-100 
+                      ${isSideBarOpen ? "opacity-100" : "opacity-0"}`}>
+        {
+          visibleMenuItems.map((item, index) => (
+            <Link
               to={item.path}
-              active={!isSideBarOpen && location.pathname === item.path}
-              isSideBarOpen={isSideBarOpen}
-            />
-          </div>
-          {isSideBarOpen && (
-            <span className="pt-1 whitespace-nowrap text-[14px] transition-all duration-300 ease-in-out hover:cursor-pointer">
-              {item.desc}
-            </span>
-          )}
-        </Link>
-      ))}
+              key={index}
+              className={`flex items-center w-full px-2 mb-5 transition-all duration-200 ease-in-out
+                        hover:cursor-pointer hover:scale-110
+                        ${isSideBarOpen ? "hover:bg-white/20 rounded-r-full" : "bg-transparent hover:bg-transparent"}
+                        ${isSideBarOpen && location.pathname === item.path && "bg-[#FFFFFF33]"}`}
+            >
+              <div className="pl-[22px]">
+                <SidebarIcon
+                  icon={item.icon}
+                  active={!isSideBarOpen && location.pathname === item.path}
+                  isSideBarOpen={isSideBarOpen}
+                />
+              </div>
+              {isSideBarOpen && (
+                <span className="pt-1 whitespace-nowrap text-[14px]
+                transition-all duration-300 ease-in-out hover:cursor-pointer">
+                  {item.desc}
+                </span>
+              )}
+            </Link>
+          ))
+        }
+      </div>
     </div>
   );
 }

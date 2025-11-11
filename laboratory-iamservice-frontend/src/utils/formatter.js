@@ -52,17 +52,30 @@ export const formatPrivileges = (privileges) => {
 
 /**
  * Format account banned date string to local format
+ * Ex dateStr: 2025-11-08T11:13:38.988744500+07:00[Asia/Ho_Chi_Minh]
+ * Return value: 2025-11-08T11:13:38.988744500
  */
 export const formatBannedDate = (dateStr) => {
   if (!dateStr || dateStr === undefined || dateStr === "null") return "N/A"
 
-  const date = dateStr.split("T")[0]
-  const banTime = dateStr.split("T")[1]
-  const formatBanTime = banTime.split("+")[0].split(".")[0]
-
-  return formatBanTime + ", " + date
+  return dateStr.split("+")[0]
 }
 
+/**
+ * Format remain time
+ * Ex time: 7027922
+ * Return value: 01:01:01s
+ */
+export const formatRemainTime = (time) => {
+  if (!time) return "N/A";
+  const seconds = Math.floor((time / 1000) % 60)
+  const minutes = Math.floor((time / (1000 * 60)) % 60)
+  const hours = Math.floor((time / (1000 * 60 * 60)) % 24)
+
+  return hours.toString().padStart(2, "0") + ":" +
+        minutes.toString().padStart(2, "0") + ":" +
+        seconds.toString().padStart(2, "0") + "s"
+}
 /**
  * Truncate ID to show only first part with ellipsis
  */
@@ -79,7 +92,7 @@ export const truncateId = (id, maxLength = 8) => {
  * Format user role
  */
 export const getRoleName = (role) => {
-  if(!role) return null;
+  if (!role) return null;
 
   return role.substring(5)
 }

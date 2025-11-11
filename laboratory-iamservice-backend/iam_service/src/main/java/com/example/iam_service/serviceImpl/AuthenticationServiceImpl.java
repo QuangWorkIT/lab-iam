@@ -1,5 +1,7 @@
 package com.example.iam_service.serviceImpl;
 
+import com.example.iam_service.audit.AuditEvent;
+import com.example.iam_service.audit.AuditPublisher;
 import com.example.iam_service.entity.Token;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.repository.RefreshTokenRepository;
@@ -9,6 +11,7 @@ import com.example.iam_service.util.JwtUtil;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.BadRequestException;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 @Service
@@ -26,6 +30,8 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
     private final RefreshTokenRepository refreshRepo;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
     private final JwtUtil jwtUtil;
+    private final AuditPublisher auditPublisher;
+
     // helper function for verification
     private User authenticate(String email, String password) {
         Optional<User> userFound = userRepository.findByEmail(email);
@@ -33,10 +39,14 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
         if (userFound.isEmpty())
             throw new UsernameNotFoundException("Email not found");
 
-        if (!encoder.matches(password, userFound.get().getPassword()))
+        User user = userFound.get();
+        if (!user.getIsActive())
+            throw new BadRequestException("User is deleted");
+
+        if (!encoder.matches(password, user.getPassword()))
             throw new BadCredentialsException("Password is invalid");
 
-        return userFound.get();
+        return user;
     }
 
     public Map<String, String> getTokens(User user) {
@@ -86,7 +96,7 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
                 insertUser.setFullName(lastName.concat(" " + firstName));
 
                 // default value when not updated
-                insertUser.setIdentityNumber(UUID.randomUUID().toString());
+                insertUser.setIdentityNumber("N/A");
                 insertUser.setPassword(
                         encoder.encode("Aa" + UUID.randomUUID().toString().substring(0, 10))
                 );
@@ -163,15 +173,33 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
                 () -> new IllegalArgumentException("User not found")
         );
 
-        // Check if the provided password is correct
-        if(currentPassword != null && !encoder.matches(currentPassword, user.getPassword()))
-            throw new IllegalArgumentException("Current password does not match");
+        if (!user.getIsActive() || user.getDeletedAt() != null || user.getIsDeleted())
+            throw new IllegalArgumentException("User is deleted");
 
-        // Check the new password if user want to change current password
-        if (option.equals("change") && encoder.matches(password, user.getPassword())) {
-            throw new IllegalArgumentException("Password must be different from the old one");
+        String auditPrefix = option.equals("change") ? "USER_CHANGE_PASSWORD" : "USER_RESET_PASSWORD";
+        String details = option.equals("change") ? "User changed their own password" : "User reset their own password";
+
+        if (option.equals("change")) {
+            // Check if the provided password is correct
+            if (!encoder.matches(currentPassword, user.getPassword()))
+                throw new IllegalArgumentException("Current password does not match");
+
+            // Check the difference between current and new password
+            if (encoder.matches(password, user.getPassword())) {
+                throw new IllegalArgumentException("Password must be different from the old one");
+            }
         }
 
+        auditPublisher.publish(AuditEvent.builder()
+                .type(auditPrefix)
+                .userId(user.getUserId().toString())
+                .target(user.getUserId().toString())
+                .targetRole(user.getRoleCode())
+                .timestamp(OffsetDateTime.now())
+                .details(details)
+                .build());
+
+        // save new password directly if option "reset"
         user.setPassword(encoder.encode(password));
         return userRepository.save(user);
     }

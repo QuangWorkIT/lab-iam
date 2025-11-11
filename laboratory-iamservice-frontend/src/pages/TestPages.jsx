@@ -4,9 +4,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { login, logout } from "../redux/features/userSlice";
 import api from "../configs/axios.js";
 import MainLayout from "../components/layout/MainLayout";
-
+import CountDownTimer from "../components/common/CountDownTimer.jsx";
 export default function TestPages() {
   const dispatch = useDispatch();
+  const endTime = new Date("2025-11-07T16:16:50.427195200")
   const fetchRoles = async () => {
     try {
       const response = await api.get("/api/roles")
@@ -54,6 +55,8 @@ export default function TestPages() {
 
           <Button onClick={() => fetchRoles()}>Get roles</Button>
         </Card>
+
+        <CountDownTimer endTime={endTime}/>
 
       </div>
     </MainLayout>

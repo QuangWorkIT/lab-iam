@@ -102,6 +102,8 @@ public class AuthenticationServiceTest {
 
             // Create a mock user
             User mockUser = new User();
+            mockUser.setIsActive(true);
+            mockUser.setIsDeleted(false);
             mockUser.setEmail(email);
             mockUser.setPassword("$2a$10$jLVqx5vmeuOtYV7YpKuw9OuSQ085oaEThI42F9pkws/1aEYoixnZi");
 
@@ -152,6 +154,8 @@ public class AuthenticationServiceTest {
             String password = "admin123STAFF";
 
             User mockUser = new User();
+            mockUser.setIsActive(true);
+            mockUser.setIsDeleted(false);
             mockUser.setEmail(email);
             mockUser.setPassword(password);
 
@@ -471,7 +475,10 @@ public class AuthenticationServiceTest {
 
         @Test
         void updatePassword_InvalidCurrentPassword_ShouldThroughPasswordInvalidEx() {
+            option = "change";
             User mockUser = new User();
+            mockUser.setIsActive(true);
+            mockUser.setIsDeleted(false);
             mockUser.setPassword(currentPassword);
 
 
@@ -490,6 +497,8 @@ public class AuthenticationServiceTest {
         void updatePassword_ChangeWithOldPassword_ShouldThrowInvalidEx() {
             currentPassword = password;
             User mockUser = new User();
+            mockUser.setIsActive(true);
+            mockUser.setIsDeleted(false);
             mockUser.setPassword(currentPassword);
 
             when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));
@@ -507,6 +516,8 @@ public class AuthenticationServiceTest {
         @Test
         void updatePassword_ValidChangePasswordOption_ShouldSaveNewPassword() {
             User mockUser = new User();
+            mockUser.setIsActive(true);
+            mockUser.setIsDeleted(false);
             mockUser.setPassword(currentPassword);
 
             when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));

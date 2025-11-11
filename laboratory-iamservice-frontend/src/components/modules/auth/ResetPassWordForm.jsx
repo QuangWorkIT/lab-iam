@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from "motion/react";
 import { CheckOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import { addBannedElement, removerBannedElement } from "../../../redux/features/userSlice";
+import { addBannedElement } from "../../../redux/features/userSlice";
+import CountDownTimer from "../../common/CountDownTimer";
+
 const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) => {
-    const { bannedElements } = useSelector(state => state.user)
     const dispath = useDispatch()
+    const { bannedElements } = useSelector(state => state.user)
     const [resetPassWordState, setResetPassWordState] = useState(null)
     const [form] = Form.useForm();
 
@@ -25,26 +27,28 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
             await publicApi.put("/api/auth/password-reset", payload)
             setResetPassWordState("success")
 
-            dispath(removerBannedElement("resetPasswordBanned"))
-
             setTimeout(() => {
                 setIsResetPassWord(false)
                 toast.success("Reset password successfully!")
             }, 1000);
-
+            form.resetFields()
         } catch (error) {
             console.error("Error reset password", error)
             setResetPassWordState(null)
+
             const errMess = error.response.data?.message
             if (errMess) {
                 toast.error(errMess)
-                if (errMess === "Too many reset password attempts")
-                    dispath(addBannedElement("resetPasswordBanned"))
+                if (error.response.status === 429 &&
+                    errMess === "Too many reset password attempts") {
+                    dispath(addBannedElement({
+                        type: "resetPasswdBanned",
+                        banUntil: error.response.data.status
+                    }))
+                }
             }
             else if (error.response.data?.error) toast.error(error.response.data.error)
             else toast.error(`Error ${updateOption} password`)
-        } finally {
-            form.resetFields()
         }
     }
 
@@ -56,7 +60,7 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                 initialValues={{ remember: true }}
                 onFinish={resetPassWord}
                 autoComplete="off"
-                className="w-[300px]"
+                className="w-[250px] md:w-[300px]"
             >
                 {
                     updateOption !== "reset" && (
@@ -64,7 +68,7 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                             name="currentPassword"
                             rules={[{ required: true, message: "Please enter current password" }]}
                         >
-                            <Input.Password visibilityToggle={false} placeholder="Enter current password" />
+                            <Input.Password visibilityToggle={true} placeholder="Enter current password" />
                         </Form.Item>
                     )
                 }
@@ -74,25 +78,26 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                     name="password"
                     rules={[{ required: true, message: "Please enter new password" }]}
                 >
-                    <Input.Password visibilityToggle={false} placeholder="Enter new password" />
+                    <Input.Password visibilityToggle={true} placeholder="Enter new password" />
                 </Form.Item>
 
                 <Form.Item
                     name="confirm"
                     dependencies={["password"]}
                     validateTrigger="onBlur"
-                    rules={[{ required: true, message: "Please confirm your password" },
-                    ({ getFieldValue }) => ({
-                        validator(_, value) {
-                            if (getFieldValue("password") !== value) {
-                                return Promise.reject(new Error("Password does not match"))
+                    rules={[
+                        { required: true, message: "Please confirm your password" },
+                        ({ getFieldValue }) => ({
+                            validator(_, value) {
+                                if (getFieldValue("password") !== value) {
+                                    return Promise.reject(new Error("Password does not match"))
+                                }
+                                return Promise.resolve()
                             }
-                            return Promise.resolve()
-                        }
-                    })
+                        })
                     ]}
                 >
-                    <Input.Password visibilityToggle={false} placeholder="Confirm new password" />
+                    <Input.Password visibilityToggle={true} placeholder="Confirm new password" />
                 </Form.Item>
 
                 <Form.Item
@@ -102,19 +107,24 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
 
                     <div className="flex flex-col items-center">
                         {
-                            bannedElements.includes("resetPasswordBanned")
+                            bannedElements.some(e => e.type === "resetPasswdBanned")
                             && (<span
-                            className="font-bold italic mb-1 text-red-500">
-                                Too many attempts! Please try again later.
-                                </span>
-                        )}
+                                className="font-semibold italic mb-1 text-red-500 text-center">
+                                Too many attempts! Please try again after
+                                <CountDownTimer
+                                    className={"font-bold"}
+                                    endTime={(new Date(bannedElements.find(e => e.type === "resetPasswdBanned").banUntil)).getTime()}
+                                    clearItem={"resetPasswdBanned"}
+                                />
+                            </span>)
+                        }
                         <Button
                             className={`hover:bg-[#fca9ad] transition-all duration-300 ease-in-out 
-                        ${resetPassWordState === "success" ? "w-50" : "w-30"}`}
+                            ${resetPassWordState === "success" ? "w-50 !bg-[#52c41a]" : "w-30"}`}
                             color="danger"
                             variant="solid"
                             htmlType="submit"
-                            disabled={bannedElements.includes("resetPasswordBanned")}
+                            disabled={bannedElements.some(e => e.type === "resetPasswdBanned")}
                             loading={resetPassWordState === "reseting"}
                         >
                             <AnimatePresence mode="wait">
@@ -132,7 +142,7 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                                 ) : (
                                     <motion.span
                                         key="reset"
-                                        initial={{ opacity: 0 }}
+                                        initial={{ opacity: 0 }}q
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
                                         transition={{ duration: 0.2 }}

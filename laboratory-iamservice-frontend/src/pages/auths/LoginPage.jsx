@@ -1,19 +1,18 @@
 import LoginForm from "../../components/common/LoginForm"
-import {
-    ArrowRightOutlined
-} from '@ant-design/icons';
+import { ArrowRightOutlined } from '@ant-design/icons';
 import { motion, AnimatePresence } from "motion/react"
 import { useState } from "react";
 import ForgetPassForm from "../../components/modules/auth/ForgetPassForm";
 function LoginPage() {
     const welcomeText = "Welcome Back"
-    const sentence1 = "To keep connected with us, please login with your personal info"
+    const sentence = "To keep connected with us, please login with your personal info"
     const [isResetPassWord, setIsResetPassWord] = useState(false)
+    
     return (
         <div className="w-full h-full min-h-screen flex flex-col items-center justify-center bg-[#E1E7EF]">
-            <div className="flex w-full h-170 p-20">
+            <div className="flex w-full h-170 p-10 md:p-20">
                 {/* hero component */}
-                <div className="hidden lg:flex lg:flex-1 bg-white relative">
+                <div className="hidden xl:flex xl:flex-1 bg-white relative">
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -23,15 +22,15 @@ function LoginPage() {
                             <div className={`w-full h-full rounded-full flex justify-center items-center 
                                             hover:cursor-pointer
                                             transition-all duration-300 ease-in-out
-                                            ${isResetPassWord? "bg-white hover:bg-[#e1e7ef]": "bg-[#FE535B] hover:bg-[#fca9ad] shadow-[0_4px_15px_rgba(254,83,91,0.4)]"}`}>
+                                            ${isResetPassWord ? "bg-white hover:bg-[#e1e7ef]" : "bg-[#FE535B] hover:bg-[#fca9ad] shadow-[0_4px_15px_rgba(254,83,91,0.4)]"}`}>
                                 <motion.div
                                     initial={{ opacity: 0, rotate: 540 }}
                                     animate={{ rotate: isResetPassWord ? 540 : 0, opacity: 1 }}
                                     transition={{ duration: 0.3, ease: "easeInOut" }}
-                                    whileHover={{scale: 1.1}}
+                                    whileHover={{ scale: 1.1 }}
                                     onClick={() => setIsResetPassWord(false)}
                                 >
-                                    <ArrowRightOutlined style={{ fontSize: "30px", marginLeft: "3px", color: isResetPassWord ? "black" :""}} />
+                                    <ArrowRightOutlined style={{ fontSize: "30px", marginLeft: "3px", color: isResetPassWord ? "black" : "" }} />
                                 </motion.div>
                             </div>
                         </div>
@@ -61,7 +60,7 @@ function LoginPage() {
                             }}
                         />
                         <p className="italic text-lg leading-relaxed ml-10">
-                            {sentence1.split(" ").map((word, index) => {
+                            {sentence.split(" ").map((word, index) => {
                                 return (
                                     <motion.span
                                         initial={{ opacity: 0, y: -20 }}
@@ -79,7 +78,7 @@ function LoginPage() {
                 </div>
 
                 {/* login form */}
-                <div className="flex-1 bg-white flex justify-center">
+                <div className="flex-1 bg-white flex justify-center rounded-[20px] md:rounded-[0px]">
 
                     <AnimatePresence mode="wait">
                         {isResetPassWord ? (

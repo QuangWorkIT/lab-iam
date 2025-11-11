@@ -1,14 +1,15 @@
 import { Button, Form, Input, ConfigProvider, Spin } from "antd";
 import { Segmented } from "antd";
 import { useState } from "react";
-import { MailOutlined, PhoneOutlined, CheckOutlined, CheckCircleOutlined } from "@ant-design/icons";
+import { CheckOutlined } from "@ant-design/icons";
 import { motion, AnimatePresence } from "motion/react";
 import { theme } from "../../common/LoginForm.jsx";
 import publicApi from "../../../configs/publicAxios.js";
 import { toast } from "react-toastify";
 import VerifyOpt from "./VerifyOtpForm.jsx";
 import ResetPassWord from "./ResetPassWordForm.jsx";
-
+import { LuMail, LuPhone } from "react-icons/lu";
+import { ArrowLeftOutlined } from '@ant-design/icons';
 
 function ForgetPassForm({ setIsResetPassWord }) {
     const [form] = Form.useForm();
@@ -34,17 +35,29 @@ function ForgetPassForm({ setIsResetPassWord }) {
             }, 700);
             form.resetFields([option])
         } catch (error) {
+
             console.error("Error verify email or phone", error)
             setVerifyingEmailOrPhone(null)
-            form.resetFields([option])
+
             const errMess = error.response?.data?.message
-            if (errMess && errMess === "User not found") toast.error(option === "email" ? "Email not found!" : "Phone not found!")
-            else toast.error("Error verify email or phone")
+            if (errMess && errMess === "User not found")
+                toast.error(option === "email" ? "Email not found!" : "Phone not found!")
+            else
+                toast.error("Error verify email or phone")
         }
     };
 
     return (
-        <div className="h-full overflow-hidden">
+        <div className="relative h-full overflow-hidden">
+            <Button
+                shape="circle"
+                size="large"
+                onClick={() => {
+                    setIsResetPassWord(false)
+                }}
+             className="!absolute top-10 left-10 lg:!hidden">
+                <ArrowLeftOutlined />
+            </Button>
             <AnimatePresence>
                 {isResetPassWordOpen ? (
                     <motion.div
@@ -67,7 +80,7 @@ function ForgetPassForm({ setIsResetPassWord }) {
                             transition={{ duration: 0.5, ease: "easeInOut" }}
                             className="h-full"
                         >
-                            <VerifyOpt data={currentUser.email} setIsResetPassWordOpen={setIsResetPassWordOpen} />
+                            <VerifyOpt data={currentUser?.email || ""} setIsResetPassWordOpen={setIsResetPassWordOpen} />
                         </motion.div>
                     )
                         : (
@@ -80,11 +93,11 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                     transition={{ duration: 0.5, ease: "easeInOut" }}
                                     className="flex flex-col gap-5 items-center justify-center h-full min-w-[300px]">
                                     <div className="text-center">
-                                        <p className="text-[30px]" style={{ marginBottom: "15px" }}>Forget your password?</p>
-                                        <p>Please enter your email or phone</p>
+                                        <p className="text-2xl md:text-[27px] font-semibold ml-2" style={{ marginBottom: "15px" }}>Forget your password?</p>
+                                        <p className="text-sm md:text-[16px]" style={{margin: 0}}>Please enter your email or phone</p>
                                     </div >
 
-                                    <div className="mb-3">
+                                    <div>
                                         <Segmented
                                             value={option}
                                             onChange={(value) => setOption(value)}
@@ -128,7 +141,6 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                                 >
                                                     <ConfigProvider theme={theme}>
                                                         <Form.Item
-                                                            className="w-[300px]"
                                                             name="email"
                                                             rules={[
                                                                 { required: true, message: "Please input an email!" },
@@ -136,10 +148,10 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                                             ]}
                                                         >
                                                             <Input
-                                                                prefix={<MailOutlined />}
+                                                                prefix={<LuMail />}
                                                                 type="email"
                                                                 placeholder="Enter your email"
-                                                                style={{ width: "320px" }}
+                                                                className="!w-[250px] md:!w-[320px]"
                                                             />
                                                         </Form.Item>
                                                     </ConfigProvider>
@@ -154,7 +166,6 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                                 >
                                                     <ConfigProvider theme={theme}>
                                                         <Form.Item
-                                                            className="w-[300px]"
                                                             name="phone"
                                                             rules={[
                                                                 { required: true, message: "Please input phone number!" },
@@ -162,9 +173,9 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                                             ]}
                                                         >
                                                             <Input
-                                                                prefix={<PhoneOutlined />}
+                                                                prefix={<LuPhone />}
                                                                 placeholder="Enter phone number"
-                                                                style={{ width: "320px" }}
+                                                                style={{ width: "320px", marginLeft: "20px" }}
                                                             />
                                                         </Form.Item>
                                                     </ConfigProvider>
@@ -175,10 +186,11 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                         <Form.Item
                                             label={null}
                                             className="flex justify-center"
-                                            style={{ marginTop: "40px" }}
+                                            style={{ marginTop: "50px" }}
                                         >
                                             <Button
-                                                className={`hover:bg-[#fca9ad] transition-all duration-300 ease-in-out ${verifyingEmailOrPhone === "success" ? "w-40" : "w-30"}`}
+                                                className={`hover:bg-[#fca9ad] transition-all duration-300 ease-in-out 
+                                                    ${verifyingEmailOrPhone === "success" ? "w-40 !bg-[#52c41a]" : "w-30"}`}
                                                 color="danger"
                                                 variant="solid"
                                                 htmlType="submit"

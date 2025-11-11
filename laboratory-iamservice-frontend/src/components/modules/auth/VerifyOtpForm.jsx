@@ -3,9 +3,10 @@ import publicApi from "../../../configs/publicAxios"
 import { Button, Form, Input, Spin } from "antd";
 import { motion, AnimatePresence } from "motion/react";
 import { CheckCircleOutlined } from "@ant-design/icons";
+import { toast } from "react-toastify";
 
 const VerifyOpt = ({ data, setIsResetPassWordOpen }) => {
-    const [otpVerifyState, setOtpVerifyState] = useState("")
+    const [otpVerifyState, setOtpVerifyState] = useState(null)
     const handleVerifyOtp = async (value) => {
         try {
             setOtpVerifyState("verifying")
@@ -67,7 +68,7 @@ const VerifyOpt = ({ data, setIsResetPassWordOpen }) => {
                                 transition={{ duration: 0.3, ease: "easeOut" }}
                                 className="flex flex-col items-center"
                             >
-                                <CheckCircleOutlined style={{ fontSize: "48px", color: "#00bf63" }} />
+                                <CheckCircleOutlined style={{ fontSize: "35px", color: "#00bf63" }} />
                                 <p className="mt-2 text-green-600 font-semibold">Verified!</p>
                             </motion.div>
                         )}
@@ -75,9 +76,9 @@ const VerifyOpt = ({ data, setIsResetPassWordOpen }) => {
                         {!otpVerifyState && (
                             <motion.div
                                 key="button"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1}}
+                                exit={{ opacity: 0 }}
                                 transition={{ duration: 0.3 }}
                             >
                                 <Button
