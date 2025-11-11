@@ -8,7 +8,7 @@ spring:
   application:
     name: iam-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
+    url: jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -46,11 +46,10 @@ eureka:
     register-with-eureka: true      # Cho phép đăng ký với Eureka
     fetch-registry: true            # Cho phép lấy danh sách các service khác
     service-url:
-#      defaultZone: http://23.23.152.34:8761/eureka/ -> cho deploy register server
       defaultZone: https://discovery-server-zsph.onrender.com/eureka
   instance:
     prefer-ip-address: true         # Dùng IP thay vì hostname (tránh lỗi trong Docker)
-    instance-id : iam-service:8089
+    instance-id: iam-service-dep:8089
 management:
   endpoints:
     web:
