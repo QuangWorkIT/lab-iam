@@ -26,7 +26,6 @@ public class SecurityConfig {
             JwtAuthenticationFilter jwtFilter) throws Exception {
         // apply stateless configuration
         http
-                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);

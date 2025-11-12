@@ -36,18 +36,18 @@ const NotificationDropdown = ({ items = [] }) => {
                         transition={{ duration: 0.2, ease: "easeInOut" }}
                         className="absolute top-8 right-0 bg-white rounded-[10px] shadow-lg z-50"
                     >
-                        <ul className="flex flex-col min-w-[150px] w-max" style={{ margin: 0 }}>
-                            {items.length > 0 ? (
+                        <ul className="flex flex-col min-w-[200px] w-max" style={{ margin: 0 }}>
+                            {items?.length > 0 ? (
                                 items.map((item, index) => (
                                     <li
                                         key={index}
-                                        className={`w-full flex gap-2 items-center justify-start px-4 py-3 text-sm text-gray-700 group bg-white hover:bg-[#f5f5f5] cursor-pointer
-                                    ${index === 0 ? "rounded-t-[8px]" : ""}
-                                    ${index === items.length - 1 ? "rounded-b-[8px]" : ""}`}
+                                        className={`w-full flex gap-2  justify-start px-4 py-5 text-sm text-gray-700 group bg-white hover:bg-[#f5f5f5] cursor-pointer
+                                    ${index === 0 && "rounded-t-[8px] border-t-4 border-[#888]"}
+                                    ${index === items.length - 1 && "rounded-b-[8px] border-b-4 border-[#888]"}`}
                                     >
                                         {/* Icon */}
                                         {item.icon && (
-                                            <span className="inline-block transform transition-transform duration-300 group-hover:scale-105">
+                                            <span className="inline-block transform transition-transform duration-300 mt-1">
                                                 {item.icon}
                                             </span>
                                         )}
@@ -60,9 +60,9 @@ const NotificationDropdown = ({ items = [] }) => {
                             ) : (
                                 <li>
                                     <div className="relative group flex justify-center rounded-[8px] bg-white  cursor-pointer p-3">
-                                        <svg 
-                                        className="group-hover:scale-110 group-hover:-translate-y-4 transition-all duration-300 ease-in-out"
-                                        width="250" height="200" viewBox="0 0 250 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <svg
+                                            className="group-hover:scale-110 group-hover:-translate-y-4 transition-all duration-300 ease-in-out"
+                                            width="250" height="200" viewBox="0 0 250 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <rect width="250" height="200" fill="white" />
                                             <path fill-rule="evenodd" clip-rule="evenodd" d="M63 134H154C154.515 134 155.017 133.944 155.5 133.839C155.983 133.944 156.485 134 157 134H209C212.866 134 216 130.866 216 127C216 123.134 212.866 120 209 120H203C199.134 120 196 116.866 196 113C196 109.134 199.134 106 203 106H222C225.866 106 229 102.866 229 99C229 95.134 225.866 92 222 92H200C203.866 92 207 88.866 207 85C207 81.134 203.866 78 200 78H136C139.866 78 143 74.866 143 71C143 67.134 139.866 64 136 64H79C75.134 64 72 67.134 72 71C72 74.866 75.134 78 79 78H39C35.134 78 32 81.134 32 85C32 88.866 35.134 92 39 92H64C67.866 92 71 95.134 71 99C71 102.866 67.866 106 64 106H24C20.134 106 17 109.134 17 113C17 116.866 20.134 120 24 120H63C59.134 120 56 123.134 56 127C56 130.866 59.134 134 63 134ZM226 134C229.866 134 233 130.866 233 127C233 123.134 229.866 120 226 120C222.134 120 219 123.134 219 127C219 130.866 222.134 134 226 134Z" fill="#F3F7FF" />
                                             <path fill-rule="evenodd" clip-rule="evenodd" d="M113.119 112.307C113.04 112.86 113 113.425 113 114C113 120.627 118.373 126 125 126C131.627 126 137 120.627 137 114C137 113.425 136.96 112.86 136.881 112.307H166V139C166 140.657 164.657 142 163 142H87C85.3431 142 84 140.657 84 139V112.307H113.119Z" fill="white" />
