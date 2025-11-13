@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -17,7 +18,7 @@ public class User {
 
     @Id
     @GeneratedValue
-    @Column(name = "userid", updatable = false, nullable = false)
+    @Column(name = "userId", updatable = false, nullable = false)
     private UUID userId;
 
     @NotNull(message = "Email cannot be null")
@@ -63,16 +64,27 @@ public class User {
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(name = "rolecode", length = 255)
+    @Column(name = "roleCode", length = 255)
     private String roleCode;
 
     private Boolean isActive;
 
     private LocalDate createdAt;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDate.now();
+        this.version = 0L;
     }
+
+    @Column
+    private Boolean isDeleted = false;
+
+    @Column
+    private LocalDateTime deletedAt;
 
 }

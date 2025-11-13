@@ -16,6 +16,26 @@ services:
     networks:
       - iam-net
 
+  service-registry:
+    build:
+      context: ./discovery_server
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    networks:
+      - iam-net
+
+  api-gateway:
+    build:
+      context: ./api_gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - service-registry
+    networks:
+      - iam-net
+
   iam-service:
     build:
       context: ./iam_service
@@ -36,8 +56,49 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD}
     depends_on:
       - postgres
+      - service-registry
     networks:
       - iam-net
+
+  notification-service:
+    build:
+      context: ./notification_service
+      dockerfile: Dockerfile
+    ports:
+      - "9090:9090"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN}
+      ALLOWED_PORT: ${ALLOWED_PORT}
+      SERVICE_IP: ${SERVICE_IP}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+    depends_on:
+      - postgres
+      - service-registry
+    networks:
+      - iam-net
+
+  redis:
+    image: redis:7
+    container_name: redis
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    ports:
+      - "6379:6379"
+    networks:
+      - iam-net
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis/data:/data  # persist data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "PING" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 networks:
   iam-net:

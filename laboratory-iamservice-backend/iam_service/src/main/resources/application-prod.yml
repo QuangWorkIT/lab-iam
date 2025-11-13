@@ -1,12 +1,14 @@
 server:
   port: 8089
   address: ${ALLOWED_PORT}   # <== Listen on all interfaces (NOT just localhost)
+  error:
+    include-message: always
 
 spring:
   application:
     name: iam-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
+    url: jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -18,23 +20,36 @@ spring:
       hibernate:
         format_sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  redis:
+    host: redis
+    port: 6379
   mail:
     username: ${MAIL_USERNAME:no-reply@dummy.local}
     password: ${MAIL_PASSWORD:dummy-password}
+  kafka:
+    bootstrap-servers: 34.199.182.98:9092
+    properties:
+      security.protocol: PLAINTEXT
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: iam-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
 google:
   web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
 eureka:
-  instance:
-    prefer-ip-address: true
-    ip-address: ${SERVICE_IP}    # <== this must be your laptop's reachable IP
-    instance-id: ${spring.application.name}:${server.port}
-    leaseRenewalIntervalInSeconds: 10
-    leaseExpirationDurationInSeconds: 30
   client:
+    register-with-eureka: true      # Cho phép đăng ký với Eureka
+    fetch-registry: true            # Cho phép lấy danh sách các service khác
     service-url:
-      defaultZone: https://discovery-server-zsph.onrender.com/eureka/
-
+      defaultZone: https://discovery-server-zsph.onrender.com/eureka
+  instance:
+    prefer-ip-address: true         # Dùng IP thay vì hostname (tránh lỗi trong Docker)
+    instance-id: iam-service-dep:8089
 management:
   endpoints:
     web:
@@ -56,3 +71,4 @@ logging:
 app:
   email:
     from: "no-reply@lab-iam.local"
+

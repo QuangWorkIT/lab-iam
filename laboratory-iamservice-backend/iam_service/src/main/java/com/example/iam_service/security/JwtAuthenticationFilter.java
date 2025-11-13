@@ -38,18 +38,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // filter ignores public request
             String path = request.getServletPath();
-            String header = request.getHeader("Authorization");
+            String jwt = request.getHeader("X-Auth-Token");
 
-            if (path.startsWith("/api/auth") || path.equals("/") ||
-                    header == null || !header.startsWith("Bearer ")) {
+            if (path.startsWith("/api/auth") || jwt == null ) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
 
-            // validate token
-            String jwt = header.substring(7);
-            String userId = jwtUtil.validate(jwt);
+            String userId = request.getHeader("X-User-Id");
             User user = userRepository.findById(UUID.fromString(userId))
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
 

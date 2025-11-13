@@ -1,15 +1,52 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaHeartbeat, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { FaHeartbeat, FaCog, FaSignOutAlt, FaCheckCircle, FaExclamationCircle, FaRegDotCircle } from "react-icons/fa";
 import { logout } from "../../redux/features/userSlice";
+import UserDetailModal from "../common/UserDetailModal";
+import { DoubleRightOutlined } from "@ant-design/icons"
+import { motion, AnimatePresence } from "motion/react"
+import NotificationComponent from "../common/NotificationComponent"
+import { Tooltip } from "antd";
+import { useNavigate } from "react-router";
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
+  const nav = useNavigate()
   const { userInfo } = useSelector((state) => state.user);
-
+  const notifyItems = [
+    {
+      text: 'Success 1',
+      icon: <FaCheckCircle color="#52c41a"  />
+    },
+    {
+      text: 'Warning 2',
+      icon: <FaExclamationCircle color="#ffcc00" />
+    },
+    {
+      text: 'Processing 3',
+      icon: <FaRegDotCircle  color="#40a6ce" />
+    },
+  ]
   // Confirm modal state
   const [showConfirm, setShowConfirm] = useState(false);
   const confirmBtnRef = useRef(null);
+
+  // User detail modal state
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // disable scroll when modal open
+  useEffect(() => {
+    if (isDetailModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    // Cleanup to restore scroll when component unmounts
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isDetailModalOpen]);
 
   const handleLogout = () => {
     // Mở popup confirm thay vì window.confirm
@@ -19,9 +56,42 @@ export default function Header({ pageTitle }) {
   const confirmLogout = () => {
     dispatch(logout());
     setShowConfirm(false);
+    nav("/login", { replace: true });
   };
 
   const closeConfirm = () => setShowConfirm(false);
+
+  // Handler for viewing user detail from settings icon
+  const handleViewUserDetail = () => {
+    setIsDetailModalOpen(true);
+  };
+
+  // Handler for refresh user detail
+  const handleRefreshUser = () => {
+    // Can add refresh logic here if needed
+    // For now, just refresh the page or fetch user info again
+  };
+
+  // Convert userInfo to the format expected by UserDetailModal
+  const getUserDetailData = () => {
+    if (!userInfo) return null;
+    console.log("User Info in Header:", userInfo);
+
+    return {
+      id: userInfo.id,
+      name: userInfo.userName || userInfo.name || "N/A",
+      role: userInfo.role || "N/A",
+      email: userInfo.email || "N/A",
+      identifyNumber: userInfo.identifyNumber || userInfo.identityNumber || "N/A",
+      phoneNumber: userInfo.phoneNumber || userInfo.phone || "N/A",
+      gender: userInfo.gender || "N/A",
+      dateOfBirth: userInfo.dateOfBirth || userInfo.dob || null,
+      age: userInfo.age !== undefined ? userInfo.age : null,
+      address: userInfo.address || "N/A",
+      createdAt: userInfo.createdAt || userInfo.created_at || null,
+      isActive: userInfo.isActive || true,
+    };
+  };
 
   // Focus nút "Đăng xuất" và hỗ trợ phím Esc để đóng
   useEffect(() => {
@@ -126,8 +196,10 @@ export default function Header({ pageTitle }) {
           </div>
           {pageTitle && (
             <>
-              <span style={{ margin: "0 10px", color: "#ccc" }}>›</span>
-              <span style={{ color: "#fe535b" }}>{pageTitle}</span>
+              <span style={{ margin: "0 10px", color: "lightgray" }}>
+                <DoubleRightOutlined />
+              </span>
+              <span style={{ color: "#fe535b", fontWeight: "bold" }}>{pageTitle}</span>
             </>
           )}
         </div>
@@ -140,21 +212,27 @@ export default function Header({ pageTitle }) {
               alignItems: "center",
             }}
           >
-            <span style={{ marginRight: "5px", color: "#888" }}>Welcome, </span>
-            <span style={{ fontWeight: "bold", color: "#fe535b" }}>
+            <span style={{ marginRight: "5px", color: "#888", cursor: "default" }}>Welcome, </span>
+            <span style={{ fontWeight: "bold", color: "#fe535b", cursor: "default" }}>
               [{userInfo?.userName || "User"}]
             </span>
           </div>
-          <div style={{ display: "flex", gap: "15px" }}>
-            <FaCog
-              style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
-              title="Settings"
-            />
-            <FaSignOutAlt
-              style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
-              title="Logout"
-              onClick={handleLogout}
-            />
+          <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
+            <NotificationComponent  items={notifyItems}/>
+            <Tooltip title={"User details"}>
+              <FaCog
+                style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
+                onClick={handleViewUserDetail}
+                className="hover:scale-120 transition-all duration-300 ease-in-out"
+              />
+            </Tooltip>
+            <Tooltip title={"Logout"} placement="bottomLeft">
+              <FaSignOutAlt
+                style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
+                onClick={handleLogout}
+                className="hover:scale-120 transition-all duration-300 ease-in-out"
+              />
+            </Tooltip>
           </div>
         </div>
       </header>
@@ -203,6 +281,36 @@ export default function Header({ pageTitle }) {
           </div>
         </div>
       )}
+
+      {/* User Detail Modal */}
+      <AnimatePresence>
+        {isDetailModalOpen && (
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000]"
+          >
+            <motion.div
+              key="modal"
+              initial={{ scale: 0.9, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 40 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="relative"
+            >
+              <UserDetailModal
+                user={getUserDetailData()}
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                onRefresh={() => { }}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

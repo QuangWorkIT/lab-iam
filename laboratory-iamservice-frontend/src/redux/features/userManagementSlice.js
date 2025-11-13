@@ -4,7 +4,9 @@ import api from "../../configs/axios.js";
 const initialState = {
     users: [],
     currentUser: null,
+    userDetail: null,
     loading: false,
+    userDetailLoading: false,
     error: null,
     totalPages: 0,
     totalElements: 0,
@@ -19,12 +21,22 @@ const initialState = {
  */
 function mapUserDTOToUI(dto) {
     return {
-        id: dto.userId,                    // Backend: userId -> UI: id
-        name: dto.fullName || "",          // Backend: fullName -> UI: name
+        id: dto.userId,
+        name: dto.fullName || "",
+        fullName: dto.fullName || "",
         email: dto.email || "",
-        role: dto.roleCode || dto.rolecode || dto.role || "",  // Try multiple field names
+        roleCode: dto.roleCode || "",
         createdAt: dto.createdAt || null,
         isActive: dto.isActive ?? true,
+        identityNumber: dto.identityNumber || "",
+        phoneNumber: dto.phoneNumber || dto.phone || "",
+        gender: dto.gender || "",
+        birthdate: dto.birthdate || dto.dateOfBirth || dto.birthDate || dto.dob || null,
+        dateOfBirth: dto.birthdate || dto.dateOfBirth || dto.birthDate || dto.dob || null,
+        age: dto.age || null,
+        address: dto.address || "",
+        isDeleted: dto.isDeleted || false,
+        deletedAt: dto.deletedAt || null
     };
 }
 
@@ -64,17 +76,7 @@ export const fetchUsers = createAsyncThunk(
                 params.sortDir = searchParams.sortDir;
             }
 
-            console.log('🔍 Fetching users with params:', params);
             const response = await api.get("/api/users", { params });
-            console.log('✅ API Response:', response.data);
-
-            // Log all unique roles to help with debugging
-            if (Array.isArray(response.data)) {
-                const roles = [...new Set(response.data.map(u =>
-                    `${u.roleCode || u.role || 'NO_ROLE'}`.toUpperCase()
-                ))];
-                console.log('📋 Available roles in response:', roles);
-            }
 
             // Handle both paginated and non-paginated responses
             let userDTOs, totalPages, totalElements;
@@ -90,9 +92,6 @@ export const fetchUsers = createAsyncThunk(
 
                 // Client-side filtering as fallback
                 if (params.keyword || params.roleFilter || params.fromDate || params.toDate) {
-                    console.log('⚠️ Backend returned full list, applying client-side filtering...');
-                    console.log('Filter params:', { keyword: params.keyword, role: params.roleFilter, fromDate: params.fromDate, toDate: params.toDate });
-
                     allUsers = allUsers.filter(dto => {
                         // Keyword matching
                         const matchKeyword = !params.keyword ||
@@ -120,7 +119,6 @@ export const fetchUsers = createAsyncThunk(
 
                         return matchKeyword && matchRole && matchDate;
                     });
-                    console.log(`📊 Filtered ${allUsers.length} users from ${response.data.length} total`);
                 }
 
                 // Client-side pagination
@@ -133,8 +131,6 @@ export const fetchUsers = createAsyncThunk(
                 const startIndex = currentPage * pageSize;
                 const endIndex = startIndex + pageSize;
                 userDTOs = allUsers.slice(startIndex, endIndex);
-
-                console.log(`📄 Page ${currentPage + 1}/${totalPages}: Showing ${userDTOs.length} users (${startIndex + 1}-${Math.min(endIndex, totalElements)} of ${totalElements})`);
             } else {
                 userDTOs = [];
                 totalPages = 0;
@@ -142,7 +138,6 @@ export const fetchUsers = createAsyncThunk(
             }
 
             const users = userDTOs.map(mapUserDTOToUI);
-            console.log('✨ Returning users:', users.length, 'users');
 
             return {
                 content: users,
@@ -150,9 +145,8 @@ export const fetchUsers = createAsyncThunk(
                 totalPages,
             };
         } catch (error) {
-            console.error('❌ Error fetching users:', error);
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to fetch users"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -167,14 +161,11 @@ export const createUser = createAsyncThunk(
     "userManagement/createUser",
     async (userData, { rejectWithValue }) => {
         try {
-            console.log('🔵 [CREATE USER] Request payload:', userData);
             const response = await api.post("/api/users", userData);
-            console.log('🟢 [CREATE USER] Response from backend:', response.data);
             return mapUserDTOToUI(response.data);
         } catch (error) {
-            console.error('🔴 [CREATE USER] Error:', error.response?.data || error);
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to create user"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -194,7 +185,7 @@ export const activateUser = createAsyncThunk(
             return response.data;
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to activate user"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -214,7 +205,26 @@ export const getUserByEmail = createAsyncThunk(
             return mapUserDTOToUI(response.data);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "User not found"
+                error.response?.data?.message || error.response?.data?.error || error.message
+            );
+        }
+    }
+);
+
+/**
+ * API: GET /api/users/{id}
+ * Lấy user theo ID (cho user detail modal)
+ */
+export const fetchUserById = createAsyncThunk(
+    "userManagement/fetchUserById",
+    async (userId, { rejectWithValue }) => {
+        try {
+            const response = await api.get(`/api/users/${userId}/profile`);
+            const detailUserDTO = response.data?.data || response.data;
+            return mapUserDTOToUI(detailUserDTO);
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -233,7 +243,7 @@ export const getInactiveUsers = createAsyncThunk(
             return userDTOs.map(mapUserDTOToUI);
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to fetch inactive users"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
         }
     }
@@ -252,8 +262,121 @@ export const fetchRolesForUser = createAsyncThunk(
             return Array.isArray(data) ? data : data.roles || [];
         } catch (error) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || "Failed to fetch roles"
+                error.response?.data?.message || error.response?.data?.error || error.message
             );
+        }
+    }
+);
+
+/**
+ * API: PUT /api/users/{id}/profile
+ * Update user's own profile
+ * Body: { fullName, phoneNumber, gender, dateOfBirth, address }
+ */
+export const updateOwnProfile = createAsyncThunk(
+    "userManagement/updateOwnProfile",
+    async ({ userId, profileData }, { rejectWithValue }) => {
+        try {
+            const response = await api.put(`/api/users/${userId}/profile`, {
+                fullName: profileData.fullName,
+                phoneNumber: profileData.phoneNumber,
+                gender: profileData.gender,
+                dateOfBirth: profileData.birthdate,
+                address: profileData.address
+            });
+            return mapUserDTOToUI(response.data);
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.response?.data?.error || error.message
+            );
+        }
+    }
+);
+
+/**
+ * API: PUT /api/users/{id}
+ * Update user by admin (full update with all fields)
+ * Body: { fullName, phoneNumber, identityNumber, gender, birthdate, address, isActive, roleCode }
+ */
+export const updateUserByAdmin = createAsyncThunk(
+    "userManagement/updateUserByAdmin",
+    async ({ userId, userData }, { rejectWithValue }) => {
+        try {
+            const response = await api.put(`/api/users/${userId}`, {
+                fullName: userData.fullName,
+                phoneNumber: userData.phoneNumber,
+                identityNumber: userData.identityNumber,
+                gender: userData.gender,
+                birthdate: userData.birthdate,
+                address: userData.address,
+                isActive: userData.isActive,
+                roleCode: userData.roleCode
+            });
+            return mapUserDTOToUI(response.data);
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.response?.data?.error || error.message
+            );
+        }
+    }
+);
+
+/**
+ * API: DELETE /api/users/{id}/request-deletion
+ * Patient request self deletion (soft delete with 7 days grace period)
+ * Requires: ROLE_PATIENT and user must be deleting their own account
+ */
+export const requestSelfDeletion = createAsyncThunk(
+    "userManagement/requestSelfDeletion",
+    async (userId, { rejectWithValue }) => {
+        try {
+            const response = await api.delete(`/api/users/${userId}/request-deletion`);
+
+            return {
+                userId,
+                message: response.data || "Your deletion request has been submitted. Account will be deleted after 7 days."
+            };
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.response?.data?.error || error.message
+            );
+        }
+    }
+);
+
+/**
+ * API: DELETE /api/users/{id}
+ * Delete user by admin
+ * Requires: ROLE_ADMIN or DELETE_USER or ROLE_LAB_MANAGER
+ */
+export const deleteUserByAdmin = createAsyncThunk(
+    "userManagement/deleteUserByAdmin",
+    async (userId, { rejectWithValue }) => {
+        try {
+            console.log("Calling DELETE API for user:", userId);
+
+            const response = await api.delete(`/api/users/${userId}`);
+            console.log("Delete API response:", response);
+
+            return {
+                userId,
+                message: response.data || "User deleted successfully."
+            };
+        } catch (error) {
+            console.error("Delete API error details:", {
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                message: error.message
+            });
+
+            // Return backend error message directly
+            const errorMessage = error.response?.data?.message ||
+                error.response?.data?.error ||
+                error.message ||
+                "Failed to delete user";
+
+            return rejectWithValue(errorMessage);
         }
     }
 );
@@ -325,6 +448,20 @@ const userManagementSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload || action.error.message;
             })
+            // Fetch user by ID (for detail modal)
+            .addCase(fetchUserById.pending, (state) => {
+                state.userDetailLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchUserById.fulfilled, (state, action) => {
+                state.userDetailLoading = false;
+                state.userDetail = action.payload;
+            })
+            .addCase(fetchUserById.rejected, (state, action) => {
+                state.userDetailLoading = false;
+                state.error = action.payload || action.error.message;
+                state.userDetail = null;
+            })
             // Get inactive users
             .addCase(getInactiveUsers.pending, (state) => {
                 state.loading = true;
@@ -350,6 +487,82 @@ const userManagementSlice = createSlice({
             })
             .addCase(fetchRolesForUser.rejected, (state, action) => {
                 state.rolesLoading = false;
+                state.error = action.payload || action.error.message;
+            })
+            // Update own profile
+            .addCase(updateOwnProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateOwnProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                // Update userDetail if it's the same user
+                if (state.userDetail && state.userDetail.id === action.payload.id) {
+                    state.userDetail = action.payload;
+                }
+                // Update in users array if exists
+                const index = state.users.findIndex(u => u.id === action.payload.id);
+                if (index !== -1) {
+                    state.users[index] = action.payload;
+                }
+            })
+            .addCase(updateOwnProfile.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || action.error.message;
+            })
+            // Update user by admin
+            .addCase(updateUserByAdmin.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateUserByAdmin.fulfilled, (state, action) => {
+                state.loading = false;
+                // Update userDetail if it's the same user
+                if (state.userDetail && state.userDetail.id === action.payload.id) {
+                    state.userDetail = action.payload;
+                }
+                // Update in users array
+                const index = state.users.findIndex(u => u.id === action.payload.id);
+                if (index !== -1) {
+                    state.users[index] = action.payload;
+                }
+            })
+            .addCase(updateUserByAdmin.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || action.error.message;
+            })
+            // Request self deletion (PATIENT)
+            .addCase(requestSelfDeletion.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(requestSelfDeletion.fulfilled, (state) => {
+                state.loading = false;
+                // Deletion request submitted successfully
+                // Backend will handle the deletion after 7 days
+            })
+            .addCase(requestSelfDeletion.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || action.error.message;
+            })
+            // Delete user by admin
+            .addCase(deleteUserByAdmin.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(deleteUserByAdmin.fulfilled, (state, action) => {
+                state.loading = false;
+                // Remove user from users array
+                state.users = state.users.filter(u => u.id !== action.payload.userId);
+                // Update total elements
+                state.totalElements = Math.max(0, state.totalElements - 1);
+                // Clear userDetail if it's the deleted user
+                if (state.userDetail && state.userDetail.id === action.payload.userId) {
+                    state.userDetail = null;
+                }
+            })
+            .addCase(deleteUserByAdmin.rejected, (state, action) => {
+                state.loading = false;
                 state.error = action.payload || action.error.message;
             });
     },

@@ -4,6 +4,7 @@ build/
 *.jar
 *.war
 *.class
+redis/data/
 
 # IDE-specific files
 .idea/

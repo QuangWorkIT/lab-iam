@@ -8,10 +8,22 @@ import LoginPage from "../pages/auths/LoginPage.jsx";
 import ProtectedRoute from "./ProtectedRoute";
 import HomePage from "../pages/HomePage";
 
+const MENU_PRIVILEGES = {
+  HOME: "READ_ONLY",
+  ROLE_MANAGEMENT: "VIEW_ROLE",
+  USER_MANAGEMENT: "VIEW_USER",
+  LAB_TESTS: "READ_ONLY",
+  EQUIPMENT_MANAGEMENT: "VIEW_INSTRUMENT",
+  BLOOD_TESTING_MANAGEMENT: "EXECUTE_BLOOD_TESTING",
+  ANALYTICS: "VIEW_EVENT_LOGS",
+};
+
 const routes = [
   {
-    path: "/",
-    element: <Navigate to="/login" replace />, // default redirect to login
+    path: "/", // default redirect to login
+    element: (
+      <ProtectedRoute element={HomePage} privilege={MENU_PRIVILEGES.HOME}/>
+    ) 
   },
   {
     path: "/login",
@@ -19,15 +31,14 @@ const routes = [
   },
   {
     path: "/home",
-    element: <ProtectedRoute element={HomePage} />,
+    element: <ProtectedRoute element={HomePage} privilege={MENU_PRIVILEGES.HOME} />,
   },
   {
     path: "/roles",
     element: (
       <ProtectedRoute
         element={RoleList}
-        allowedRoles={["ROLE_ADMIN", "ROLE_LAB_MANAGER"]}
-      />
+         privilege={MENU_PRIVILEGES.ROLE_MANAGEMENT}/>
     ),
   },
   {
@@ -35,7 +46,7 @@ const routes = [
     element: (
       <ProtectedRoute
         element={UserList}
-        allowedRoles={["ROLE_ADMIN", "ROLE_LAB_MANAGER"]}
+       privilege = {MENU_PRIVILEGES.USER_MANAGEMENT}
       />
     ),
   },
@@ -51,7 +62,7 @@ const routes = [
   {
     path: "/test",
     element: (
-      <ProtectedRoute element={TestPages} />
+      <TestPages />
     ),
   },
 

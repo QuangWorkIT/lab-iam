@@ -17,6 +17,8 @@ logs/
 
 # ====== Node.js / Frontend ======
 # Dependency directories
+# Also ignore any accidental top-level node_modules at repo root
+node_modules/
 laboratory-iamservice-frontend/node_modules/
 
 # Build outputs

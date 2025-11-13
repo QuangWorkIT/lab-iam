@@ -1,13 +1,17 @@
 package com.example.iam_service.controller;
 
-import com.example.iam_service.dto.request.GoogleTokenRequest;
-import com.example.iam_service.dto.request.LoginRequest;
+import com.example.iam_service.dto.user.UserDTO;
+import com.example.iam_service.dto.request.*;
 import com.example.iam_service.dto.response.ApiResponse;
 import com.example.iam_service.dto.response.auth.TokenResponse;
 import com.example.iam_service.entity.Token;
 import com.example.iam_service.entity.User;
+import com.example.iam_service.mapper.UserMapper;
+import com.example.iam_service.service.EmailService;
+import com.example.iam_service.service.authen.ResetPasswordRateLimiterService;
 import com.example.iam_service.serviceImpl.AuthenticationServiceImpl;
 import com.example.iam_service.serviceImpl.LoginLimiterServiceImpl;
+import com.example.iam_service.serviceImpl.ResetPasswordRateLimiterImpl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -27,6 +31,9 @@ public class AuthController {
 
     private final AuthenticationServiceImpl authService;
     private final LoginLimiterServiceImpl loginLimiterService;
+    private final ResetPasswordRateLimiterImpl resetPasswordRateLimiterService;
+    private final UserMapper userMapper;
+    private final EmailService emailService;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<TokenResponse>> login(
@@ -173,5 +180,97 @@ public class AuthController {
                 .path("/")
                 .sameSite("Lax") // change to None in production
                 .build();
+    }
+
+    @PostMapping("/user-lookup")
+    public ResponseEntity<ApiResponse<UserDTO>> findUserByOptions(
+            @Valid @RequestBody ResetPassOptionRequest request) {
+        User user = authService.findUserByEmailOrPhone(request.getOption(), request.getData());
+        if (user == null) {
+            return ResponseEntity
+                    .status(404)
+                    .body(new ApiResponse<>("Error", "User not found"));
+        }
+
+        return ResponseEntity
+                .ok()
+                .body(new ApiResponse<>(
+                        "success",
+                        "User found!",
+                        userMapper.toDto(user)
+                ));
+    }
+
+    @PostMapping("/otp-send")
+    public ResponseEntity<ApiResponse<?>> sendOtp(
+            @RequestBody Map<String, String> body
+    ) {
+        String email = body.get("email");
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity
+                    .status(404)
+                    .body(new ApiResponse<>("Error", "Email is required"));
+        }
+
+        emailService.sendOtp(email);
+        return ResponseEntity
+                .ok()
+                .body(new ApiResponse<>(
+                        "success",
+                        "OTP sent!"
+                ));
+    }
+
+    @PostMapping("/otp-verification")
+    public ResponseEntity<ApiResponse<String>> verifyOtp(
+            @Valid @RequestBody OtpVerificationRequest request
+    ) {
+        String verifiedEmail = emailService.verifyOtp(request.getEmail(), request.getOtp());
+
+        return ResponseEntity
+                .ok()
+                .body(new ApiResponse<>(
+                        "success",
+                        "OTP is valid!",
+                        verifiedEmail
+                ));
+    }
+
+    @PutMapping("/password-reset")
+    public ResponseEntity<ApiResponse<UserDTO>> resetPassWord(
+            @Valid @RequestBody ResetPassWordRequest request,
+            HttpServletRequest servletRequest) {
+        String ip = servletRequest.getRemoteAddr();
+        if (resetPasswordRateLimiterService.isBannedFromResetPassword(ip)) {
+            return ResponseEntity
+                    .status(429)
+                    .body(new ApiResponse<>(
+                            resetPasswordRateLimiterService.getUserBanUntil(ip).toString(),
+                            "Too many reset password attempts")
+                    );
+        }
+
+        if (request.getOption().equals("change") && request.getCurrentPassword() == null) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new ApiResponse<>("Error", "Current password is missing for change password process"));
+        }
+
+        // record new reset-password attempts
+        resetPasswordRateLimiterService.recordResetPassAttempt(ip);
+
+        User updatedUser = authService.updateUserPassword(
+                request.getUserid(),
+                request.getPassword(),
+                request.getCurrentPassword(),
+                request.getOption()
+        );
+        return ResponseEntity
+                .ok()
+                .body(new ApiResponse<>(
+                        "success",
+                        "Update password successfully!",
+                        userMapper.toDto(updatedUser)
+                ));
     }
 }

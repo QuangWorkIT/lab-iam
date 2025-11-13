@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaTimes, FaInfoCircle } from "react-icons/fa";
+import { useSelector } from "react-redux";
 
 const AVAILABLE_PRIVILEGES = [
   // Test Order Management
@@ -57,62 +58,97 @@ export default function RoleModal({
   onSave,
   mode = "create",
 }) {
+
+const userInfo = useSelector((state) => state.user.userInfo);
+
+const isAdmin = (() => {
+  if (!userInfo) return false;
+
+  // Handle object or string role
+  const roleCode =
+    typeof userInfo.role === "string"
+      ? userInfo.role
+      : userInfo.role?.code || "";
+
+  // Handle privileges (string or array)
+  const privileges =
+    typeof userInfo.privileges === "string"
+      ? userInfo.privileges.split(",").map((p) => p.trim())
+      : Array.isArray(userInfo.privileges)
+        ? userInfo.privileges
+        : [];
+
+  return roleCode === "ROLE_ADMIN";
+})();
+
   const [formData, setFormData] = useState({
     code: "",
     name: "",
     description: "",
     privileges: [],
     isActive: true,
+    deletable: true,
   });
+  // Inline validation for required fields
+  const [errors, setErrors] = useState({ name: "", description: "" });
+  const nameRef = useRef(null);
+  const descRef = useRef(null);
 
-  // Load dữ liệu khi mở modal
+  // Animation: enter + exit with mounted hold
+  const ANIM_MS = 180;
+  const [animateIn, setAnimateIn] = useState(false);
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    if (role) {
-      // Chuẩn hóa privileges thành chuỗi dễ chỉnh sửa
-      const privilegesString = (() => {
-        const p = role.privileges;
-        if (Array.isArray(p)) {
-          return p
-            .map((x) => (typeof x === "string" ? x : x?.code || x?.name || ""))
-            .filter(Boolean)
-            .join(", ");
+    let raf1;
+    let raf2;
+    let timer;
+    if (isOpen) {
+      setMounted(true);
+      setAnimateIn(false);
+      // Double RAF + force reflow để đảm bảo trạng thái ban đầu được apply trước khi transition
+      raf1 = requestAnimationFrame(() => {
+        if (typeof document !== "undefined") {
+          void document.body.offsetHeight;
         }
-        if (typeof p === "string") {
-          // Nếu backend trả dạng JSON string, thử parse
-          try {
-            const arr = JSON.parse(p);
-            if (Array.isArray(arr)) {
-              return arr
-                .map((x) =>
-                  typeof x === "string" ? x : x?.code || x?.name || ""
-                )
-                .filter(Boolean)
-                .join(", ");
-            }
-          } catch (_) {
-            // giữ nguyên nếu không phải JSON
-          }
-          return p;
-        }
-        return "";
-      })();
+        raf2 = requestAnimationFrame(() => setAnimateIn(true));
+      });
+    } else {
+      setAnimateIn(false);
+      // Giữ lại để chạy exit animation
+      timer = setTimeout(() => setMounted(false), ANIM_MS);
+    }
+    return () => {
+      if (raf1) cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+      if (timer) clearTimeout(timer);
+    };
+  }, [isOpen]);
 
+  // Load dữ liệu khi mở modal (chuẩn hóa privileges thành MẢNG để dùng an toàn ở view/edit)
+  useEffect(() => {
+    if (!isOpen) return;
+    if (role) {
+      const privArr = parsePrivileges(role.privileges);
       setFormData({
         code: role.code || "",
         name: role.name || "",
         description: role.description || "",
-        privileges: privilegesString,
+        privileges: privArr,
         isActive: role.isActive !== undefined ? role.isActive : true,
+        deletable: role.deletable !== undefined ? role.deletable : true,
       });
     } else {
       setFormData({
         code: "",
         name: "",
         description: "",
-        privileges: "",
+        privileges: [],
         isActive: true,
+        deletable: true,
       });
     }
+    // Reset field errors when modal opens or role changes
+    setErrors({ name: "", description: "" });
   }, [role, isOpen]);
 
   const handleChange = (e) => {
@@ -121,6 +157,10 @@ export default function RoleModal({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+    // Clear error for the field once user types a non-empty value
+    if ((name === "name" || name === "description") && value.trim()) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handlePrivilegeChange = (privilege) => {
@@ -139,12 +179,21 @@ export default function RoleModal({
     e.preventDefault();
     if (mode === "view") return onClose();
 
-    if (!formData.name.trim()) return alert("Role name is required");
-    if (!formData.description.trim())
-      return alert("Role description is required");
-    if (formData.privileges.length === 0) {
-      return alert("Please select at least one privilege");
+    // Inline required validation (replace window alerts)
+    const nextErrors = {
+      name: formData.name.trim() ? "" : "Role name is required",
+      description: formData.description.trim()
+        ? ""
+        : "Role description is required",
+    };
+    setErrors(nextErrors);
+    if (nextErrors.name || nextErrors.description) {
+      if (nextErrors.name && nameRef.current) nameRef.current.focus();
+      else if (nextErrors.description && descRef.current)
+        descRef.current.focus();
+      return;
     }
+
 
     const formattedData = {
       code: "", // ← Send empty, backend generates it
@@ -152,23 +201,32 @@ export default function RoleModal({
       description: formData.description,
       privileges: formData.privileges.join(","),
       isActive: formData.isActive,
+      deletable: isAdmin ? formData.deletable : true,
     };
 
     onSave(formattedData);
   };
 
-  if (!isOpen) return null;
+  if (!mounted) return null;
 
   const title =
     mode === "view"
       ? "View Role"
       : mode === "edit"
-      ? "Update Role"
-      : "Add New Role";
+        ? "Update Role"
+        : "Add New Role";
   const primaryText = mode === "edit" ? "Update" : "Create";
+  // Accent theo mode (chỉ ảnh hưởng UI header)
+  const accent =
+    mode === "create"
+      ? { bg: "#e8f5e9", color: "#1f7a3f" }
+      : mode === "edit"
+        ? { bg: "#fff7e6", color: "rgb(255, 191, 13)" }
+        : { bg: "#e6f0ff", color: "#5170ff" };
 
   return (
     <div
+      className={`lm-role-modal-overlay ${animateIn ? "is-open" : ""}`}
       style={{
         position: "fixed",
         inset: 0,
@@ -179,7 +237,25 @@ export default function RoleModal({
         zIndex: 1000,
       }}
     >
+      {/* Scoped CSS for modal enter/exit animation */}
+      <style>
+        {`
+          .lm-role-modal-overlay { opacity: 0; transition: opacity ${ANIM_MS}ms ease-out; }
+          .lm-role-modal-overlay.is-open { opacity: 1; }
+          .lm-role-modal-card {
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+            transition: transform ${ANIM_MS}ms cubic-bezier(.2,.8,.2,1), opacity ${ANIM_MS}ms ease-out;
+            will-change: transform, opacity;
+          }
+          .lm-role-modal-card.is-open { opacity: 1; transform: translateY(0) scale(1); }
+          @media (prefers-reduced-motion: reduce) {
+            .lm-role-modal-overlay, .lm-role-modal-card { transition: none !important; }
+          }
+        `}
+      </style>
       <div
+        className={`lm-role-modal-card ${animateIn ? "is-open" : ""}`}
         style={{
           background: "#fff",
           borderRadius: 12,
@@ -208,8 +284,8 @@ export default function RoleModal({
                   width: 36,
                   height: 36,
                   borderRadius: 8,
-                  background: "#ffe6e8",
-                  color: "#fe535b",
+                  background: accent.bg,
+                  color: accent.color,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -221,7 +297,7 @@ export default function RoleModal({
               <div>
                 <div
                   style={{
-                    color: "#fe535b",
+                    color: accent.color,
                     fontWeight: 800,
                     letterSpacing: 1.5,
                     textTransform: "uppercase",
@@ -234,8 +310,8 @@ export default function RoleModal({
                   {mode === "create"
                     ? "Create a new role for your system"
                     : mode === "edit"
-                    ? "Modify role details"
-                    : "View role details"}
+                      ? "Modify role details"
+                      : "View role details"}
                 </div>
               </div>
             </div>
@@ -270,7 +346,8 @@ export default function RoleModal({
             >
               <Item label="Role Name" value={formData.name} />
               <Item label="Description" value={formData.description || "—"} />
-              <Item label="Privileges" value={formData.privileges || "—"} />
+              {/* Privileges: hiển thị dạng chips để tự wrap, tránh tràn ngang */}
+              <PrivilegesChips value={formData.privileges} />
               {role && (
                 <>
                   <Item label="Created At" value={role.createdAt || "—"} />
@@ -278,39 +355,35 @@ export default function RoleModal({
                     label="Last Updated"
                     value={role.lastUpdatedAt || "—"}
                   />
-                  <Item
-                    label="Status"
-                    value={role.isActive ? "Active" : "Inactive"}
-                  />
+
+                  {isAdmin && mode === "edit"  && (
+                    <Item
+                      label="Deletable"
+                      value={role.deletable ? "Yes" : "No"}
+                    />
+                  )}
+
+                  {/* Status: hiển thị badge màu (Active xanh lá, Inactive xám) */}
+                  <div style={{ marginBottom: 10 }}>
+                    <div
+                      style={{
+                        color: "#8a8f98",
+                        fontSize: 12,
+                        marginBottom: 4,
+                      }}
+                    >
+                      Status
+                    </div>
+                    <StatusPill active={!!role.isActive} />
+                  </div>
                 </>
               )}
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                paddingTop: 12,
-              }}
-            >
-              <button
-                type="button"
-                onClick={onClose}
-                style={{
-                  padding: "10px 16px",
-                  border: "1px solid #e1e7ef",
-                  borderRadius: 8,
-                  backgroundColor: "#ffffff",
-                  color: "#404553",
-                  cursor: "pointer",
-                }}
-              >
-                Close
-              </button>
             </div>
           </div>
         ) : (
           <form
             onSubmit={handleSubmit}
+            noValidate
             style={{ padding: "0 20px 20px 20px", overflowY: "auto" }}
           >
             <div
@@ -322,32 +395,59 @@ export default function RoleModal({
                 marginBottom: 16,
               }}
             >
-              <Field label="Role Name">
+              <Field label="Role Name" error={errors.name}>
                 <input
+                  ref={nameRef}
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  style={inputStyle}
+                  aria-invalid={!!errors.name}
+                  style={{
+                    ...inputStyle,
+                    borderColor: errors.name ? "#ef4444" : "#e1e7ef",
+                    boxShadow: errors.name
+                      ? "0 0 0 3px rgba(239,68,68,0.15)"
+                      : "none",
+                  }}
                   onFocus={(e) =>
                     (e.currentTarget.style.boxShadow = focusShadow)
                   }
-                  onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
+                  onBlur={(e) =>
+                  (e.currentTarget.style.boxShadow = errors.name
+                    ? "0 0 0 3px rgba(239,68,68,0.15)"
+                    : "none")
+                  }
                 />
+                {!errors.name && <NameGuidance raw={formData.name} />}
               </Field>
 
-              <Field label="Description">
+              <Field label="Description" error={errors.description}>
                 <textarea
+                  ref={descRef}
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
                   rows={3}
-                  style={{ ...inputStyle, resize: "vertical" }}
+                  required
+                  aria-invalid={!!errors.description}
+                  style={{
+                    ...inputStyle,
+                    resize: "vertical",
+                    borderColor: errors.description ? "#ef4444" : "#e1e7ef",
+                    boxShadow: errors.description
+                      ? "0 0 0 3px rgba(239,68,68,0.15)"
+                      : "none",
+                  }}
                   onFocus={(e) =>
                     (e.currentTarget.style.boxShadow = focusShadow)
                   }
-                  onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
+                  onBlur={(e) =>
+                  (e.currentTarget.style.boxShadow = errors.description
+                    ? "0 0 0 3px rgba(239,68,68,0.15)"
+                    : "none")
+                  }
                 />
               </Field>
 
@@ -483,6 +583,31 @@ export default function RoleModal({
                   ))}
                 </div>
               </Field>
+
+            {isAdmin && mode === "edit" &&(
+              <div style={{ marginTop: 6 }}>
+                <label
+                  style={{ display: "flex", alignItems: "center", gap: 10 }}
+                >
+                  <input
+                    type="checkbox"
+                    name="deletable"
+                    checked={formData.deletable}
+                    onChange={handleChange}
+                    style={{ width: 16, height: 16 }}
+                  />
+                  <span
+                    style={{ color: "#404553", fontSize: 13, fontWeight: 600 }}
+                  >
+                    Allow Role Deletion (Advanced Setting)
+                  </span>
+                </label>
+                <div style={{ marginLeft: 26, marginTop: 4, color: "#6b7280", fontSize: 12 }}>
+                  Enable to allow role deletion. When disabled, the role cannot be deleted even if no users are assigned.
+                </div>
+              </div>
+            )} 
+
               <div style={{ marginTop: 6 }}>
                 <label
                   style={{ display: "flex", alignItems: "center", gap: 10 }}
@@ -577,7 +702,7 @@ const inputStyle = {
 
 const focusShadow = "0 0 0 3px rgba(254,83,91,0.15)";
 
-function Field({ label, children }) {
+function Field({ label, children, error }) {
   return (
     <div style={{ marginBottom: 14 }}>
       <label
@@ -592,6 +717,11 @@ function Field({ label, children }) {
         {label}
       </label>
       {children}
+      {error ? (
+        <div style={{ color: "#ef4444", fontSize: 12, marginTop: 6 }}>
+          {error}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -603,6 +733,207 @@ function Item({ label, value }) {
         {label}
       </div>
       <div style={{ color: "#404553", fontWeight: 600 }}>{String(value)}</div>
+    </div>
+  );
+}
+
+// Badge trạng thái cho view mode: Active xanh lá, Inactive xám (không ảnh hưởng component khác)
+function StatusPill({ active }) {
+  const base = {
+    display: "inline-block",
+    padding: "6px 10px",
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 700,
+    lineHeight: 1,
+    letterSpacing: 0.3,
+    border: "1px solid transparent",
+  };
+  const activeStyle = {
+    background: "#e8f5e9", // xanh nhạt
+    color: "#1f7a3f", // xanh lá chữ
+    borderColor: "#b7e4c7", // viền xanh nhạt
+  };
+  const inactiveStyle = {
+    background: "#f1f3f5", // xám nhạt
+    color: "#6b7280", // xám chữ
+    borderColor: "#e5e7eb", // viền xám nhạt
+  };
+  return (
+    <span style={{ ...base, ...(active ? activeStyle : inactiveStyle) }}>
+      {active ? "Active" : "Inactive"}
+    </span>
+  );
+}
+
+// Hiển thị privileges dạng chip, tự xuống hàng khi hết chiều ngang
+function PrivilegesChips({ value }) {
+  const list = parsePrivileges(value);
+  const groups = groupPrivileges(list);
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ color: "#8a8f98", fontSize: 12, marginBottom: 6 }}>
+        Privileges
+      </div>
+      {groups.length ? (
+        groups.map((g) => (
+          <div
+            key={g.category}
+            style={{
+              marginBottom: 10,
+              border: "1px solid #e1e7ef", // nhấn mạnh block bằng #e1e7ef
+              background: "#ffffff",
+              borderRadius: 10,
+              padding: 12,
+            }}
+          >
+            <div
+              style={{
+                display: "inline-block",
+                padding: "2px 8px",
+                color: "#2f3a56",
+                fontWeight: 700,
+                fontSize: 11,
+                marginBottom: 8,
+              }}
+            >
+              {g.category}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 8,
+                maxWidth: "100%",
+              }}
+            >
+              {g.items.map((p) => (
+                <span
+                  key={p}
+                  style={{
+                    display: "inline-block",
+                    padding: "4px 8px",
+                    border: "1px solid #e1e7ef",
+                    background: "#dbeafe",
+                    color: "#2f3a56",
+                    borderRadius: 999,
+                    fontSize: 12,
+                    lineHeight: 1.2,
+                    whiteSpace: "nowrap",
+                  }}
+                  title={p}
+                >
+                  {p}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))
+      ) : (
+        <span style={{ color: "#8a8f98" }}>—</span>
+      )}
+    </div>
+  );
+}
+
+function parsePrivileges(value) {
+  if (!value && value !== "") return [];
+
+  if (Array.isArray(value)) {
+    return value
+      .map((x) => (typeof x === "string" ? x : x?.code || x?.name || ""))
+      .filter(Boolean);
+  }
+  if (typeof value === "string") {
+    // Thử parse JSON nếu là chuỗi JSON hợp lệ
+    try {
+      const arr = JSON.parse(value);
+      if (Array.isArray(arr)) {
+        return arr
+          .map((x) => (typeof x === "string" ? x : x?.code || x?.name || ""))
+          .filter(Boolean);
+      }
+    } catch {
+      // không phải JSON, tiếp tục tách theo dấu phẩy
+    }
+    return value
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+// Quy tắc group privileges theo prefix/keyword
+const PRIVILEGE_GROUP_RULES = [
+  { key: "TEST_ORDER", label: "Test Order Management" },
+  { key: "COMMENT", label: "Comment Management" },
+  { key: "CONFIGURATION", label: "Configuration Management" },
+  { key: "USER", label: "User Management" },
+  { key: "ROLE", label: "Role Management" },
+  { key: "EVENT", label: "Event Logs" },
+  { key: "REAGENT", label: "Reagent Management" },
+  { key: "INSTRUMENT", label: "Instrument Management" },
+  { key: "BLOOD_TESTING", label: "Blood Testing" },
+];
+
+function groupPrivileges(codes) {
+  const byGroup = new Map();
+  const resolveGroup = (code) => {
+    if (code === "READ_ONLY") return "General";
+    const hit = PRIVILEGE_GROUP_RULES.find((r) => code.includes(r.key));
+    return hit ? hit.label : "Other";
+  };
+
+  (codes || []).forEach((c) => {
+    const g = resolveGroup(c);
+    if (!byGroup.has(g)) byGroup.set(g, []);
+    byGroup.get(g).push(c);
+  });
+
+  const order = [
+    "General",
+    ...PRIVILEGE_GROUP_RULES.map((r) => r.label),
+    "Other",
+  ];
+  return Array.from(byGroup.entries())
+    .sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
+    .map(([category, items]) => ({ category, items }));
+}
+
+function NameGuidance({ raw = "" }) {
+  const trimmed = (raw || "").trim();
+  const codePreview = trimmed
+    ? `ROLE_${trimmed.replace(/\s+/g, "_").toUpperCase()}`
+    : "ROLE_...";
+
+  const hasRolePrefix = /^\s*ROLE_/i.test(raw);
+
+  return (
+    <div style={{ marginTop: 6, fontSize: 12, color: "#6b7280" }}>
+      <div>
+        No need to type “ROLE_” — the system adds it; space → “_”; the code will
+        be UPPERCASE.
+      </div>
+      <div style={{ marginTop: 4 }}>
+        Will generate code:
+        <span
+          style={{
+            fontWeight: 700,
+            color: "#374151",
+            marginLeft: 6,
+            letterSpacing: 0.3,
+          }}
+        >
+          {codePreview}
+        </span>
+      </div>
+      {hasRolePrefix && (
+        <div style={{ marginTop: 4, color: "#b45309" }}>
+          Note: you have entered “ROLE_”; the system still adds “ROLE_” → can
+          become ROLE_ROLE_...
+        </div>
+      )}
     </div>
   );
 }
