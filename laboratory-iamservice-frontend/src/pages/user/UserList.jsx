@@ -175,11 +175,9 @@ export default function UserList() {
 
     try {
       const result = await dispatch(fetchUserById(user.id)).unwrap();
-      console.log("Fetched user detail:", result);
       setEditingUser(result);
       setIsUpdateModalOpen(true);
     } catch (error) {
-      console.error("Failed to fetch user details:", error);
       toast.error("Failed to load user details");
     }
   };
@@ -192,22 +190,14 @@ export default function UserList() {
     }
 
     try {
-      console.log("=== DELETE USER DEBUG ===");
-      console.log("User ID to delete:", userId);
-      console.log("User ID type:", typeof userId);
 
       const result = await dispatch(deleteUserByAdmin(userId)).unwrap();
-      console.log("Delete result:", result);
 
       toast.success("User deleted successfully!");
 
       await dispatch(fetchUsers(searchParams));
       setChartRefreshTrigger((prev) => prev + 1);
     } catch (error) {
-      console.error("=== DELETE USER ERROR ===");
-      console.error("Full error object:", error);
-      console.error("Error message:", error.message);
-      console.error("Error response:", error.response);
 
       let errorMessage = "Failed to delete user!";
       if (typeof error === "string") {
@@ -235,7 +225,6 @@ export default function UserList() {
       toast.success("Create user successfully!");
     } catch (error) {
       toast.error(error?.message || "Failed to create user!");
-      console.error("Create user error:", error);
     }
   };
 
@@ -268,7 +257,6 @@ export default function UserList() {
       setChartRefreshTrigger((prev) => prev + 1);
     } catch (error) {
       toast.error(error || "Failed to update user!");
-      console.error("Update user error:", error);
     }
   };
 

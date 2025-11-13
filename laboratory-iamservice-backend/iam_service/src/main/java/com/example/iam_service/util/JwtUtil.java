@@ -70,7 +70,7 @@ public class JwtUtil {
     public String validate(String token) {
         try {
             Claims payload = parseClaim(token);
-            return payload.getSubject(); // return user id from payload
+            return payload.getSubject();
         } catch (Exception e) {
             throw new JwtException("JWT validation failed: " + e.getMessage());
         }

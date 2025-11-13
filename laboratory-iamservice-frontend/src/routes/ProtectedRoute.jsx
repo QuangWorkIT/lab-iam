@@ -1,21 +1,30 @@
+import { use } from "react";
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 
-const ProtectedRoute = ({ element: Component, allowedRoles }) => {
+const ProtectedRoute = ({ element: Component, allowedRoles, privilege }) => {
   const token = useSelector((state) => state.user.token);
   const userInfo = useSelector((state) => state.user.userInfo);
+  const loading = useSelector((state) => state.user.loading);
 
-  // not logged in? yeet to login
+  if(loading) {
+    return <>App loading...</>
+  }
+  
   if (!token || !userInfo) {
     return <Navigate to="/login" replace />;
   }
 
-  // user logged in but not allowed
+  // Check role if provided
   if (allowedRoles && !allowedRoles.includes(userInfo.role)) {
     return <Navigate to="/" replace />;
   }
 
-  // allowed to pass
+  // Check privilege if provided
+  if (privilege && !userInfo.privileges?.includes(privilege)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
   return <Component />;
 };
 

@@ -6,6 +6,7 @@ import { store, persistor } from "./redux/store";
 import { ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import AppInitializer from "./pages/AppInitializer";
 
 function App() {
   const router = createBrowserRouter(routes);
@@ -14,6 +15,7 @@ function App() {
     <GoogleOAuthProvider clientId={clientid}>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
+          <AppInitializer />
           <RouterProvider router={router} />
           <ToastContainer
             position="top-right"

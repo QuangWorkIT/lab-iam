@@ -1,34 +1,20 @@
-import React, { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import { Card } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchUserById } from "../redux/features/userManagementSlice";
 import MainLayout from "../components/layout/MainLayout";
 
 export default function HomePage() {
-  const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.user);
   const { userDetail } = useSelector((state) => state.users);
 
-  // Fetch current user info on component mount - giống như UserDetailModal
-  useEffect(() => {
-    if (userInfo?.id) {
-      dispatch(fetchUserById(userInfo.id));
-    }
-  }, [userInfo?.id, dispatch]);
 
   // Use userDetail if available, fallback to userInfo
   const displayUser = userDetail || userInfo;
 
-  console.log("🔍 Debug HomePage - userInfo:", userInfo);
-  console.log("🔍 Debug HomePage - userDetail:", userDetail);
-  console.log("🔍 Debug HomePage - displayUser:", displayUser);
-  console.log("🔍 Debug HomePage - deletedAt:", displayUser?.deletedAt);
-
   // Calculate remaining days until account deletion
   const deletionInfo = useMemo(() => {
     if (!displayUser?.deletedAt) {
-      console.log("🔍 No deletedAt found");
       return null;
     }
 
@@ -36,14 +22,6 @@ export default function HomePage() {
     const today = new Date();
     const timeDiff = deletionDate - today;
     const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-
-    console.log("🔍 Debug HomePage - deletionInfo calculation:", {
-      deletedAt: displayUser.deletedAt,
-      deletionDate,
-      today,
-      timeDiff,
-      daysRemaining,
-    });
 
     return {
       daysRemaining,
@@ -55,7 +33,6 @@ export default function HomePage() {
     };
   }, [displayUser?.deletedAt]);
 
-  console.log("🔍 Final deletionInfo:", deletionInfo);
 
   return (
     <MainLayout pageTitle="HOMEPAGE" pageDescription="Start exploring features">

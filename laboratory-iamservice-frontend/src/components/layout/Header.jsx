@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaHeartbeat, FaCog, FaSignOutAlt, FaCheckCircle, FaExclamationCircle, FaRegDotCircle } from "react-icons/fa";
+import { FaHeartbeat, FaCog, FaUserCog, FaSignOutAlt, FaCheckCircle, FaExclamationCircle, FaRegDotCircle } from "react-icons/fa";
 import { logout } from "../../redux/features/userSlice";
 import UserDetailModal from "../common/UserDetailModal";
 import { DoubleRightOutlined } from "@ant-design/icons"
@@ -16,7 +16,7 @@ export default function Header({ pageTitle }) {
   const notifyItems = [
     {
       text: 'Success 1',
-      icon: <FaCheckCircle color="#52c41a"  />
+      icon: <FaCheckCircle color="#52c41a" />
     },
     {
       text: 'Warning 2',
@@ -24,7 +24,7 @@ export default function Header({ pageTitle }) {
     },
     {
       text: 'Processing 3',
-      icon: <FaRegDotCircle  color="#40a6ce" />
+      icon: <FaRegDotCircle color="#40a6ce" />
     },
   ]
   // Confirm modal state
@@ -75,14 +75,13 @@ export default function Header({ pageTitle }) {
   // Convert userInfo to the format expected by UserDetailModal
   const getUserDetailData = () => {
     if (!userInfo) return null;
-    console.log("User Info in Header:", userInfo);
 
     return {
       id: userInfo.id,
       name: userInfo.userName || userInfo.name || "N/A",
       role: userInfo.role || "N/A",
       email: userInfo.email || "N/A",
-      identifyNumber: userInfo.identifyNumber || userInfo.identityNumber || "N/A",
+      identityNumber: userInfo.identityNumber || "N/A",
       phoneNumber: userInfo.phoneNumber || userInfo.phone || "N/A",
       gender: userInfo.gender || "N/A",
       dateOfBirth: userInfo.dateOfBirth || userInfo.dob || null,
@@ -110,7 +109,7 @@ export default function Header({ pageTitle }) {
     overlay: {
       position: "fixed",
       inset: 0,
-      backgroundColor: "rgba(17, 24, 39, 0.45)",
+      backgroundColor: "rgba(0, 0, 0, 0.8)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -217,11 +216,11 @@ export default function Header({ pageTitle }) {
               [{userInfo?.userName || "User"}]
             </span>
           </div>
-          <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
-            <NotificationComponent  items={notifyItems}/>
+          <div style={{ display: "flex", gap: "25px", alignItems: "center" }}>
+            <NotificationComponent items={notifyItems} />
             <Tooltip title={"User details"}>
-              <FaCog
-                style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
+              <FaUserCog
+                style={{ color: "#888", fontSize: "19px", cursor: "pointer" }}
                 onClick={handleViewUserDetail}
                 className="hover:scale-120 transition-all duration-300 ease-in-out"
               />

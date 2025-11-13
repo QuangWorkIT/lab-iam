@@ -7,7 +7,7 @@ import { getRoleName } from "../../utils/formatter.js"
 import { useSelector } from "react-redux";
 import { motion as Motion, AnimatePresence } from "motion/react"
 import { useDispatch } from "react-redux";
-import { fetchUserById, updateOwnProfile, requestSelfDeletion } from "../../redux/features/userManagementSlice";
+import { updateOwnProfile, requestSelfDeletion } from "../../redux/features/userManagementSlice";
 /**
  * User Detail Modal - Reusable modal component for displaying user/account details
  * 
@@ -115,7 +115,7 @@ function LeftPanel({ user, statusColor, statusText }) {
                     textAlign: "center",
                 }}
             >
-                {getRoleName(user?.roleCode) || "N/A"}
+                {getRoleName(user?.role) || getRoleName(user?.roleCode) || "N/A"}
             </p>
         </div>
     );
@@ -127,24 +127,10 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
     const canUpdate = userInfo.id === propUser.id;
 
     // Check if user has PATIENT role (handle both "PATIENT" and "ROLE_PATIENT" formats)
-    const isPatient = propUser?.role === "ROLE_PATIENT" ||
-        propUser?.roleCode === "ROLE_PATIENT";
+    const isPatient = propUser?.role === "ROLE_PATIENT"
 
     // Check if user has requested account deletion (deletedAt is not null)
     const hasRequestedDeletion = propUser?.deletedAt !== null && propUser?.deletedAt !== undefined;
-
-    // Debug: Log để kiểm tra giá trị
-    console.log("🔍 Debug RightPanel:", {
-        canUpdate,
-        isPatient,
-        hasRequestedDeletion,
-        deletedAt: propUser?.deletedAt,
-        propUserRole: propUser?.role,
-        propUserRoleCode: propUser?.roleCode,
-        userInfoId: userInfo.id,
-        propUserId: propUser.id,
-        propUser
-    });
 
     // Helper function to render an information field
     const renderField = (label, value) => (
@@ -182,11 +168,10 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                             <Tooltip
                                 placement="top"
                                 title="To update your Identity Number, please contact an administrator"
-                                overlayStyle={{ maxWidth: '250px' }}
                                 color="#000000"
                             >
                                 <InfoCircleOutlined
-                                    className="ml-2 text-[14px] cursor-pointer"
+                                    className="ml-2 text-[16px] cursor-pointer"
                                     style={{
                                         color: "#000000",
                                         verticalAlign: "middle"
@@ -245,7 +230,6 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                     gridTemplateColumns: "1fr 1fr",
                     gap: "10px",
                     marginTop: "65px",
-                    // paddingBottom: onRefresh ? "60px" : "10px",
                     wordBreak: "break-word",
                     overflowWrap: "break-word",
                     justifyContent: "center",
@@ -256,8 +240,7 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                 {/* Left Column */}
                 <div>
                     {renderField("Identity Number",
-                        (propUser?.identityNumber && propUser.identityNumber !== "N/A") ? propUser.identityNumber :
-                            (propUser?.identifyNumber && propUser.identifyNumber !== "N/A") ? propUser.identifyNumber : "N/A"
+                        (propUser?.identityNumber && propUser.identityNumber !== "N/A") ? propUser.identityNumber : "N/A"
                     )}
                     {renderField("Phone Number",
                         (propUser?.phoneNumber && propUser.phoneNumber !== "N/A") ? propUser.phoneNumber : "N/A"
@@ -370,42 +353,17 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
 import UpdateSelfForm from "../modules/user/UpdateSelfForm.jsx";
 import { toast } from "react-toastify";
 
-export default function UserDetailModal({ user, userId, isOpen, onClose, onRefresh }) {
+export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
     const dispatch = useDispatch();
     const [isResetPassWordOpen, setIsResetPassWordOpen] = useState(false);
     const [isSelfUpdateOpen, setIsSelfUpdateOpen] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Get user detail from Redux store or use passed user prop
-    const { userDetail, userDetailLoading, error } = useSelector((state) => state.users);
-
-    // Determine the user ID to fetch
-    const targetUserId = userId || user?.id;
-
-    // Fetch user detail when modal opens and we have a userId
-    useEffect(() => {
-        if (isOpen && targetUserId) {
-            // Always fetch from API to get full user details
-            dispatch(fetchUserById(targetUserId));
-        }
-    }, [isOpen, targetUserId, dispatch]);
-
-    // Use fetched user detail (from API) or passed user prop as fallback
-    const displayUser = userDetail || user;
-
-    // Debug log
-    console.log("🔍 UserDetailModal Debug:", {
-        isOpen,
-        userDetail,
-        user,
-        displayUser,
-        userDetailLoading,
-        error,
-        targetUserId
-    });
+    const { userDetailLoading, error } = useSelector((state) => state.users);
 
     // Show loading state
-    if (isOpen && !displayUser && userDetailLoading) {
+    if (isOpen && !user && userDetailLoading) {
         return (
             <div
                 style={{
@@ -436,7 +394,7 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
     }
 
     // Show error state
-    if (isOpen && error && !displayUser) {
+    if (isOpen && error && !user) {
         return (
             <div
                 style={{
@@ -483,7 +441,7 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
     if (!isOpen) return null;
 
     // If no user data available at all, show a message
-    if (!displayUser) {
+    if (!user) {
         return (
             <div
                 style={{
@@ -554,7 +512,7 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
     const handleConfirmDelete = async () => {
         try {
             // Call API to request deletion (for PATIENT role with 7 days grace period)
-            await dispatch(requestSelfDeletion(displayUser.id)).unwrap();
+            await dispatch(requestSelfDeletion(user.id)).unwrap();
 
             toast.success("Your deletion request has been submitted. Account will be deleted after 7 days.");
             setShowDeleteConfirm(false);
@@ -579,7 +537,7 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
             // Dispatch Redux action to update profile
             await dispatch(
                 updateOwnProfile({
-                    userId: displayUser.id,
+                    userId: user.id,
                     profileData: formData
                 })
             ).unwrap(); // unwrap() to get result or throw error
@@ -618,9 +576,9 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
             >
                 <div style={{ width: "150px" }}>
                     <LeftPanel
-                        user={displayUser}
-                        statusColor={getStatusColor(displayUser.isActive)}
-                        statusText={getStatusText(displayUser.isActive)}
+                        user={user}
+                        statusColor={getStatusColor(user.isActive)}
+                        statusText={getStatusText(user.isActive)}
                     />
                 </div>
 
@@ -651,7 +609,7 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
                         >
                             <div style={{ width: "100%", maxWidth: "520px", padding: "16px 30px", boxSizing: "border-box" }}>
                                 <UpdateSelfForm
-                                    user={displayUser}
+                                    user={user}
                                     onCancel={() => setIsSelfUpdateOpen(false)}
                                     onSubmit={handleUpdateSubmit}
                                 />
@@ -667,7 +625,7 @@ export default function UserDetailModal({ user, userId, isOpen, onClose, onRefre
                             className="w-full"
                         >
                             <RightPanel
-                                propUser={displayUser}
+                                propUser={user}
                                 formatDate={formatDate}
                                 getGenderText={getGenderText}
                                 setIsResetPassWordOpen={setIsResetPassWordOpen}

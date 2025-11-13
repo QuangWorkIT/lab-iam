@@ -27,6 +27,13 @@ function GoogleButton({ setIsGoogleLogin }) {
                     email: payload.email,
                     role: payload.role,
                     privileges: payload.privileges,
+                    identityNumber: payload.identityNumber,
+                    phoneNumber: payload.phone,
+                    gender: payload.gender,
+                    dateOfBirth: payload.dob,
+                    age: payload.age,
+                    address: payload.address,
+                    isActive: payload.isActive === "true",
                 }
             }))
             toast.success("Login successfully!")
