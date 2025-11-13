@@ -9,3 +9,11 @@ export const parseClaims = (token) => {
         return null;
     }
 }
+
+export const isTokenExpired = (token) => {
+    const payload = parseClaims(token);
+    if (!payload) return true;
+
+    const now = new Date().getTime() / 1000
+    return now > payload.exp
+}

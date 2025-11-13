@@ -86,7 +86,7 @@ function LoginForm({ setIsResetPassWord }) {
         } catch (error) {
             const errMess = error.response?.data?.message
             if (errMess) {
-                if (error.response.status === 429 &&
+                if (error.response?.status === 429 &&
                     errMess.split(".")[0] === "Too many attempts"
                 ) {
                     toast.error("Too many attempts!")
@@ -131,7 +131,7 @@ function LoginForm({ setIsResetPassWord }) {
                                 placeholder="Email"
                                 variant='underlined'
                             />
-                        </div>
+                        </div>  
                     </Form.Item>
                 </ConfigProvider>
                 <ConfigProvider theme={theme}>

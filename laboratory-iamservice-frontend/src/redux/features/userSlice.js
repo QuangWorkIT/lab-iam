@@ -45,6 +45,9 @@ const userSlice = createSlice({
     },
     removerBannedElement: (state, action) => {
       state.bannedElements = state.bannedElements.filter(e => e.type !== action.payload)
+    },
+    setLoading: (state, action) => {
+      state.loading = action.payload
     }
   },
   extraReducers: (builder) => {
@@ -84,5 +87,5 @@ const userSlice = createSlice({
   }
 });
 
-export const { login, updateUserInfo, addBannedElement, removerBannedElement } = userSlice.actions;
+export const { login, updateUserInfo, addBannedElement, removerBannedElement, setLoading } = userSlice.actions;
 export default userSlice.reducer;

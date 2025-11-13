@@ -385,11 +385,6 @@ export default function UserTable({
               </tr>
             ) : (
               usersToRender.map((user) => {
-                // Debug: Log user data to check role field
-                console.log("🔍 User data in table:", user);
-                console.log("🔍 User role field:", user.role);
-                console.log("🔍 User privileges:", user.privileges);
-
                 return (
                   <tr
                     key={user.id}

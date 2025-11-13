@@ -58,9 +58,7 @@ export default function Sidebar({ classes }) {
     localStorage.setItem("theme", JSON.stringify(theme));
   };
 
-  // Demo data - sử dụng dữ liệu giả lập thay vì lấy từ Redux
-  // const demoUserRoles = ["ADMIN", "USER"]; // Giả lập quyền admin
-
+  // Check users privileges
   const hasPrivilege = (privilege) => {
     if (!privilege) return true;
     if (!userInfo?.privileges) return false;
