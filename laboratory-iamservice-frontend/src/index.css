@@ -43,3 +43,16 @@ label,
 .ant-card * {
   font-family: Arial, Roboto, sans-serif !important;
 }
+
+/* Global min-height for buttons, table and list rows */
+button,
+input,
+textarea,
+select,
+.ant-btn,
+.ant-input,
+.ant-select-selector,
+.ant-table-cell,
+.ant-table-row {
+  min-height: 40px !important;
+}
