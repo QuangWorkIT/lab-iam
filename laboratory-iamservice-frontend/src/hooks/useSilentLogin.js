@@ -1,9 +1,8 @@
 import { isTokenExpired, parseClaims } from '../utils/jwtUtil'
 import publicApi from '../configs/publicAxios'
-import { login, logout, setLoading } from '../redux/features/userSlice'
+import { login, setLoading } from '../redux/features/userSlice'
 import { useDispatch } from 'react-redux'
 import { useEffect } from 'react';
-import { toast } from 'react-toastify';
 function useSilentLogin() {
     const dispatch = useDispatch()
 

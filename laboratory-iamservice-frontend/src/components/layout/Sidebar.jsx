@@ -5,15 +5,6 @@ import { motion, AnimatePresence } from "motion/react"
 import { useSidebarMenu } from "../../hooks/useSideBarMenu";
 import { FaBars } from "react-icons/fa";
 
-const MENU_PRIVILEGES = {
-  HOME: "READ_ONLY",
-  ROLE_MANAGEMENT: "VIEW_ROLE",
-  USER_MANAGEMENT: "VIEW_USER",
-  LAB_TESTS: "READ_ONLY",
-  EQUIPMENT_MANAGEMENT: "VIEW_INSTRUMENT",
-  BLOOD_TESTING_MANAGEMENT: "EXECUTE_BLOOD_TESTING",
-  ANALYTICS: "VIEW_EVENT_LOGS",
-};
 
 // Inline component
 export function SidebarIcon({ icon, active, isSideBarOpen }) {
@@ -31,7 +22,6 @@ export function SidebarIcon({ icon, active, isSideBarOpen }) {
 
 export default function Sidebar({ classes }) {
   const location = useLocation();
-  const { userInfo } = useSelector((state) => state.user);
   const [isSideBarOpen, setIsSideBarOpen] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme) {
@@ -48,73 +38,6 @@ export default function Sidebar({ classes }) {
     localStorage.setItem("theme", JSON.stringify(theme));
   };
 
-  // Check users privileges
-  const hasPrivilege = (privilege) => {
-    if (!privilege) return true;
-    if (!userInfo?.privileges) return false;
-    return (
-      Array.isArray(userInfo.privileges) &&
-      userInfo.privileges.includes(privilege)
-    );
-  };
-
-  // Định nghĩa menu items
-  const menuItems = [
-    {
-      path: "/home",
-      icon: <FaHome size={20} />,
-      privilege: MENU_PRIVILEGES.HOME,
-      desc: "Home",
-    },
-    {
-      path: "/roles",
-      icon: <FaUsers size={20} />,
-      privilege: MENU_PRIVILEGES.ROLE_MANAGEMENT,
-      desc: "Role management",
-    },
-    {
-      path: "/users",
-      icon: <FaUserCog size={20} />,
-      privilege: MENU_PRIVILEGES.USER_MANAGEMENT,
-      desc: "User management",
-    }, // User management
-    {
-      path: "/accounts",
-      icon: <FaUserCheck size={20} />,
-      privilege: MENU_PRIVILEGES.USER_MANAGEMENT,
-      desc: "Account management",
-    }, // Account status management
-    {
-      path: "/test",
-      icon: <FaFlask size={20} />,
-      privilege: MENU_PRIVILEGES.LAB_TESTS,
-      desc: "Laboratory test",
-    },
-    {
-      path: "/test",
-      icon: <FaTools size={20} />,
-      privilege: MENU_PRIVILEGES.EQUIPMENT_MANAGEMENT,
-      desc: "Lab equipment",
-    },
-    {
-      path: "/test",
-      icon: <FaShieldAlt size={20} />,
-      privilege: MENU_PRIVILEGES.BLOOD_TESTING_MANAGEMENT,
-      desc: "Laboratory test",
-    },
-    {
-      path: "/test",
-      icon: <FaCalendarAlt size={20} />,
-      privilege: MENU_PRIVILEGES.BLOOD_TESTING_MANAGEMENT,
-      desc: "Laboratory test",
-    },
-    {
-      path: "/test",
-      icon: <FaChartLine size={20} />,
-      privilege: MENU_PRIVILEGES.ANALYTICS,
-      desc: "Analytics",
-    },
-  ];
 
   const visibleMenuItems = useSidebarMenu()
 
@@ -144,9 +67,7 @@ export default function Sidebar({ classes }) {
         ${isSideBarOpen ? "w-screen md:w-[250px]" : "w-[60px]"}`}
     >
       <div
-        className={`p-[6px] border-b border-white/20 w-full flex 
-        justify-start md:justify-center items-center h-[96px] md:h-[58px]
-        md:bg-[#fe535b]`}
+        className={`p-[6px] border-b border-white/20 w-full h-[60px] bg-[#FF5A5A]`}
       >
         <motion.div
           className={`p-2 ml-[2px] w-max rounded-[5px] hover:cursor-pointer hover:scale-110 transition-all duration-200

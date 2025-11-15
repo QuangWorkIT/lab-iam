@@ -41,7 +41,9 @@ services:
       - iam-net
 
   iam-service:
-    image: quangf1/iam-fe-dep:lastest
+    build:
+      context: ./iam_service
+      dockerfile: Dockerfile
     ports:
       - "8089:8089"
     environment:

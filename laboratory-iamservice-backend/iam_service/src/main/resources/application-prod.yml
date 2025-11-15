@@ -40,6 +40,8 @@ spring:
 
 google:
   web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
+
+#  eureka cho production
 eureka:
   client:
     service-url:
