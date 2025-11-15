@@ -102,7 +102,7 @@ export default function HomePage() {
             boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
           }}
         >
-          <h2 style={{ color: "#FE535B", fontWeight: "bold", fontSize: "24px" }}>
+          <h2 style={{ color: "#FF5A5A", fontWeight: "bold", fontSize: "18px" }}>
             Good to see you again! 👋
           </h2>
           <p

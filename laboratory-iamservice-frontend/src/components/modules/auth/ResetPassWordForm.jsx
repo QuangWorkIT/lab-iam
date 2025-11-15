@@ -119,10 +119,17 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                             </span>)
                         }
                         <Button
-                            className={`hover:bg-[#fca9ad] transition-all duration-300 ease-in-out 
-                            ${resetPassWordState === "success" ? "w-50 !bg-[#52c41a]" : "w-30"}`}
-                            color="danger"
-                            variant="solid"
+                            style={{
+                                backgroundColor: "#FF5A5A", // primary color
+                                color: "white",
+                                border: "none",
+                                borderRadius: "6px",
+                                width: resetPassWordState === "success" ? "200px" : "120px", // same as w-50 / w-30
+                                cursor: "pointer",
+                                transition: "all 0.3s ease",
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FF3A3A"} // hover
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                             htmlType="submit"
                             disabled={bannedElements.some(e => e.type === "resetPasswdBanned")}
                             loading={resetPassWordState === "reseting"}

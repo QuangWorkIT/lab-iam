@@ -1,14 +1,45 @@
 @import "tailwindcss";
 
+:root {
+  --font-sans: Arial, Roboto, sans-serif;
+}
+
+/* AntD + base overrides */
+body,
+.ant-typography,
+.ant-card,
+.ant-card * {
+  font-family: var(--font-sans) !important;
+}
+
 @theme {
-  --font-sans: InterVariable, Inter , sans-serif;
+  --font-sans: Arial, Roboto, sans-serif;
   --font-sans--font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
+/* Tailwind base layer */
 @layer base {
   html,
   body {
     font-family: var(--font-sans);
     font-feature-settings: var(--font-sans--font-feature-settings);
   }
+}
+
+/* FINAL BOSS OVERRIDE (OUTSIDE @layer because we want it LAST) */
+div,
+p,
+span,
+button,
+input,
+label,
+.ant-btn,
+.ant-form,
+.ant-form *,
+.ant-input,
+.ant-input *,
+.ant-typography,
+.ant-card,
+.ant-card * {
+  font-family: Arial, Roboto, sans-serif !important;
 }

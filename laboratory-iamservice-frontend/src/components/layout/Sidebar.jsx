@@ -159,7 +159,7 @@ export default function Sidebar({ classes }) {
       <div
         className={`p-[6px] border-b border-white/20 w-full flex 
         justify-start md:justify-center items-center h-[96px] md:h-[58px]
-        md:bg-[#fe535b]`}
+        md:bg-[#FF5A5A]`}
       >
         <motion.div
           className={`p-2 rounded-[5px] hover:cursor-pointer hover:scale-120 transition-all duration-200
@@ -172,7 +172,7 @@ export default function Sidebar({ classes }) {
         </motion.div>
       </div>
 
-      <div className={`pt-5 bg-[#fe535b] w-full h-screen md:h-full md:opacity-100 
+      <div className={`pt-5 bg-[#FF5A5A] w-full h-screen md:h-full md:opacity-100 
                       ${isSideBarOpen ? "opacity-100" : "opacity-0"}`}>
         {
           visibleMenuItems.map((item, index) => (

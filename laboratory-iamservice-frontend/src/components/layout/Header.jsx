@@ -125,7 +125,7 @@ export default function Header({ pageTitle }) {
       boxShadow:
         "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
       padding: "18px 20px",
-      borderTop: "5px solid #fe535b",
+      borderTop: "5px solid #FF5A5A",
     },
     titleRow: {
       display: "flex",
@@ -150,7 +150,7 @@ export default function Header({ pageTitle }) {
       color: "#374151",
     },
     btnDanger: {
-      backgroundColor: "#fe535b",
+      backgroundColor: "#FF5A5A",
       color: "#ffffff",
     },
     closeX: {
@@ -182,7 +182,7 @@ export default function Header({ pageTitle }) {
           <div style={{ display: "flex", alignItems: "center" }}>
             <FaHeartbeat
               style={{
-                color: "#fe535b",
+                color: "#FF5A5A",
                 fontSize: "24px",
                 marginRight: "10px",
               }}
@@ -198,7 +198,7 @@ export default function Header({ pageTitle }) {
               <span style={{ margin: "0 10px", color: "lightgray" }}>
                 <DoubleRightOutlined />
               </span>
-              <span style={{ color: "#fe535b", fontWeight: "bold" }}>{pageTitle}</span>
+              <span style={{ color: "#FF5A5A", fontWeight: "bold" }}>{pageTitle}</span>
             </>
           )}
         </div>
@@ -212,7 +212,7 @@ export default function Header({ pageTitle }) {
             }}
           >
             <span style={{ marginRight: "5px", color: "#888", cursor: "default" }}>Welcome, </span>
-            <span style={{ fontWeight: "bold", color: "#fe535b", cursor: "default" }}>
+            <span style={{ fontWeight: "bold", color: "#FF5A5A", cursor: "default" }}>
               [{userInfo?.userName || "User"}]
             </span>
           </div>
@@ -254,7 +254,7 @@ export default function Header({ pageTitle }) {
             </button>
 
             <div style={styles.titleRow}>
-              <FaSignOutAlt style={{ color: "#fe535b", fontSize: "20px" }} />
+              <FaSignOutAlt style={{ color: "#FF5A5A", fontSize: "20px" }} />
               <h3 id="logout-title" style={styles.title}>
                 Confirm Logout
               </h3>
@@ -272,6 +272,8 @@ export default function Header({ pageTitle }) {
               <button
                 ref={confirmBtnRef}
                 style={{ ...styles.btnBase, ...styles.btnDanger }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = "#FF3A3A"}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                 onClick={confirmLogout}
               >
                 Logout

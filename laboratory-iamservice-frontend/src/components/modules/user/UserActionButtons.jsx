@@ -16,7 +16,7 @@ export default function UserActionButtons({
         <button
           style={{
             backgroundColor: "transparent",
-            color: "#fe535b",
+            color: "#FF5A5A",
             border: "none",
             padding: "5px",
             cursor: "pointer",
@@ -33,7 +33,7 @@ export default function UserActionButtons({
         <button
           style={{
             backgroundColor: "transparent",
-            color: "#fe535b",
+            color: "#FF5A5A",
             border: "none",
             padding: "5px",
             cursor: "pointer",
@@ -50,7 +50,7 @@ export default function UserActionButtons({
         <button
           style={{
             backgroundColor: "transparent",
-            color: "#fe535b",
+            color: "#FF5A5A",
             border: "none",
             padding: "5px",
             cursor: "pointer",

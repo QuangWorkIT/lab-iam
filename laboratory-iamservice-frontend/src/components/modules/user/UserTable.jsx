@@ -206,7 +206,7 @@ export default function UserTable({
           }}
         >
           <thead>
-            <tr style={{ backgroundColor: "#fe535b" }}>
+            <tr style={{ backgroundColor: "#FF5A5A" }}>
               {/* <th
                 style={{
                   padding: "12px 15px 12px 18px",
@@ -536,7 +536,7 @@ function ConfirmDialog({
         <div style={{ marginBottom: 16 }}>
           <div
             style={{
-              color: "#fe535b",
+              color: "#FF5A5A",
               fontWeight: 800,
               letterSpacing: 1.5,
               textTransform: "uppercase",
@@ -595,7 +595,7 @@ function ConfirmDialog({
               padding: "10px 18px",
               border: "none",
               borderRadius: 8,
-              backgroundColor: "#fe535b",
+              backgroundColor: "#FF5A5A",
               color: "#fff",
               fontWeight: 700,
               cursor: "pointer",
@@ -603,10 +603,10 @@ function ConfirmDialog({
               transition: "background-color 0.2s",
             }}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#e64b52")
+              (e.currentTarget.style.backgroundColor = "#FF3A3A")
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "#fe535b")
+              (e.currentTarget.style.backgroundColor = "#FF5A5A")
             }
           >
             {confirmText}

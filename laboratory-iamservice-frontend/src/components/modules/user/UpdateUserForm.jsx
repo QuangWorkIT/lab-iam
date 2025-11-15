@@ -148,7 +148,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "6px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -184,7 +184,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "6px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -220,7 +220,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "6px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -256,7 +256,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "6px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -292,7 +292,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "6px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -328,7 +328,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "6px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -394,7 +394,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "8px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -450,7 +450,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "8px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -541,15 +541,15 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         padding: "11px 32px",
                         border: "none",
                         borderRadius: 6,
-                        backgroundColor: "#ff5a5f",
+                        backgroundColor: "#FF5A5A",
                         color: "white",
                         cursor: "pointer",
                         fontSize: 14,
                         fontWeight: 600,
                         transition: "all 0.2s"
                     }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = "#e04e53"}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = "#ff5a5f"}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = "#FF3A3A"}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = "#FF5A5A"}
                 >
                     Continue
                 </button>

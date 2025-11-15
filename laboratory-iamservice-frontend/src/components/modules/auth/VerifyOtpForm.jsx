@@ -82,9 +82,10 @@ const VerifyOpt = ({ data, setIsResetPassWordOpen }) => {
                                 transition={{ duration: 0.3 }}
                             >
                                 <Button
-                                    className="w-25 hover:bg-[#fca9ad]"
-                                    color="danger"
-                                    variant="solid"
+                                    className="w-25"
+                                    style={{ backgroundColor: "#FF5A5A", color: "white" }} // primary color
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FF3A3A"} // hover
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                                     htmlType="submit"
                                 >
                                     Verify

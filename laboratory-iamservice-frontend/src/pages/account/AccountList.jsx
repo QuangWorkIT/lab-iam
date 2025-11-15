@@ -162,7 +162,7 @@ export default function AccountList() {
           style={{
             fontSize: "18px",
             marginBottom: "20px",
-            color: "#fe535b",
+            color: "#FF5A5A",
             fontWeight: "600",
           }}
         >
@@ -200,7 +200,7 @@ export default function AccountList() {
           style={{
             fontSize: "18px",
             marginBottom: "20px",
-            color: "#fe535b",
+            color: "#FF5A5A",
             fontWeight: "600",
           }}
         >
@@ -310,7 +310,7 @@ function ConfirmDialog({
         <div style={{ marginBottom: 16 }}>
           <div
             style={{
-              color: "#fe535b",
+              color: "#FF5A5A",
               fontWeight: 800,
               letterSpacing: 1.5,
               textTransform: "uppercase",
@@ -365,15 +365,15 @@ function ConfirmDialog({
               padding: "10px 18px",
               border: "none",
               borderRadius: 8,
-              backgroundColor: "#fe535b",
+              backgroundColor: "#FF5A5A",
               color: "#fff",
               fontWeight: 700,
               cursor: "pointer",
               fontSize: 14,
               transition: "background-color 0.2s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e64b52")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fe535b")}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#FF3A3A")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#FF5A5A")}
           >
             {confirmText}
           </button>

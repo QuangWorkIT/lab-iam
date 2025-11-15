@@ -189,10 +189,11 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                             style={{ marginTop: "50px" }}
                                         >
                                             <Button
-                                                className={`hover:bg-[#fca9ad] transition-all duration-300 ease-in-out 
-                                                    ${verifyingEmailOrPhone === "success" ? "w-40 !bg-[#52c41a]" : "w-30"}`}
-                                                color="danger"
-                                                variant="solid"
+                                                className={`transition-all duration-300 ease-in-out 
+                                                    ${verifyingEmailOrPhone === "success" ? "w-40" : "w-30"}`}
+                                                style={{ backgroundColor: "#FF5A5A", color: "white" }} // primary color
+                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FF3A3A"} // hover
+                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                                                 htmlType="submit"
                                                 loading={verifyingEmailOrPhone === "isVerifying"}
                                             >

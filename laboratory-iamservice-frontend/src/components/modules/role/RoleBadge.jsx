@@ -69,7 +69,7 @@ export default function RoleBadge({ roleName }) {
         color,
         padding: "4px 10px",
         borderRadius: "20px",
-        fontSize: "12px",
+        fontSize: "14px",
         fontWeight: "bold",
         display: "inline-block",
         minWidth: "80px",

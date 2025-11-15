@@ -169,14 +169,14 @@ export default function SearchBar({
           flexShrink: 1,
           backgroundColor: "#ffffff",
           borderRadius: 12,
-          border: `1.5px solid ${focused ? "#fe535b" : "#dbe4f2"}`,
+          border: `1.5px solid ${focused ? "#FF5A5A" : "#dbe4f2"}`,
           boxShadow: focused
             ? "0 0 0 3px rgba(254, 83, 91, 0.15)"
             : "0 2px 8px rgba(219, 228, 242, 0.6)",
           transition: "border-color 120ms ease, box-shadow 120ms ease",
         }}
       >
-        <FaSearch style={{ color: "#fe535b", marginRight: 10 }} />
+        <FaSearch style={{ color: "#FF5A5A", marginRight: 10 }} />
         <input
           type="text"
           placeholder={placeholder}
@@ -205,6 +205,8 @@ export default function SearchBar({
         type="button"
         ref={roleBtnRef}
         onClick={() => setShowRoleMenu((s) => !s)}
+        onMouseEnter={e => e.currentTarget.style.backgroundColor = "#FF3A3A"}
+        onMouseLeave={e => e.currentTarget.style.backgroundColor = "#FF5A5A"}
         aria-haspopup="dialog"
         aria-expanded={showRoleMenu}
         aria-controls="role-filter-popover"
@@ -218,7 +220,7 @@ export default function SearchBar({
           borderRadius: 10,
           border: "none",
           cursor: "pointer",
-          backgroundColor: "#fe535b",
+          backgroundColor: "#FF5A5A",
           color: "#fff",
           boxShadow: "0 2px 6px rgba(254,83,91,0.35)",
         }}
@@ -230,6 +232,8 @@ export default function SearchBar({
       <button
         type="button"
         ref={dateBtnRef}
+        onMouseEnter={e => e.currentTarget.style.backgroundColor = "#FF3A3A"}
+        onMouseLeave={e => e.currentTarget.style.backgroundColor = "#FF5A5A"}
         onClick={() => {
           const btn = dateBtnRef.current;
           if (btn) {
@@ -256,7 +260,7 @@ export default function SearchBar({
           borderRadius: 10,
           border: "none",
           cursor: "pointer",
-          backgroundColor: "#fe535b",
+          backgroundColor: "#FF5A5A",
           color: "#fff",
           boxShadow: "0 2px 6px rgba(254,83,91,0.35)",
         }}
@@ -289,9 +293,9 @@ export default function SearchBar({
           <div
             style={{
               fontWeight: 600,
-              fontSize: 13,
+              fontSize: 14,
               marginBottom: 8,
-              color: "#333",
+              color: "#000000ff",
             }}
           >
             Filter by role
@@ -309,7 +313,7 @@ export default function SearchBar({
               borderRadius: 6,
               fontSize: 14,
               backgroundColor: "#fff",
-              color: "#333",
+              color: "#000000ff",
               cursor: "pointer",
             }}
             aria-label="Role filter"
@@ -339,7 +343,7 @@ export default function SearchBar({
                 }}
                 style={{
                   background: "transparent",
-                  color: "#fe535b",
+                  color: "#FF5A5A",
                   border: "none",
                   cursor: "pointer",
                   padding: "6px 4px",
@@ -351,7 +355,7 @@ export default function SearchBar({
                 type="button"
                 onClick={() => setShowRoleMenu(false)}
                 style={{
-                  background: "#fe535b",
+                  background: "#FF5A5A",
                   color: "#fff",
                   border: "none",
                   borderRadius: 6,
@@ -389,7 +393,7 @@ export default function SearchBar({
           <div
             style={{
               fontWeight: 600,
-              fontSize: 13,
+              fontSize: 14,
               marginBottom: 8,
               color: "#333",
             }}
@@ -447,7 +451,7 @@ export default function SearchBar({
             </div>
           </div>
           {invalidDateRange && (
-            <div style={{ color: "#fe535b", fontSize: 12, marginTop: 6 }}>
+            <div style={{ color: "#FF0000", fontSize: 14, marginTop: 6 }}>
               Ngày bắt đầu không được lớn hơn ngày kết thúc.
             </div>
           )}
@@ -474,7 +478,7 @@ export default function SearchBar({
               }}
               style={{
                 background: "transparent",
-                color: "#fe535b",
+                color: "#FF5A5A",
                 border: "none",
                 cursor: "pointer",
                 padding: "6px 4px",
@@ -501,8 +505,10 @@ export default function SearchBar({
                     roleFilter
                   );
               }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = "#FF3A3A"}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = "#FF5A5A"}
               style={{
-                background: "#fe535b",
+                background: "#FF5A5A",
                 color: "#fff",
                 border: "none",
                 borderRadius: 6,
