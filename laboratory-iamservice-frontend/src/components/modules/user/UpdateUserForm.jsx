@@ -24,12 +24,14 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
     const createFocusHandlers = () => ({
         onFocus: (e) => {
             e.target.style.boxShadow = "none";
-            e.target.style.outline = "1px solid rgba(0,0,0,0.6)";
-            e.target.style.outlineOffset = "2px";
+            e.target.style.border = "1px solid #FF5A5A";
+            e.target.style.borderLeft = "4px solid #FF5A5A";
+            e.target.style.outline = "none";
         },
         onBlur: (e) => {
             e.target.style.outline = "none";
-            e.target.style.outlineOffset = "0px";
+            e.target.style.border = "1px solid #CCC";
+            e.target.style.borderLeft = "4px solid #FF5A5A";
         }
     });
 
@@ -148,7 +150,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "6px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -163,9 +165,9 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             style={{
                                 width: "100%",
                                 padding: "10px 12px",
-                                border: `2px solid ${errors.fullName ? "#dc3545" : "#ddd"}`,
+                                border: `1px solid ${errors.fullName ? "#FF0000" : "#CCC"}`,
                                 borderRadius: 4,
-                                borderLeft: `4px solid ${errors.fullName ? "#dc3545" : "#ff5a5f"}`,
+                                borderLeft: `4px solid ${errors.fullName ? "#FF0000" : "#ff5a5f"}`,
                                 fontSize: "14px",
                                 boxSizing: "border-box",
                                 backgroundColor: "white"
@@ -173,7 +175,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             placeholder=""
                         />
                         {errors.fullName && (
-                            <span style={{ color: "#dc3545", fontSize: 11, marginTop: "4px", display: "block" }}>
+                            <span style={{ color: "#FF0000", fontSize: 11, marginTop: "4px", display: "block" }}>
                                 {errors.fullName}
                             </span>
                         )}
@@ -184,7 +186,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "6px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -200,16 +202,16 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             style={{
                                 width: "100%",
                                 padding: "10px 12px",
-                                border: `2px solid ${errors.birthdate ? "#dc3545" : "#ddd"}`,
+                                border: `1px solid ${errors.birthdate ? "#FF0000" : "#CCC"}`,
                                 borderRadius: 4,
-                                borderLeft: `4px solid ${errors.birthdate ? "#dc3545" : "#ff5a5f"}`,
+                                borderLeft: `4px solid ${errors.birthdate ? "#FF0000" : "#ff5a5f"}`,
                                 fontSize: "14px",
                                 boxSizing: "border-box",
                                 backgroundColor: "white"
                             }}
                         />
                         {errors.birthdate && (
-                            <span style={{ color: "#dc3545", fontSize: 11, marginTop: "4px", display: "block" }}>
+                            <span style={{ color: "#FF0000", fontSize: 11, marginTop: "4px", display: "block" }}>
                                 {errors.birthdate}
                             </span>
                         )}
@@ -220,7 +222,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "6px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -235,9 +237,9 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             style={{
                                 width: "100%",
                                 padding: "10px 12px",
-                                border: `2px solid ${errors.identityNumber ? "#dc3545" : "#ddd"}`,
+                                border: `1px solid ${errors.identityNumber ? "#FF0000" : "#CCC"}`,
                                 borderRadius: 4,
-                                borderLeft: `4px solid ${errors.identityNumber ? "#dc3545" : "#ff5a5f"}`,
+                                borderLeft: `4px solid ${errors.identityNumber ? "#FF0000" : "#ff5a5f"}`,
                                 fontSize: "14px",
                                 boxSizing: "border-box",
                                 backgroundColor: "white"
@@ -245,7 +247,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             placeholder=""
                         />
                         {errors.identityNumber && (
-                            <span style={{ color: "#dc3545", fontSize: 11, marginTop: "4px", display: "block" }}>
+                            <span style={{ color: "#FF0000", fontSize: 11, marginTop: "4px", display: "block" }}>
                                 {errors.identityNumber}
                             </span>
                         )}
@@ -256,7 +258,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "6px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -271,9 +273,9 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             style={{
                                 width: "100%",
                                 padding: "10px 12px",
-                                border: `2px solid ${errors.phoneNumber ? "#dc3545" : "#ddd"}`,
+                                border: `1px solid ${errors.phoneNumber ? "#FF0000" : "#CCC"}`,
                                 borderRadius: 4,
-                                borderLeft: `4px solid ${errors.phoneNumber ? "#dc3545" : "#ff5a5f"}`,
+                                borderLeft: `4px solid ${errors.phoneNumber ? "#FF0000" : "#ff5a5f"}`,
                                 fontSize: "14px",
                                 boxSizing: "border-box",
                                 backgroundColor: "white"
@@ -281,7 +283,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             placeholder=""
                         />
                         {errors.phoneNumber && (
-                            <span style={{ color: "#dc3545", fontSize: 11, marginTop: "4px", display: "block" }}>
+                            <span style={{ color: "#FF0000", fontSize: 11, marginTop: "4px", display: "block" }}>
                                 {errors.phoneNumber}
                             </span>
                         )}
@@ -292,7 +294,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "6px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -307,9 +309,9 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             style={{
                                 width: "100%",
                                 padding: "10px 12px",
-                                border: `2px solid ${errors.address ? "#dc3545" : "#ddd"}`,
+                                border: `1px solid ${errors.address ? "#FF0000" : "#CCC"}`,
                                 borderRadius: 4,
-                                borderLeft: `4px solid ${errors.address ? "#dc3545" : "#ff5a5f"}`,
+                                borderLeft: `4px solid ${errors.address ? "#FF0000" : "#ff5a5f"}`,
                                 fontSize: "14px",
                                 boxSizing: "border-box",
                                 backgroundColor: "white"
@@ -317,7 +319,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             placeholder=""
                         />
                         {errors.address && (
-                            <span style={{ color: "#dc3545", fontSize: 11, marginTop: "4px", display: "block" }}>
+                            <span style={{ color: "#FF0000", fontSize: 11, marginTop: "4px", display: "block" }}>
                                 {errors.address}
                             </span>
                         )}
@@ -328,7 +330,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "6px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -344,9 +346,9 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                                     width: "100%",
                                     padding: "10px 12px",
                                     paddingRight: "36px",
-                                    border: `2px solid ${errors.roleCode ? "#dc3545" : "#ddd"}`,
+                                    border: `1px solid ${errors.roleCode ? "#FF0000" : "#CCC"}`,
                                     borderRadius: 4,
-                                    borderLeft: `4px solid ${errors.roleCode ? "#dc3545" : "#ff5a5f"}`,
+                                    borderLeft: `4px solid ${errors.roleCode ? "#FF0000" : "#ff5a5f"}`,
                                     fontSize: "14px",
                                     boxSizing: "border-box",
                                     cursor: "pointer",
@@ -383,7 +385,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             </div>
                         </div>
                         {errors.roleCode && (
-                            <span style={{ color: "#dc3545", fontSize: 11, marginTop: "4px", display: "block" }}>
+                            <span style={{ color: "#FF0000", fontSize: 11, marginTop: "4px", display: "block" }}>
                                 {errors.roleCode}
                             </span>
                         )}
@@ -394,7 +396,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "8px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -439,7 +441,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             </label>
                         </div>
                         {errors.gender && (
-                            <span style={{ color: "#dc3545", fontSize: 11, marginTop: "4px", display: "block" }}>
+                            <span style={{ color: "#FF0000", fontSize: 11, marginTop: "4px", display: "block" }}>
                                 {errors.gender}
                             </span>
                         )}
@@ -450,7 +452,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         <label style={{
                             display: "block",
                             marginBottom: "8px",
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: 600,
                             color: "#ff5a5f"
                         }}>
@@ -495,7 +497,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             </label>
                         </div>
                         {errors.isActive && (
-                            <span style={{ color: "#dc3545", fontSize: 11, marginTop: "4px", display: "block" }}>
+                            <span style={{ color: "#FF0000", fontSize: 11, marginTop: "4px", display: "block" }}>
                                 {errors.isActive}
                             </span>
                         )}
@@ -515,7 +517,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                     onClick={onCancel}
                     style={{
                         padding: "11px 32px",
-                        border: "2px solid #ddd",
+                        border: "1px solid #CCC",
                         borderRadius: 6,
                         backgroundColor: "white",
                         color: "#666",
@@ -530,7 +532,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                     }}
                     onMouseLeave={(e) => {
                         e.target.style.backgroundColor = "white";
-                        e.target.style.borderColor = "#ddd";
+                        e.target.style.borderColor = "#CCC";
                     }}
                 >
                     Cancel
@@ -541,15 +543,15 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                         padding: "11px 32px",
                         border: "none",
                         borderRadius: 6,
-                        backgroundColor: "#ff5a5f",
+                        backgroundColor: "#FF5A5A",
                         color: "white",
                         cursor: "pointer",
                         fontSize: 14,
                         fontWeight: 600,
                         transition: "all 0.2s"
                     }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = "#e04e53"}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = "#ff5a5f"}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = "#FF3A3A"}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = "#FF5A5A"}
                 >
                     Continue
                 </button>

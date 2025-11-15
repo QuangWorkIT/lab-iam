@@ -150,7 +150,7 @@ export default function UserRoleChart({ refreshTrigger = 0 }) {
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
-                fontSize: "12px",
+                fontSize: "14px",
               }}
             >
               <div
@@ -161,7 +161,7 @@ export default function UserRoleChart({ refreshTrigger = 0 }) {
                   backgroundColor: stat.color,
                 }}
               />
-              <span style={{ color: "#666", fontWeight: "500" }}>
+              <span style={{ color: "#777777", fontWeight: "500" }}>
                 {stat.displayName}
               </span>
             </div>
@@ -191,9 +191,9 @@ export default function UserRoleChart({ refreshTrigger = 0 }) {
                     width: "70px",
                     textAlign: "right",
                     paddingRight: "10px",
-                    fontSize: "13px",
+                    fontSize: "14px",
                     fontWeight: "500",
-                    color: "#333",
+                    color: "#777777",
                   }}
                 >
                   {stat.displayName}
@@ -249,7 +249,7 @@ export default function UserRoleChart({ refreshTrigger = 0 }) {
                     {barWidth > 15 && (
                       <span
                         style={{
-                          fontSize: "12px",
+                          fontSize: "14px",
                           fontWeight: "600",
                           color: "white",
                         }}
@@ -268,7 +268,7 @@ export default function UserRoleChart({ refreshTrigger = 0 }) {
                         top: "50%",
                         transform: "translateY(-50%)",
                         marginLeft: "6px",
-                        fontSize: "12px",
+                        fontSize: "14px",
                         fontWeight: "600",
                         color: stat.color,
                       }}
@@ -299,8 +299,8 @@ export default function UserRoleChart({ refreshTrigger = 0 }) {
             <div
               key={idx}
               style={{
-                fontSize: "12px",
-                color: "#666",
+                fontSize: "14px",
+                color: "#777777",
                 fontWeight: "500",
                 minWidth: "20px",
                 textAlign:

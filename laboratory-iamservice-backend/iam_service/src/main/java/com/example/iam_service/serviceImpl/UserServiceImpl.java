@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.List;
 import java.util.UUID;
@@ -341,6 +342,118 @@ public class UserServiceImpl implements UserService {
                 .details("User account restored by admin.")
                 .build());
     }
+
+    @Override
+    @Transactional
+    public User updateUserByEmail(String email, AdminUpdateUserDTO dto) {
+        User actor = securityUtil.getCurrentUser();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+
+        if (Boolean.TRUE.equals(user.getIsDeleted()) || user.getDeletedAt() != null) {
+            throw new IllegalStateException("This account is pending deletion or already deleted.");
+        }
+
+        // snapshot old state
+        User beforeUpdate = new User();
+        BeanUtils.copyProperties(user, beforeUpdate);
+
+        // apply updates
+        userMapper.updateUserFromAdminDto(dto, user);
+        if (dto.getBirthdate() != null) {
+            user.setAge(calculateAge(dto.getBirthdate()));
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        // build diff
+        String diffDetails = AuditDiffUtil.generateDiff(beforeUpdate, updatedUser);
+
+        // publish audit log
+        auditPublisher.publish(AuditEvent.builder()
+                .type("USER_UPDATED_BY_EMAIL")
+                .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                .target(String.valueOf(user.getUserId()))
+                .targetRole(user.getRoleCode())
+                .timestamp(OffsetDateTime.now())
+                .details(diffDetails)
+                .build());
+
+        return updatedUser;
+    }
+
+    @Override
+    @Transactional
+    public List<User> batchCreatePatientUsers(List<User> users) {
+        User actor = securityUtil.getCurrentUser();
+
+        List<User> validUsers = new ArrayList<>();
+        List<String> plainPasswords = new ArrayList<>();
+        List<String> skippedUsers = new ArrayList<>();
+
+        for (User user : users) {
+            try {
+                // validate unique email
+                validateUniqueEmail(user.getEmail());
+
+                // calculate age if birthdate provided
+                if (user.getBirthdate() != null && user.getAge() == null) {
+                    user.setAge(calculateAge(user.getBirthdate()));
+                }
+
+                // force patient role
+                user.setRoleCode("ROLE_PATIENT");
+
+                // prepare patient (verify + encode + generate password)
+                String plainPassword = preparePatientUser(user);
+
+                validUsers.add(user);
+                plainPasswords.add(plainPassword);
+
+            } catch (Exception e) {
+                skippedUsers.add(user.getEmail() + " (" + e.getMessage() + ")");
+            }
+        }
+
+        // save all valid users at once
+        List<User> savedUsers = userRepository.saveAll(validUsers);
+
+        // send emails
+        for (int i = 0; i < savedUsers.size(); i++) {
+            emailService.sendPasswordEmail(savedUsers.get(i).getEmail(), plainPasswords.get(i));
+        }
+
+        // publish audit log for created users
+        if (!savedUsers.isEmpty()) {
+            String ids = savedUsers.stream()
+                    .map(u -> u.getUserId().toString())
+                    .collect(Collectors.joining(", "));
+
+            auditPublisher.publish(AuditEvent.builder()
+                    .type("PATIENT_CREATED_BATCH")
+                    .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                    .targetRole("ROLE_PATIENT")
+                    .timestamp(OffsetDateTime.now())
+                    .details("Batch created " + savedUsers.size() + " patient accounts. IDs: " + ids)
+                    .build());
+        }
+
+        // optionally, publish audit log for skipped users
+        if (!skippedUsers.isEmpty()) {
+            auditPublisher.publish(AuditEvent.builder()
+                    .type("PATIENT_BATCH_SKIPPED")
+                    .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                    .targetRole("ROLE_PATIENT")
+                    .timestamp(OffsetDateTime.now())
+                    .details("Skipped " + skippedUsers.size() + " patient(s): " +
+                            String.join(", ", skippedUsers))
+                    .build());
+        }
+
+        return savedUsers;
+    }
+
+
 
 
     // ================= PRIVATE HELPERS =================

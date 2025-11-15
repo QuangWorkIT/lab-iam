@@ -58,6 +58,63 @@ export default function Sidebar({ classes }) {
     );
   };
 
+  // Định nghĩa menu items
+  const menuItems = [
+    {
+      path: "/home",
+      icon: <FaHome size={20} />,
+      privilege: MENU_PRIVILEGES.HOME,
+      desc: "Home",
+    },
+    {
+      path: "/roles",
+      icon: <FaUsers size={20} />,
+      privilege: MENU_PRIVILEGES.ROLE_MANAGEMENT,
+      desc: "Role management",
+    },
+    {
+      path: "/users",
+      icon: <FaUserCog size={20} />,
+      privilege: MENU_PRIVILEGES.USER_MANAGEMENT,
+      desc: "User management",
+    }, // User management
+    {
+      path: "/accounts",
+      icon: <FaUserCheck size={20} />,
+      privilege: MENU_PRIVILEGES.USER_MANAGEMENT,
+      desc: "Account management",
+    }, // Account status management
+    {
+      path: "/test",
+      icon: <FaFlask size={20} />,
+      privilege: MENU_PRIVILEGES.LAB_TESTS,
+      desc: "Laboratory test",
+    },
+    {
+      path: "/test",
+      icon: <FaTools size={20} />,
+      privilege: MENU_PRIVILEGES.EQUIPMENT_MANAGEMENT,
+      desc: "Lab equipment",
+    },
+    {
+      path: "/test",
+      icon: <FaShieldAlt size={20} />,
+      privilege: MENU_PRIVILEGES.BLOOD_TESTING_MANAGEMENT,
+      desc: "Laboratory test",
+    },
+    {
+      path: "/test",
+      icon: <FaCalendarAlt size={20} />,
+      privilege: MENU_PRIVILEGES.BLOOD_TESTING_MANAGEMENT,
+      desc: "Laboratory test",
+    },
+    {
+      path: "/test",
+      icon: <FaChartLine size={20} />,
+      privilege: MENU_PRIVILEGES.ANALYTICS,
+      desc: "Analytics",
+    },
+  ];
 
   const visibleMenuItems = useSidebarMenu()
 
@@ -87,7 +144,8 @@ export default function Sidebar({ classes }) {
         ${isSideBarOpen ? "w-screen md:w-[250px]" : "w-[60px]"}`}
     >
       <div
-        className={`p-[6px] border-b border-white/20 w-full h-[60px]
+        className={`p-[6px] border-b border-white/20 w-full flex 
+        justify-start md:justify-center items-center h-[96px] md:h-[58px]
         md:bg-[#fe535b]`}
       >
         <motion.div
@@ -101,7 +159,7 @@ export default function Sidebar({ classes }) {
         </motion.div>
       </div>
 
-      <div className={`pt-5 bg-[#fe535b] w-full h-screen md:h-full md:opacity-100 
+      <div className={`pt-5 bg-[#FF5A5A] w-full h-screen md:h-full md:opacity-100
                       ${isSideBarOpen ? "opacity-100" : "opacity-0"}`}>
         {
           visibleMenuItems.map((item, index) => (

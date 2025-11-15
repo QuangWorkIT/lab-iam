@@ -88,7 +88,7 @@ function LeftPanel({ user, statusColor, statusText }) {
                     marginTop: "10px"
                 }}
             >
-                <FaUser style={{ fontSize: "50px", color: "#ff5a5f" }} />
+                <FaUser style={{ fontSize: "50px", color: "#FF5A5A" }} />
             </div>
 
             {/* User Name */}
@@ -108,7 +108,7 @@ function LeftPanel({ user, statusColor, statusText }) {
             <p
                 style={{
                     color: "white",
-                    fontSize: "12px",
+                    fontSize: "14px",
                     fontWeight: "500",
                     margin: 0,
                     textTransform: "uppercase",
@@ -146,7 +146,7 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                     style={{
                         width: "4px",
                         height: "35px",
-                        backgroundColor: "#ff5a5f",
+                        backgroundColor: "#FF5A5A",
                         marginRight: "10px",
                         borderRadius: "2px",
                     }}
@@ -154,7 +154,7 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                 <div>
                     <p
                         style={{
-                            fontSize: "13px",
+                            fontSize: "14px",
                             fontWeight: "600",
                             margin: "0 0 5px 0",
                             textTransform: "uppercase",
@@ -196,8 +196,8 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                     </p>
                     <p
                         style={{
-                            color: "#333",
-                            fontSize: "13px",
+                            color: "#000000ff",
+                            fontSize: "14px",
                             fontWeight: "500",
                             marginTop: "5px",
                             wordBreak: "break-word",
@@ -272,55 +272,59 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
             {/* Action buttons: Delete → Update - Only show if user has NOT requested deletion */}
             {canUpdate && !hasRequestedDeletion && (
                 <>
-                    {/* Delete Account button - only for PATIENT role */}
-                    {isPatient && (
+                    {/* Action buttons container */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            bottom: "20px",
+                            right: "20px", // aligns the container itself
+                            display: "flex",
+                            gap: "8px",   // this is your spacing
+                            zIndex: 9999
+                        }}
+                    >
+                        {/* Delete Account button */}
+                        {isPatient && (
+                            <button
+                                onClick={onDeleteAccount}
+                                style={{
+                                    padding: "8px 12px",
+                                    backgroundColor: "#FF5A5A",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    fontWeight: 600,
+                                    transition: "all 0.2s ease"
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.backgroundColor = "#FF3A3A"}
+                                onMouseLeave={e => e.currentTarget.style.backgroundColor = "#FF5A5A"}
+                            >
+                                Delete Account
+                            </button>
+                        )}
+
+                        {/* Update button */}
                         <button
-                            onClick={onDeleteAccount}
+                            onClick={onOpenUpdate}
                             style={{
-                                position: "absolute",
-                                bottom: "20px",
-                                right: "90px",
                                 padding: "8px 12px",
-                                backgroundColor: "#ff5a5f",
+                                backgroundColor: "#28a745",
                                 color: "white",
                                 border: "none",
                                 borderRadius: "6px",
                                 cursor: "pointer",
-                                fontSize: "12px",
+                                fontSize: "14px",
                                 fontWeight: 600,
-                                zIndex: 9999,
                                 transition: "all 0.2s ease"
                             }}
-                            onMouseEnter={(e) => { e.target.style.backgroundColor = "#ff5a5f"; }}
-                            onMouseLeave={(e) => { e.target.style.backgroundColor = "#ff5a5f"; }}
+                            onMouseEnter={(e) => { e.target.style.backgroundColor = "#218838"; }}
+                            onMouseLeave={(e) => { e.target.style.backgroundColor = "#28a745"; }}
                         >
-                            Delete Account
+                            Update
                         </button>
-                    )}
-
-                    {/* Update button */}
-                    <button
-                        onClick={onOpenUpdate}
-                        style={{
-                            position: "absolute",
-                            bottom: "20px",
-                            right: "20px",
-                            padding: "8px 12px",
-                            backgroundColor: "#28a745",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            zIndex: 9999,
-                            transition: "all 0.2s ease"
-                        }}
-                        onMouseEnter={(e) => { e.target.style.backgroundColor = "#218838"; }}
-                        onMouseLeave={(e) => { e.target.style.backgroundColor = "#28a745"; }}
-                    >
-                        Update
-                    </button>
+                    </div>
                 </>
             )}
 
@@ -337,7 +341,7 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                         borderLeft: "4px solid #ffc107",
                         borderRadius: "6px",
                         color: "#856404",
-                        fontSize: "13px",
+                        fontSize: "14px",
                         fontWeight: 500,
                         lineHeight: "1.5"
                     }}
@@ -423,7 +427,7 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                         onClick={onClose}
                         style={{
                             padding: "10px 20px",
-                            backgroundColor: "#ff5a5f",
+                            backgroundColor: "#FF5A5A",
                             color: "white",
                             border: "none",
                             borderRadius: "5px",
@@ -472,7 +476,7 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                         onClick={onClose}
                         style={{
                             padding: "10px 20px",
-                            backgroundColor: "#ff5a5f",
+                            backgroundColor: "#FF5A5A",
                             color: "white",
                             border: "none",
                             borderRadius: "5px",
@@ -686,7 +690,7 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 style={{
-                            color: "#ff5a5f",
+                            color: "#FF5A5A",
                             marginBottom: "15px",
                             fontSize: "20px",
                             fontWeight: "bold"
@@ -695,7 +699,7 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                         </h3>
                         <p style={{
                             marginBottom: "20px",
-                            color: "#333",
+                            color: "#000000ff",
                             fontSize: "14px",
                             lineHeight: "1.6"
                         }}>
@@ -703,8 +707,8 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                         </p>
                         <p style={{
                             marginBottom: "25px",
-                            color: "#666",
-                            fontSize: "13px",
+                            color: "#000000ff",
+                            fontSize: "14px",
                             lineHeight: "1.6",
                             padding: "12px",
                             backgroundColor: "#fff3cd",
@@ -722,7 +726,7 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                                 onClick={handleCancelDelete}
                                 style={{
                                     padding: "10px 20px",
-                                    backgroundColor: "#6c757d",
+                                    backgroundColor: "#777777",
                                     color: "white",
                                     border: "none",
                                     borderRadius: "6px",
@@ -731,7 +735,7 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                                     fontWeight: 600
                                 }}
                                 onMouseEnter={(e) => { e.target.style.backgroundColor = "#5a6268"; }}
-                                onMouseLeave={(e) => { e.target.style.backgroundColor = "#6c757d"; }}
+                                onMouseLeave={(e) => { e.target.style.backgroundColor = "#777777"; }}
                             >
                                 Cancel
                             </button>
@@ -739,7 +743,7 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                                 onClick={handleConfirmDelete}
                                 style={{
                                     padding: "10px 20px",
-                                    backgroundColor: "#dc3545",
+                                    backgroundColor: "#FF5A5A",
                                     color: "white",
                                     border: "none",
                                     borderRadius: "6px",
@@ -747,8 +751,8 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                                     fontSize: "14px",
                                     fontWeight: 600
                                 }}
-                                onMouseEnter={(e) => { e.target.style.backgroundColor = "#c82333"; }}
-                                onMouseLeave={(e) => { e.target.style.backgroundColor = "#dc3545"; }}
+                                onMouseEnter={(e) => { e.target.style.backgroundColor = "#FF3A3A"; }}
+                                onMouseLeave={(e) => { e.target.style.backgroundColor = "#FF5A5A"; }}
                             >
                                 Delete
                             </button>

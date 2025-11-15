@@ -328,6 +328,8 @@ export default function UserList() {
               <button
                 type="button"
                 onClick={handleAddUser}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = "#FF3A3A"}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                 style={{
                   backgroundColor: "#ff5a5f",
                   color: "white",

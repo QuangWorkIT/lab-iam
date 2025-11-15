@@ -1,9 +1,12 @@
 package com.example.iam_service.service;
 
+import com.example.iam_service.audit.AuditEvent;
+import com.example.iam_service.audit.AuditPublisher;
 import com.example.iam_service.dto.RoleDTO;
 import com.example.iam_service.dto.request.RoleUpdateRequestDto;
 import com.example.iam_service.entity.Enum.Privileges;
 import com.example.iam_service.entity.Role;
+import com.example.iam_service.entity.User;
 import com.example.iam_service.exception.DuplicateRoleException;
 import com.example.iam_service.exception.RoleNotFoundException;
 import com.example.iam_service.exception.RoleDeletionException;
@@ -12,6 +15,7 @@ import com.example.iam_service.mapper.RoleMapper;
 import com.example.iam_service.repository.RoleRepository;
 import com.example.iam_service.repository.UserRepository;
 import com.example.iam_service.serviceImpl.RoleServiceImp;
+import com.example.iam_service.util.SecurityUtil;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,10 +30,7 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,6 +55,12 @@ public class RoleServiceImplTest {
 
     @InjectMocks
     private RoleServiceImp roleService;
+
+    @Mock
+    private AuditPublisher auditPublisher;
+
+    @Mock
+    private SecurityUtil securityUtil;
 
     private Role testRole;
     private RoleDTO testRoleDTO;
@@ -445,6 +452,11 @@ public class RoleServiceImplTest {
             roleToCreate.setName("New Role");
             roleToCreate.setDescription("New role description");
             roleToCreate.setPrivileges(EnumSet.of(Privileges.VIEW_ROLE));
+            User mockUser = new User();
+            mockUser.setUserId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+            mockUser.setRoleCode("ROLE_ADMIN");
+
+            when(securityUtil.getCurrentUser()).thenReturn(mockUser);
 
             when(roleRepository.existsByCode(anyString())).thenReturn(false);
             when(roleRepository.save(any(Role.class))).thenReturn(testRole);
@@ -480,6 +492,12 @@ public class RoleServiceImplTest {
             roleToCreate.setName("My Test Role");
             roleToCreate.setPrivileges(EnumSet.of(Privileges.VIEW_ROLE));
 
+            User mockUser = new User();
+            mockUser.setUserId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+            mockUser.setRoleCode("ROLE_ADMIN");
+
+            when(securityUtil.getCurrentUser()).thenReturn(mockUser);
+
             when(roleRepository.existsByCode(anyString())).thenReturn(false);
             when(roleRepository.save(any(Role.class))).thenReturn(testRole);
             when(mapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
@@ -497,6 +515,11 @@ public class RoleServiceImplTest {
             Role roleToCreate = new Role();
             roleToCreate.setName("Test Role");
             roleToCreate.setPrivileges(null);
+            User mockUser = new User();
+            mockUser.setUserId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+            mockUser.setRoleCode("ROLE_ADMIN");
+
+            when(securityUtil.getCurrentUser()).thenReturn(mockUser);
 
             when(roleRepository.existsByCode(anyString())).thenReturn(false);
             when(roleRepository.save(any(Role.class))).thenReturn(testRole);
@@ -513,6 +536,11 @@ public class RoleServiceImplTest {
             Role roleToCreate = new Role();
             roleToCreate.setName("Test Role");
             roleToCreate.setPrivileges(EnumSet.noneOf(Privileges.class));
+            User mockUser = new User();
+            mockUser.setUserId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+            mockUser.setRoleCode("ROLE_ADMIN");
+
+            when(securityUtil.getCurrentUser()).thenReturn(mockUser);
 
             when(roleRepository.existsByCode(anyString())).thenReturn(false);
             when(roleRepository.save(any(Role.class))).thenReturn(testRole);
@@ -534,6 +562,11 @@ public class RoleServiceImplTest {
         @DisplayName("Should update role successfully")
         void updateRole_Success() {
             String roleCode = "ROLE_ADMIN";
+            User mockUser = new User();
+            mockUser.setUserId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+            mockUser.setRoleCode("ROLE_ADMIN");
+
+            when(securityUtil.getCurrentUser()).thenReturn(mockUser);
             when(roleRepository.existsByCode(roleCode)).thenReturn(true);
             when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
             when(roleRepository.save(any(Role.class))).thenReturn(testRole);
@@ -565,6 +598,11 @@ public class RoleServiceImplTest {
         @DisplayName("Should use mapper for update mapping")
         void updateRole_UseMapper() {
             String roleCode = "ROLE_ADMIN";
+            User mockUser = new User();
+            mockUser.setUserId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+            mockUser.setRoleCode("ROLE_ADMIN");
+
+            when(securityUtil.getCurrentUser()).thenReturn(mockUser);
             when(roleRepository.existsByCode(roleCode)).thenReturn(true);
             when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
             when(roleRepository.save(any(Role.class))).thenReturn(testRole);
@@ -588,6 +626,12 @@ public class RoleServiceImplTest {
         void deleteRole_Success() {
             String roleCode = "ROLE_ADMIN";
             testRole.setDeletable(true);
+
+            User mockUser = new User();
+            mockUser.setUserId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+            mockUser.setRoleCode("ROLE_ADMIN");
+
+            when(securityUtil.getCurrentUser()).thenReturn(mockUser);
 
             when(roleRepository.existsByCode(roleCode)).thenReturn(true);
             when(roleRepository.findById(roleCode)).thenReturn(Optional.of(testRole));
@@ -639,6 +683,12 @@ public class RoleServiceImplTest {
         @DisplayName("Should batch update users with ROLE_DEFAULT")
         void deleteRole_BatchUpdateUsers() {
             String roleCode = "ROLE_ADMIN";
+
+            User mockUser = new User();
+            mockUser.setUserId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+            mockUser.setRoleCode("ROLE_ADMIN");
+
+            when(securityUtil.getCurrentUser()).thenReturn(mockUser);
             testRole.setDeletable(true);
 
             when(roleRepository.existsByCode(roleCode)).thenReturn(true);
@@ -657,6 +707,11 @@ public class RoleServiceImplTest {
         @DisplayName("Should handle zero users updated")
         void deleteRole_NoUsersUpdated() {
             String roleCode = "ROLE_ADMIN";
+            User mockUser = new User();
+            mockUser.setUserId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+            mockUser.setRoleCode("ROLE_ADMIN");
+
+            when(securityUtil.getCurrentUser()).thenReturn(mockUser);
             testRole.setDeletable(true);
 
             when(roleRepository.existsByCode(roleCode)).thenReturn(true);
@@ -671,4 +726,112 @@ public class RoleServiceImplTest {
             verify(roleRepository, times(1)).delete(testRole);
         }
     }
+    @Test
+    @DisplayName("Should publish ROLE_CREATED audit event when a new role is created")
+    void createRole_ShouldPublishAuditEvent() {
+        // Arrange
+        Role role = new Role();
+        role.setName("Test Role");
+        role.setPrivileges(EnumSet.of(Privileges.READ_ONLY));
+
+        User mockUser = new User();
+        mockUser.setUserId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+        mockUser.setRoleCode("ROLE_ADMIN");
+
+        when(securityUtil.getCurrentUser()).thenReturn(mockUser);
+        when(roleRepository.existsByCode(anyString())).thenReturn(false);
+        when(roleRepository.save(any(Role.class))).thenReturn(role);
+        when(mapper.toDto(any(Role.class))).thenReturn(new RoleDTO());
+
+        // Act
+        roleService.createRole(role);
+
+        // Assert
+        ArgumentCaptor<AuditEvent> captor = ArgumentCaptor.forClass(AuditEvent.class);
+        verify(auditPublisher, times(1)).publish(captor.capture());
+
+        AuditEvent event = captor.getValue();
+        assertEquals("ROLE_CREATED", event.getType());
+        assertEquals("123e4567-e89b-12d3-a456-426614174000 (ROLE_ADMIN)", event.getUserId());
+        assertEquals("none", event.getTargetRole());
+        assertTrue(event.getDetails().contains("created"));
+    }
+
+    @Test
+    @DisplayName("Should publish ROLE_UPDATED audit event when role is updated")
+    void updateRole_ShouldPublishAuditEvent() {
+        // Arrange
+        String roleCode = "ROLE_TEST";
+        RoleUpdateRequestDto dto = new RoleUpdateRequestDto();
+        dto.setName("Updated Role");
+
+        User mockUser = new User();
+        mockUser.setUserId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+        mockUser.setRoleCode("ROLE_ADMIN");
+
+        Role existingRole = new Role();
+        existingRole.setCode(roleCode);
+        existingRole.setPrivileges(EnumSet.of(Privileges.READ_ONLY));
+        existingRole.setDeletable(true);
+
+        Role updatedRole = new Role();
+        updatedRole.setCode(roleCode);
+        updatedRole.setPrivileges(EnumSet.of(Privileges.UPDATE_ROLE));
+
+        when(securityUtil.getCurrentUser()).thenReturn(mockUser);
+        when(roleRepository.existsByCode(roleCode)).thenReturn(true);
+        when(roleRepository.findById(roleCode)).thenReturn(Optional.of(existingRole));
+        when(mapper.updateEntityFromDto(dto, existingRole)).thenReturn(updatedRole);
+        when(roleRepository.save(any(Role.class))).thenReturn(updatedRole);
+        when(mapper.toDto(any(Role.class))).thenReturn(new RoleDTO());
+
+        // Act
+        roleService.updateRole(dto, roleCode);
+
+        // Assert
+        ArgumentCaptor<AuditEvent> captor = ArgumentCaptor.forClass(AuditEvent.class);
+        verify(auditPublisher, times(1)).publish(captor.capture());
+
+        AuditEvent event = captor.getValue();
+        assertEquals("ROLE_UPDATED", event.getType());
+        assertEquals("123e4567-e89b-12d3-a456-426614174000 (ROLE_ADMIN)", event.getUserId());
+        assertEquals(roleCode, event.getTarget());
+        assertTrue(event.getDetails().contains("updated"));
+    }
+
+    @Test
+    @DisplayName("Should publish ROLE_DELETED audit event when role is deleted")
+    void deleteRole_ShouldPublishAuditEvent() {
+        // Arrange
+        String roleCode = "ROLE_DELETE";
+        User mockUser = new User();
+        mockUser.setUserId(UUID.fromString("123e4567-e89b-12d3-a456-426614174000"));
+        mockUser.setRoleCode("ROLE_ADMIN");
+
+        Role deletableRole = new Role();
+        deletableRole.setCode(roleCode);
+        deletableRole.setDeletable(true);
+
+        when(securityUtil.getCurrentUser()).thenReturn(mockUser);
+        when(roleRepository.existsByCode(roleCode)).thenReturn(true);
+        when(roleRepository.findById(roleCode)).thenReturn(Optional.of(deletableRole));
+        when(userRepository.batchUpdateUser("ROLE_DEFAULT", roleCode)).thenReturn(5);
+
+        // Act
+        roleService.DeleteRole(roleCode);
+
+        // Assert
+        ArgumentCaptor<AuditEvent> captor = ArgumentCaptor.forClass(AuditEvent.class);
+        verify(auditPublisher, times(1)).publish(captor.capture());
+
+        AuditEvent event = captor.getValue();
+        assertEquals("ROLE_DELETED", event.getType());
+        assertEquals("123e4567-e89b-12d3-a456-426614174000 (ROLE_ADMIN)", event.getUserId());
+        assertEquals(roleCode, event.getTarget());
+        assertTrue(event.getDetails().contains("deleted"));
+        assertTrue(event.getDetails().contains("5 users reassigned"));
+    }
+
+
+
 }

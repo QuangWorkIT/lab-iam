@@ -8,17 +8,11 @@ import { motion, AnimatePresence } from "motion/react"
 import NotificationComponent from "../common/NotificationComponent"
 import { Tooltip } from "antd";
 import { useNavigate } from "react-router";
-import MobileSidebar from "../common/MobileSideBar";
-import MobileToggle from "../common/MobileToggle";
-import { useSidebarMenu } from "../../hooks/useSideBarMenu";
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
   const nav = useNavigate()
   const { userInfo } = useSelector((state) => state.user);
-  const displayMenuItems = useSidebarMenu()
-  const [isOpen, setIsOpen] = useState(false)
-
   const notifyItems = [
     {
       text: 'Success 1',
@@ -131,7 +125,7 @@ export default function Header({ pageTitle }) {
       boxShadow:
         "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
       padding: "18px 20px",
-      borderTop: "5px solid #fe535b",
+      borderTop: "5px solid #FF5A5A",
     },
     titleRow: {
       display: "flex",
@@ -156,7 +150,7 @@ export default function Header({ pageTitle }) {
       color: "#374151",
     },
     btnDanger: {
-      backgroundColor: "#fe535b",
+      backgroundColor: "#FF5A5A",
       color: "#ffffff",
     },
     closeX: {
@@ -172,8 +166,6 @@ export default function Header({ pageTitle }) {
     },
   };
 
-  const toggleSidebar = () => setIsOpen(!isOpen)
-
   return (
     <>
       <header
@@ -184,47 +176,43 @@ export default function Header({ pageTitle }) {
           justifyContent: "space-between",
           alignItems: "center",
           backgroundColor: "white",
-          height: "60px"
         }}
       >
-        <div className="flex">
-          <div className="md:hidden">
-            <MobileToggle isOpen={isOpen} onToggle={toggleSidebar} />
-            <MobileSidebar isOpen={isOpen} menuItems={displayMenuItems} toggleSideBar={toggleSidebar} />
-          </div>
-
+        <div style={{ display: "flex", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center" }}>
-            <div className="items-center hidden md:flex">
-              <FaHeartbeat
-                style={{
-                  color: "#fe535b",
-                  fontSize: "24px",
-                  marginRight: "10px",
-                }}
-              />
-              <span
-                className="text-[18px] font-bold "
-              >
-                Laboratory Management
-              </span>
-            </div>
-            {pageTitle && (
-              <div className="hidden md:inline">
-                <span className="mx-[10px] text-gray-400">
-                  <DoubleRightOutlined />
-                </span>
-                <span style={{ color: "#fe535b", fontWeight: "bold" }}>{pageTitle}</span>
-              </div>
-            )}
+            <FaHeartbeat
+              style={{
+                color: "#FF5A5A",
+                fontSize: "24px",
+                marginRight: "10px",
+              }}
+            />
+            <span
+              style={{ color: "black", fontWeight: "bold", fontSize: "18px" }}
+            >
+              Laboratory Management
+            </span>
           </div>
+          {pageTitle && (
+            <>
+              <span style={{ margin: "0 10px", color: "lightgray" }}>
+                <DoubleRightOutlined />
+              </span>
+              <span style={{ color: "#FF5A5A", fontWeight: "bold" }}>{pageTitle}</span>
+            </>
+          )}
         </div>
 
         <div style={{ display: "flex", alignItems: "center" }}>
           <div
-            className="hidden md:flex mr-[15px] items-center"
+            style={{
+              marginRight: "15px",
+              display: "flex",
+              alignItems: "center",
+            }}
           >
-            <span className="mr-1 text-gray-400 cursor-default">Welcome, </span>
-            <span className="font-bold text-[#fe535b] cursor-default">
+            <span style={{ marginRight: "5px", color: "#888", cursor: "default" }}>Welcome, </span>
+            <span style={{ fontWeight: "bold", color: "#FF5A5A", cursor: "default" }}>
               [{userInfo?.userName || "User"}]
             </span>
           </div>
@@ -232,14 +220,14 @@ export default function Header({ pageTitle }) {
             <NotificationComponent items={notifyItems} />
             <Tooltip title={"User details"}>
               <FaUserCog
-                style={{ color: "#888", fontSize: "24px", cursor: "pointer" }}
+                style={{ color: "#888", fontSize: "19px", cursor: "pointer" }}
                 onClick={handleViewUserDetail}
                 className="hover:scale-120 transition-all duration-300 ease-in-out"
               />
             </Tooltip>
             <Tooltip title={"Logout"} placement="bottomLeft">
               <FaSignOutAlt
-                style={{ color: "#888", fontSize: "24px", cursor: "pointer" }}
+                style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
                 onClick={handleLogout}
                 className="hover:scale-120 transition-all duration-300 ease-in-out"
               />
@@ -266,7 +254,7 @@ export default function Header({ pageTitle }) {
             </button>
 
             <div style={styles.titleRow}>
-              <FaSignOutAlt style={{ color: "#fe535b", fontSize: "20px" }} />
+              <FaSignOutAlt style={{ color: "#FF5A5A", fontSize: "20px" }} />
               <h3 id="logout-title" style={styles.title}>
                 Confirm Logout
               </h3>
@@ -284,6 +272,8 @@ export default function Header({ pageTitle }) {
               <button
                 ref={confirmBtnRef}
                 style={{ ...styles.btnBase, ...styles.btnDanger }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = "#FF3A3A"}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                 onClick={confirmLogout}
               >
                 Logout

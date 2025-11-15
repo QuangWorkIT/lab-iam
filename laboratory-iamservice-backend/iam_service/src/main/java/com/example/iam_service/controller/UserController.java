@@ -202,5 +202,38 @@ public class UserController {
         return ResponseEntity.ok("User restored successfully.");
     }
 
+    @Operation(
+            summary = "Update a user by email",
+            description = "Admins or users with MODIFY_USER permission can update a user's information by their email."
+    )
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('MODIFY_USER') or hasAuthority('ROLE_LAB_MANAGER')")
+    @PutMapping("/email")
+    public ResponseEntity<UserDTO> updateUserByEmail(
+            @RequestParam String email,
+            @Valid @RequestBody AdminUpdateUserDTO dto) {
+
+        User updatedUser = userService.updateUserByEmail(email, dto);
+        return ResponseEntity.ok(userMapper.toDto(updatedUser));
+    }
+
+    @Operation(
+            summary = "Batch create patient users",
+            description = "Admins or users with CREATE_USER permission can create multiple patient users in a batch. " +
+                    "Invalid or duplicate emails will be skipped, valid users will receive credentials via email."
+    )
+    @PreAuthorize("hasAuthority('CREATE_USER') or hasAuthority('ROLE_ADMIN')")
+    @PostMapping("/batch/patients")
+    public ResponseEntity<List<UserDTO>> batchCreatePatientUsers(
+            @Valid @RequestBody List<User> users) {
+
+        List<User> createdUsers = userService.batchCreatePatientUsers(users);
+        List<UserDTO> dtoList = createdUsers.stream()
+                .map(userMapper::toDto)
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(dtoList);
+    }
+
+
 
 }

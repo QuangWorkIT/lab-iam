@@ -16,10 +16,14 @@ import CountDownTimer from "../common/CountDownTimer.jsx"
 export const theme = {
     components: {
         Input: {
-            colorPrimary: '#FE535B',
-            colorPrimaryHover: '#FE535B',
-            colorPrimaryActive: '#FE535B',
+            colorPrimary: '#FF5A5A',
+            colorPrimaryHover: '#FF3A3A',
+            colorPrimaryActive: '#FF5A5A',
+            colorError: '#FF0000',
         },
+        Form: {
+            colorError: '#FF0000',
+        }
     },
 };
 
@@ -131,7 +135,7 @@ function LoginForm({ setIsResetPassWord }) {
                     >
                         <div className={`m-auto transition-all duration-500 ease-in-out w-70 md:w-100`}>
                             <Input
-                                prefix={<UserOutlined style={{ color: "#FE535B" }} />}
+                                prefix={<UserOutlined style={{ color: "#FF5A5A" }} />}
                                 placeholder="Email"
                                 variant='underlined'
                             />
@@ -147,7 +151,7 @@ function LoginForm({ setIsResetPassWord }) {
                         <div className={`m-auto transition-all duration-500 ease-in-out w-70 md:w-100`}>
                             <Input.Password
                                 className="bg-transparent"
-                                prefix={<LockOutlined style={{ color: "#FE535B" }} />}
+                                prefix={<LockOutlined style={{ color: "#FF5A5A" }} />}
                                 placeholder="Password"
                                 variant='underlined'
                             />
@@ -180,9 +184,10 @@ function LoginForm({ setIsResetPassWord }) {
                     }
                     <Form.Item className='flex justify-center' style={{ margin: "0" }}>
                         <Button
-                            className='md:w-[200px] w-50 hover:bg-[#fca9ad]'
-                            color='danger'
-                            variant='solid'
+                            className='md:w-[200px] w-50'
+                            style={{ backgroundColor: "#FF5A5A", color: "white" }} // primary color
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FF3A3A"} // hover
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                             htmlType='submit'
                             loading={isSubmitting}
                             disabled={bannedElements.some(e => e.type === "loginBanned")}
