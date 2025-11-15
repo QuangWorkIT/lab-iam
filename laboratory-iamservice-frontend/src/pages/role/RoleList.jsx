@@ -258,7 +258,7 @@ export default function RoleList() {
             style={{
               fontSize: "18px",
               margin: 0,
-              color: "#fe535b",
+              color: "#FF5A5A",
               fontWeight: "600",
             }}
           >
@@ -268,8 +268,10 @@ export default function RoleList() {
             <button
               type="button"
               onClick={handleAddRole}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = "#FF3A3A"}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = "#FF5A5A"}
               style={{
-                backgroundColor: "#fe535b",
+                backgroundColor: "#FF5A5A",
                 color: "white",
                 border: "none",
                 borderRadius: "4px",

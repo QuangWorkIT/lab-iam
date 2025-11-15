@@ -76,7 +76,7 @@ export default function Pagination({
           title="First page"
           onMouseEnter={(e) => {
             if (currentPage !== 0) {
-              e.currentTarget.style.borderColor = "#fe535b";
+              e.currentTarget.style.borderColor = "#FF5A5A";
               e.currentTarget.style.backgroundColor = "#fff5f5";
             }
           }}
@@ -95,11 +95,11 @@ export default function Pagination({
           <button
             key={pageNum}
             style={{
-              backgroundColor: currentPage === pageNum ? "#fe535b" : "#ffffff",
+              backgroundColor: currentPage === pageNum ? "#FF5A5A" : "#ffffff",
               color: currentPage === pageNum ? "white" : "#666",
               border:
                 currentPage === pageNum
-                  ? "1px solid #fe535b"
+                  ? "1px solid #FF5A5A"
                   : "1px solid #e0e0e0",
               borderRadius: "6px",
               padding: "8px 12px",
@@ -116,7 +116,7 @@ export default function Pagination({
             onClick={() => onPageChange(pageNum)}
             onMouseEnter={(e) => {
               if (currentPage !== pageNum) {
-                e.currentTarget.style.borderColor = "#fe535b";
+                e.currentTarget.style.borderColor = "#FF5A5A";
                 e.currentTarget.style.backgroundColor = "#fff5f5";
               }
             }}
@@ -155,7 +155,7 @@ export default function Pagination({
           title="Last page"
           onMouseEnter={(e) => {
             if (currentPage < totalPages - 1) {
-              e.currentTarget.style.borderColor = "#fe535b";
+              e.currentTarget.style.borderColor = "#FF5A5A";
               e.currentTarget.style.backgroundColor = "#fff5f5";
             }
           }}

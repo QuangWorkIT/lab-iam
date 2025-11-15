@@ -219,10 +219,10 @@ const isAdmin = (() => {
   // Accent theo mode (chỉ ảnh hưởng UI header)
   const accent =
     mode === "create"
-      ? { bg: "#e8f5e9", color: "#1f7a3f" }
+      ? { bg: "#e8f5e9", color: "#FF5A5A" }
       : mode === "edit"
-        ? { bg: "#fff7e6", color: "rgb(255, 191, 13)" }
-        : { bg: "#e6f0ff", color: "#5170ff" };
+        ? { bg: "#fff7e6", color: "#FF5A5A" }
+        : { bg: "#e6f0ff", color: "#FF5A5A" };
 
   return (
     <div
@@ -306,7 +306,7 @@ const isAdmin = (() => {
                 >
                   {title}
                 </div>
-                <div style={{ color: "#8a8f98", fontSize: 12 }}>
+                <div style={{ color: "#777777", fontSize: 14 }}>
                   {mode === "create"
                     ? "Create a new role for your system"
                     : mode === "edit"
@@ -339,7 +339,7 @@ const isAdmin = (() => {
             <div
               style={{
                 background: "#f8f9fa",
-                border: "1px solid #e1e7ef",
+                border: "1px solid #CCC",
                 borderRadius: 10,
                 padding: 16,
               }}
@@ -367,8 +367,8 @@ const isAdmin = (() => {
                   <div style={{ marginBottom: 10 }}>
                     <div
                       style={{
-                        color: "#8a8f98",
-                        fontSize: 12,
+                        color: "#777777",
+                        fontSize: 14,
                         marginBottom: 4,
                       }}
                     >
@@ -389,7 +389,7 @@ const isAdmin = (() => {
             <div
               style={{
                 background: "#f8f9fa",
-                border: "1px solid #e1e7ef",
+                border: "1px solid #CCC",
                 borderRadius: 10,
                 padding: 16,
                 marginBottom: 16,
@@ -406,18 +406,20 @@ const isAdmin = (() => {
                   aria-invalid={!!errors.name}
                   style={{
                     ...inputStyle,
-                    borderColor: errors.name ? "#ef4444" : "#e1e7ef",
+                    borderColor: errors.name ? "#FF0000" : "#CCC",
                     boxShadow: errors.name
                       ? "0 0 0 3px rgba(239,68,68,0.15)"
                       : "none",
                   }}
                   onFocus={(e) =>
-                    (e.currentTarget.style.boxShadow = focusShadow)
+                    (e.currentTarget.style.border = "1px solid #FF5A5A")
                   }
-                  onBlur={(e) =>
+                  onBlur={(e) => {
                   (e.currentTarget.style.boxShadow = errors.name
                     ? "0 0 0 3px rgba(239,68,68,0.15)"
-                    : "none")
+                    : "none");
+                     (e.currentTarget.style.border = "1px solid #CCC")
+                  }
                   }
                 />
                 {!errors.name && <NameGuidance raw={formData.name} />}
@@ -435,18 +437,20 @@ const isAdmin = (() => {
                   style={{
                     ...inputStyle,
                     resize: "vertical",
-                    borderColor: errors.description ? "#ef4444" : "#e1e7ef",
+                    borderColor: errors.description ? "#FF0000" : "#CCC",
                     boxShadow: errors.description
                       ? "0 0 0 3px rgba(239,68,68,0.15)"
                       : "none",
                   }}
                   onFocus={(e) =>
-                    (e.currentTarget.style.boxShadow = focusShadow)
+                    (e.currentTarget.style.border = "1px solid #FF5A5A")
                   }
-                  onBlur={(e) =>
-                  (e.currentTarget.style.boxShadow = errors.description
+                  onBlur={(e) => {
+                  (e.currentTarget.style.boxShadow = errors.name
                     ? "0 0 0 3px rgba(239,68,68,0.15)"
-                    : "none")
+                    : "none");
+                     (e.currentTarget.style.border = "1px solid #CCC")
+                  }
                   }
                 />
               </Field>
@@ -530,16 +534,16 @@ const isAdmin = (() => {
                     <div
                       key={group.category}
                       style={{
-                        borderBottom: "1px solid #e1e7ef",
+                        borderBottom: "1px solid #CCC",
                         paddingBottom: 12,
                       }}
                     >
                       <div
                         style={{
                           fontWeight: 600,
-                          color: "#404553",
+                          color: "#000000ff",
                           marginBottom: 8,
-                          fontSize: 13,
+                          fontSize: 14,
                         }}
                       >
                         {group.category}
@@ -570,10 +574,10 @@ const isAdmin = (() => {
                                 width: 16,
                                 height: 16,
                                 cursor: "pointer",
-                                accentColor: "#fe535b",
+                                accentColor: "#FF5A5A",
                               }}
                             />
-                            <span style={{ color: "#404553", fontSize: 12 }}>
+                            <span style={{ color: "#000000", fontSize: 14 }}>
                               {privilege}
                             </span>
                           </label>
@@ -597,12 +601,12 @@ const isAdmin = (() => {
                     style={{ width: 16, height: 16 }}
                   />
                   <span
-                    style={{ color: "#404553", fontSize: 13, fontWeight: 600 }}
+                    style={{ color: "#000000", fontSize: 14, fontWeight: 600 }}
                   >
                     Allow Role Deletion (Advanced Setting)
                   </span>
                 </label>
-                <div style={{ marginLeft: 26, marginTop: 4, color: "#6b7280", fontSize: 12 }}>
+                <div style={{ marginLeft: 26, marginTop: 4, color: "#777777", fontSize: 14 }}>
                   Enable to allow role deletion. When disabled, the role cannot be deleted even if no users are assigned.
                 </div>
               </div>
@@ -620,7 +624,7 @@ const isAdmin = (() => {
                     style={{ width: 16, height: 16 }}
                   />
                   <span
-                    style={{ color: "#404553", fontSize: 13, fontWeight: 600 }}
+                    style={{ color: "#000000ff", fontSize: 14, fontWeight: 600 }}
                   >
                     Active
                   </span>
@@ -642,7 +646,7 @@ const isAdmin = (() => {
                 onClick={onClose}
                 style={{
                   padding: "10px 16px",
-                  border: "1px solid #e1e7ef",
+                  border: "1px solid #CCC",
                   borderRadius: 8,
                   backgroundColor: "#ffffff",
                   color: "#404553",
@@ -664,17 +668,17 @@ const isAdmin = (() => {
                   padding: "10px 18px",
                   border: "none",
                   borderRadius: 8,
-                  backgroundColor: "#fe535b",
+                  backgroundColor: "#FF5A5A",
                   color: "#fff",
                   fontWeight: 700,
                   cursor: "pointer",
                   transition: "background-color .2s",
                 }}
                 onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#e64b52")
+                  (e.currentTarget.style.backgroundColor = "#FF3A3A")
                 }
                 onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#fe535b")
+                  (e.currentTarget.style.backgroundColor = "#FF5A5A")
                 }
               >
                 {primaryText}
@@ -691,11 +695,11 @@ const isAdmin = (() => {
 const inputStyle = {
   width: "100%",
   padding: "10px 12px",
-  border: "1px solid #e1e7ef",
+  border: "1px solid #CCC",
   borderRadius: 8,
   fontSize: 14,
   background: "#fff",
-  color: "#404553",
+  color: "#000000ff",
   outline: "none",
   transition: "border-color .2s, box-shadow .2s",
 };
@@ -710,15 +714,15 @@ function Field({ label, children, error }) {
           display: "block",
           marginBottom: 6,
           fontWeight: 600,
-          color: "#404553",
-          fontSize: 13,
+          color: "#000000ff",
+          fontSize: 14,
         }}
       >
         {label}
       </label>
       {children}
       {error ? (
-        <div style={{ color: "#ef4444", fontSize: 12, marginTop: 6 }}>
+        <div style={{ color: "#FF0000", fontSize: 14, marginTop: 6 }}>
           {error}
         </div>
       ) : null}
@@ -729,10 +733,10 @@ function Field({ label, children, error }) {
 function Item({ label, value }) {
   return (
     <div style={{ marginBottom: 10 }}>
-      <div style={{ color: "#8a8f98", fontSize: 12, marginBottom: 4 }}>
+      <div style={{ color: "#777777", fontSize: 14, marginBottom: 4 }}>
         {label}
       </div>
-      <div style={{ color: "#404553", fontWeight: 600 }}>{String(value)}</div>
+      <div style={{ color: "#000000ff", fontWeight: 600 }}>{String(value)}</div>
     </div>
   );
 }
@@ -743,7 +747,7 @@ function StatusPill({ active }) {
     display: "inline-block",
     padding: "6px 10px",
     borderRadius: 999,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: 700,
     lineHeight: 1,
     letterSpacing: 0.3,
@@ -756,7 +760,7 @@ function StatusPill({ active }) {
   };
   const inactiveStyle = {
     background: "#f1f3f5", // xám nhạt
-    color: "#6b7280", // xám chữ
+    color: "#777777", // xám chữ
     borderColor: "#e5e7eb", // viền xám nhạt
   };
   return (
@@ -772,7 +776,7 @@ function PrivilegesChips({ value }) {
   const groups = groupPrivileges(list);
   return (
     <div style={{ marginBottom: 10 }}>
-      <div style={{ color: "#8a8f98", fontSize: 12, marginBottom: 6 }}>
+      <div style={{ color: "#777777", fontSize: 14, marginBottom: 6 }}>
         Privileges
       </div>
       {groups.length ? (
@@ -781,7 +785,7 @@ function PrivilegesChips({ value }) {
             key={g.category}
             style={{
               marginBottom: 10,
-              border: "1px solid #e1e7ef", // nhấn mạnh block bằng #e1e7ef
+              border: "1px solid #CCC", // nhấn mạnh block bằng #CCC
               background: "#ffffff",
               borderRadius: 10,
               padding: 12,
@@ -791,9 +795,9 @@ function PrivilegesChips({ value }) {
               style={{
                 display: "inline-block",
                 padding: "2px 8px",
-                color: "#2f3a56",
+                color: "#000000ff",
                 fontWeight: 700,
-                fontSize: 11,
+                fontSize: 14,
                 marginBottom: 8,
               }}
             >
@@ -813,11 +817,11 @@ function PrivilegesChips({ value }) {
                   style={{
                     display: "inline-block",
                     padding: "4px 8px",
-                    border: "1px solid #e1e7ef",
+                    border: "1px solid #CCC",
                     background: "#dbeafe",
-                    color: "#2f3a56",
+                    color: "#000000ff",
                     borderRadius: 999,
-                    fontSize: 12,
+                    fontSize: 14,
                     lineHeight: 1.2,
                     whiteSpace: "nowrap",
                   }}
@@ -830,7 +834,7 @@ function PrivilegesChips({ value }) {
           </div>
         ))
       ) : (
-        <span style={{ color: "#8a8f98" }}>—</span>
+        <span style={{ color: "#777777" }}>—</span>
       )}
     </div>
   );
@@ -910,7 +914,7 @@ function NameGuidance({ raw = "" }) {
   const hasRolePrefix = /^\s*ROLE_/i.test(raw);
 
   return (
-    <div style={{ marginTop: 6, fontSize: 12, color: "#6b7280" }}>
+    <div style={{ marginTop: 6, fontSize: 14, color: "#777777" }}>
       <div>
         No need to type “ROLE_” — the system adds it; space → “_”; the code will
         be UPPERCASE.

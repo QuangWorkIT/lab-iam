@@ -147,7 +147,7 @@ export default function AccountTable({
           }}
         >
           <thead>
-            <tr style={{ backgroundColor: "#fe535b" }}>
+            <tr style={{ backgroundColor: "#FF5A5A" }}>
               <th
                 style={{
                   padding: "12px 15px",
@@ -415,7 +415,7 @@ export default function AccountTable({
                       onClick={() => onView && onView(account)}
                       style={{
                         backgroundColor: "transparent",
-                        color: "#fe535b",
+                        color: "#FF5A5A",
                         border: "none",
                         padding: "5px",
                         cursor: "pointer",

@@ -152,6 +152,20 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                                                 type="email"
                                                                 placeholder="Enter your email"
                                                                 className="!w-[250px] md:!w-[320px]"
+                                                                onFocus={(e) => {
+                                                                    const wrapper = e.target.closest(".ant-input-affix-wrapper");
+                                                                    if (wrapper) {
+                                                                        wrapper.style.border = "1px solid #FF5A5A";
+                                                                        wrapper.style.boxShadow = "none";
+                                                                    }
+                                                                }}
+                                                                onBlur={(e) => {
+                                                                    const wrapper = e.target.closest(".ant-input-affix-wrapper");
+                                                                    if (wrapper) {
+                                                                        wrapper.style.border = "1px solid #CCC";
+                                                                        wrapper.style.boxShadow = "none";
+                                                                    }
+                                                                }}
                                                             />
                                                         </Form.Item>
                                                     </ConfigProvider>
@@ -176,6 +190,20 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                                                 prefix={<LuPhone />}
                                                                 placeholder="Enter phone number"
                                                                 style={{ width: "320px", marginLeft: "20px" }}
+                                                                onFocus={(e) => {
+                                                                    const wrapper = e.target.closest(".ant-input-affix-wrapper");
+                                                                    if (wrapper) {
+                                                                        wrapper.style.border = "1px solid #FF5A5A";
+                                                                        wrapper.style.boxShadow = "none";
+                                                                    }
+                                                                }}
+                                                                onBlur={(e) => {
+                                                                    const wrapper = e.target.closest(".ant-input-affix-wrapper");
+                                                                    if (wrapper) {
+                                                                        wrapper.style.border = "1px solid #CCC";
+                                                                        wrapper.style.boxShadow = "none";
+                                                                    }
+                                                                }}
                                                             />
                                                         </Form.Item>
                                                     </ConfigProvider>
@@ -189,10 +217,11 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                             style={{ marginTop: "50px" }}
                                         >
                                             <Button
-                                                className={`hover:bg-[#fca9ad] transition-all duration-300 ease-in-out 
-                                                    ${verifyingEmailOrPhone === "success" ? "w-40 !bg-[#52c41a]" : "w-30"}`}
-                                                color="danger"
-                                                variant="solid"
+                                                className={`transition-all duration-300 ease-in-out 
+                                                    ${verifyingEmailOrPhone === "success" ? "w-40" : "w-30"}`}
+                                                style={{ backgroundColor: "#FF5A5A", color: "white" }} // primary color
+                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FF3A3A"} // hover
+                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                                                 htmlType="submit"
                                                 loading={verifyingEmailOrPhone === "isVerifying"}
                                             >

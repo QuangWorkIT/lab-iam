@@ -574,6 +574,147 @@ class UserServiceImplTest {
         verify(auditPublisher, never()).publish(any());
     }
 
+    // --- updateUserByEmail tests ---
+
+    @Test
+    void updateUserByEmail_success() {
+        AdminUpdateUserDTO dto = new AdminUpdateUserDTO();
+        dto.setFullName("Updated Name");
+
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        // make the mock actually update the user
+        doAnswer(invocation -> {
+            AdminUpdateUserDTO dtoArg = invocation.getArgument(0);
+            User userArg = invocation.getArgument(1);
+            userArg.setFullName(dtoArg.getFullName());
+            return null;
+        }).when(userMapper).updateUserFromAdminDto(any(AdminUpdateUserDTO.class), any(User.class));
+
+        User updated = userService.updateUserByEmail(testUser.getEmail(), dto);
+
+        assertEquals("Updated Name", updated.getFullName());
+        verify(auditPublisher).publish(any(AuditEvent.class));
+    }
+
+
+    @Test
+    void updateUserByEmail_userNotFound_throws() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.updateUserByEmail("noone@example.com", new AdminUpdateUserDTO()));
+
+        verify(userRepository, never()).save(any());
+        verify(auditPublisher, never()).publish(any());
+    }
+
+// --- batchCreatePatientUsers tests ---
+
+    @Test
+    void batchCreatePatientUsers_allValid_success() {
+        // arrange
+        User patient1 = new User();
+        patient1.setEmail("p1@example.com");
+        patient1.setRoleCode("ROLE_PATIENT");
+
+        User patient2 = new User();
+        patient2.setEmail("p2@example.com");
+        patient2.setRoleCode("ROLE_PATIENT");
+
+        patient1.setUserId(UUID.randomUUID());
+        patient2.setUserId(UUID.randomUUID());
+
+        List<User> input = List.of(patient1, patient2);
+
+        // email unique
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+
+        // patient verification step
+        when(patientVerificationService.verifyPatientExists(anyString())).thenReturn(true);
+
+        // password encoding
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+
+        // saveAll returns whatever was passed in
+        when(userRepository.saveAll(any())).thenAnswer(i -> i.getArgument(0));
+
+        // act
+        List<User> result = userService.batchCreatePatientUsers(input);
+
+        // assert
+        assertEquals(2, result.size());
+
+        // email sending -> 2 users = 2 emails
+        verify(emailService, times(2))
+                .sendPasswordEmail(anyString(), anyString());
+
+        // audit: only ONE publish for batch creation
+        verify(auditPublisher, times(1))
+                .publish(any(AuditEvent.class));
+
+        // no skipped audit because none skipped
+        verify(auditPublisher, times(0))
+                .publish(argThat(event ->
+                        "PATIENT_BATCH_SKIPPED".equals(event.getType())
+                ));
+    }
+
+    @Test
+    void batchCreatePatientUsers_someInvalid_skipped() {
+        User validPatient = new User();
+        validPatient.setEmail("valid@example.com");
+        validPatient.setRoleCode("ROLE_PATIENT");
+        validPatient.setUserId(UUID.randomUUID());
+
+        User duplicatePatient = new User();
+        duplicatePatient.setEmail("dup@example.com");
+        duplicatePatient.setRoleCode("ROLE_PATIENT");
+        duplicatePatient.setUserId(UUID.randomUUID());
+
+        when(userRepository.existsByEmail("dup@example.com")).thenReturn(true);
+        when(userRepository.existsByEmail("valid@example.com")).thenReturn(false);
+        when(patientVerificationService.verifyPatientExists("valid@example.com")).thenReturn(true);
+        // removed dup@example.com verifyPatientExists — not needed
+
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+
+        when(userRepository.saveAll(any())).thenAnswer(invocation -> {
+            List<User> users = invocation.getArgument(0);
+            return users;
+        });
+
+        List<User> result = userService.batchCreatePatientUsers(List.of(validPatient, duplicatePatient));
+
+        assertEquals(1, result.size());
+        assertEquals("valid@example.com", result.get(0).getEmail());
+
+        verify(emailService, times(1)).sendPasswordEmail(eq("valid@example.com"), anyString());
+
+        // 1 created + 1 skipped
+        verify(auditPublisher, times(2)).publish(any(AuditEvent.class));
+    }
+
+
+    @Test
+    void batchCreatePatientUsers_invalidPatientVerification_skipped() {
+        User patient = new User();
+        patient.setEmail("p@example.com");
+        patient.setRoleCode("ROLE_PATIENT");
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(patientVerificationService.verifyPatientExists(anyString())).thenReturn(false);
+
+        List<User> result = userService.batchCreatePatientUsers(List.of(patient));
+
+        assertTrue(result.isEmpty());
+        verify(emailService, never()).sendPasswordEmail(anyString(), anyString());
+        verify(auditPublisher, times(1)).publish(any(AuditEvent.class));
+
+    }
+
+
 
 
     // --- validatePassword tests ---

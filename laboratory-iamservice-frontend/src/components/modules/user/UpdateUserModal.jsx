@@ -71,8 +71,8 @@ export default function UpdateUserModal({ isOpen, user, roles, onClose, onSubmit
                             fontWeight: 300
                         }}
                         onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#ff5a5f";
-                            e.target.style.borderColor = "#ff5a5f";
+                            e.target.style.backgroundColor = "#FF5A5A";
+                            e.target.style.borderColor = "#FF5A5A";
                             e.target.style.color = "white";
                         }}
                         onMouseLeave={(e) => {

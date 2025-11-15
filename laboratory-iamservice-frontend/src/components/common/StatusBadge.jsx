@@ -7,11 +7,11 @@ export default function StatusBadge({ active, text }) {
       aria-label={`status-${label.toLowerCase()}`}
       title={label}
       style={{
-        backgroundColor: active ? "#00bf63" : "#fe535b",
+        backgroundColor: active ? "#00bf63" : "#FF5A5A",
         color: "white",
         padding: "4px 12px",
         borderRadius: "9999px",
-        fontSize: "12px",
+        fontSize: "14px",
         fontWeight: "bold",
         whiteSpace: "nowrap",
       }}

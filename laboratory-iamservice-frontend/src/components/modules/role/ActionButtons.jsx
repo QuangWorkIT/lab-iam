@@ -12,7 +12,7 @@ export default function ActionButtons({
   canUpdateRole = true,
   canDeleteRole = true,
 }) {
-  const iconColor = "#fe535b";
+  const iconColor = "#FF5A5A";
 
   const btnStyle = {
     background: "transparent",
