@@ -152,6 +152,20 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                                                 type="email"
                                                                 placeholder="Enter your email"
                                                                 className="!w-[250px] md:!w-[320px]"
+                                                                onFocus={(e) => {
+                                                                    const wrapper = e.target.closest(".ant-input-affix-wrapper");
+                                                                    if (wrapper) {
+                                                                        wrapper.style.border = "1px solid #FF5A5A";
+                                                                        wrapper.style.boxShadow = "none";
+                                                                    }
+                                                                }}
+                                                                onBlur={(e) => {
+                                                                    const wrapper = e.target.closest(".ant-input-affix-wrapper");
+                                                                    if (wrapper) {
+                                                                        wrapper.style.border = "1px solid #CCC";
+                                                                        wrapper.style.boxShadow = "none";
+                                                                    }
+                                                                }}
                                                             />
                                                         </Form.Item>
                                                     </ConfigProvider>
@@ -176,6 +190,20 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                                                 prefix={<LuPhone />}
                                                                 placeholder="Enter phone number"
                                                                 style={{ width: "320px", marginLeft: "20px" }}
+                                                                onFocus={(e) => {
+                                                                    const wrapper = e.target.closest(".ant-input-affix-wrapper");
+                                                                    if (wrapper) {
+                                                                        wrapper.style.border = "1px solid #FF5A5A";
+                                                                        wrapper.style.boxShadow = "none";
+                                                                    }
+                                                                }}
+                                                                onBlur={(e) => {
+                                                                    const wrapper = e.target.closest(".ant-input-affix-wrapper");
+                                                                    if (wrapper) {
+                                                                        wrapper.style.border = "1px solid #CCC";
+                                                                        wrapper.style.boxShadow = "none";
+                                                                    }
+                                                                }}
                                                             />
                                                         </Form.Item>
                                                     </ConfigProvider>

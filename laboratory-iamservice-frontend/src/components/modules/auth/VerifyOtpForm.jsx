@@ -42,7 +42,8 @@ const VerifyOpt = ({ data, setIsResetPassWordOpen }) => {
                     name="otp"
                     rules={[{ required: true, message: "Please enter the OTP code" }]}
                 >
-                    <Input.OTP />
+                    <Input.OTP 
+                    />
                 </Form.Item>
 
                 <Form.Item

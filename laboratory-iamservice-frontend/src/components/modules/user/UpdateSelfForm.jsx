@@ -12,24 +12,12 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
 
     const [formData, setFormData] = useState(initial);
     const [errors, setErrors] = useState({});
+    const [focusedField, setFocusedField] = useState(""); // Track focus
 
     useEffect(() => {
         setFormData(initial);
         setErrors({});
     }, [initial]);
-
-    // Thin black outline with offset; preserves existing border + red left bar
-    const createFocusHandlers = () => ({
-        onFocus: (e) => {
-            e.target.style.boxShadow = "none";
-            e.target.style.outline = "1px solid rgba(0,0,0,0.6)";
-            e.target.style.outlineOffset = "2px"; // move outside so it won't cover the red bar
-        },
-        onBlur: (e) => {
-            e.target.style.outline = "none";
-            e.target.style.outlineOffset = "0px";
-        }
-    });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -73,6 +61,18 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
         onSubmit && onSubmit(payload);
     };
 
+    const getInputStyle = (fieldName, baseColor = "#CCC") => ({
+        width: "100%",
+        padding: "9px 12px",
+        borderRadius: 4,
+        borderLeft: "3px solid #ff5a5f",
+        fontSize: "14px",
+        border: focusedField === fieldName
+            ? "1px solid #FF5A5A"
+            : `1px solid ${errors[fieldName] ? "#dc3545" : baseColor}`,
+        outline: "none"
+    });
+
     return (
         <form onSubmit={handleSubmit} style={{ padding: "1px 0 0 0", width: "100%" }}>
             {/* Header */}
@@ -82,8 +82,6 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
                 </div>
                 <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#ff5a5f", textTransform: "uppercase" }}>UPDATE USER</h2>
             </div>
-
-            {/* Step indicator removed: single-step update */}
 
             {/* Form grid - 2 columns */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px 25px" }}>
@@ -95,8 +93,9 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
                         name="fullName"
                         value={formData.fullName}
                         onChange={handleChange}
-                        {...createFocusHandlers()}
-                        style={{ width: "100%", padding: "9px 12px", border: `1px solid ${errors.fullName ? "#dc3545" : "#ddd"}`, borderRadius: 4, borderLeft: "3px solid #ff5a5f", fontSize: "14px" }}
+                        onFocus={() => setFocusedField("fullName")}
+                        onBlur={() => setFocusedField("")}
+                        style={getInputStyle("fullName")}
                         placeholder="Enter full name"
                     />
                     {errors.fullName && <span style={{ color: "#FF0000", fontSize: 11 }}>{errors.fullName}</span>}
@@ -110,9 +109,10 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
                         name="birthdate"
                         value={formData.birthdate ? dayjs(formData.birthdate).format("YYYY-MM-DD") : ""}
                         onChange={handleChange}
+                        onFocus={() => setFocusedField("birthdate")}
+                        onBlur={() => setFocusedField("")}
                         max={dayjs().format("YYYY-MM-DD")}
-                        {...createFocusHandlers()}
-                        style={{ width: "100%", padding: "9px 12px", border: `1px solid ${errors.birthdate ? "#dc3545" : "#ddd"}`, borderRadius: 4, borderLeft: "3px solid #ff5a5f", fontSize: "14px" }}
+                        style={getInputStyle("birthdate")}
                     />
                     {errors.birthdate && <span style={{ color: "#FF0000", fontSize: 11 }}>{errors.birthdate}</span>}
                 </div>
@@ -125,8 +125,9 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
                         name="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={handleChange}
-                        {...createFocusHandlers()}
-                        style={{ width: "100%", padding: "9px 12px", border: `1px solid ${errors.phoneNumber ? "#dc3545" : "#ddd"}`, borderRadius: 4, borderLeft: "3px solid #ff5a5f", fontSize: "14px" }}
+                        onFocus={() => setFocusedField("phoneNumber")}
+                        onBlur={() => setFocusedField("")}
+                        style={getInputStyle("phoneNumber", "#CCC")}
                         placeholder="e.g. 0912345678"
                     />
                     {errors.phoneNumber && <span style={{ color: "#FF0000", fontSize: 11 }}>{errors.phoneNumber}</span>}
@@ -140,8 +141,9 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
                         name="address"
                         value={formData.address}
                         onChange={handleChange}
-                        {...createFocusHandlers()}
-                        style={{ width: "100%", padding: "9px 12px", border: `1px solid ${errors.address ? "#dc3545" : "#ddd"}`, borderRadius: 4, borderLeft: "3px solid #ff5a5f", fontSize: "14px" }}
+                        onFocus={() => setFocusedField("address")}
+                        onBlur={() => setFocusedField("")}
+                        style={getInputStyle("address", "#CCC")}
                         placeholder="Enter address"
                     />
                     {errors.address && <span style={{ color: "#FF0000", fontSize: 11 }}>{errors.address}</span>}
@@ -151,11 +153,11 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
                 <div style={{ gridColumn: "1 / -1" }}>
                     <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 500 }}>Gender <span style={{ color: "#ff5a5f" }}>*</span></label>
                     <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-                        <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "14px" }}>
+                        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: "14px" }}>
                             <input type="radio" name="gender" value="MALE" checked={formData.gender === "MALE"} onChange={handleChange} style={{ accentColor: "#ff5a5f" }} />
                             <span>Male</span>
                         </label>
-                        <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "14px" }}>
+                        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: "14px" }}>
                             <input type="radio" name="gender" value="FEMALE" checked={formData.gender === "FEMALE"} onChange={handleChange} style={{ accentColor: "#ff5a5f" }} />
                             <span>Female</span>
                         </label>
@@ -166,11 +168,16 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
 
             {/* Actions */}
             <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 16 }}>
-                <button type="button" onClick={onCancel} style={{ padding: "10px 22px", border: "1px solid #ddd", borderRadius: 6, backgroundColor: "white", color: "#666", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>Cancel</button>
-                <button type="submit" style={{ padding: "10px 22px", border: "none", borderRadius: 6, backgroundColor: "#ff5a5f", color: "white", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>Update</button>
+                <button type="button" onClick={onCancel} style={{ padding: "10px 22px", border: "1px solid #CCC", borderRadius: 6, backgroundColor: "white", color: "#666", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>Cancel</button>
+                <button 
+                type="submit" 
+                style={{ padding: "10px 22px", border: "none", 
+                borderRadius: 6, backgroundColor: "#ff5a5f", 
+                color: "white", cursor: "pointer", fontSize: 14, fontWeight: 500 }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = "#FF3A3A"}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = "#FF5A5F"}
+                >Update</button>
             </div>
         </form>
     );
 }
-
-

@@ -339,7 +339,7 @@ const isAdmin = (() => {
             <div
               style={{
                 background: "#f8f9fa",
-                border: "1px solid #e1e7ef",
+                border: "1px solid #CCC",
                 borderRadius: 10,
                 padding: 16,
               }}
@@ -389,7 +389,7 @@ const isAdmin = (() => {
             <div
               style={{
                 background: "#f8f9fa",
-                border: "1px solid #e1e7ef",
+                border: "1px solid #CCC",
                 borderRadius: 10,
                 padding: 16,
                 marginBottom: 16,
@@ -406,18 +406,20 @@ const isAdmin = (() => {
                   aria-invalid={!!errors.name}
                   style={{
                     ...inputStyle,
-                    borderColor: errors.name ? "#FF0000" : "#e1e7ef",
+                    borderColor: errors.name ? "#FF0000" : "#CCC",
                     boxShadow: errors.name
                       ? "0 0 0 3px rgba(239,68,68,0.15)"
                       : "none",
                   }}
                   onFocus={(e) =>
-                    (e.currentTarget.style.boxShadow = focusShadow)
+                    (e.currentTarget.style.border = "1px solid #FF5A5A")
                   }
-                  onBlur={(e) =>
+                  onBlur={(e) => {
                   (e.currentTarget.style.boxShadow = errors.name
                     ? "0 0 0 3px rgba(239,68,68,0.15)"
-                    : "none")
+                    : "none");
+                     (e.currentTarget.style.border = "1px solid #CCC")
+                  }
                   }
                 />
                 {!errors.name && <NameGuidance raw={formData.name} />}
@@ -435,18 +437,20 @@ const isAdmin = (() => {
                   style={{
                     ...inputStyle,
                     resize: "vertical",
-                    borderColor: errors.description ? "#FF0000" : "#e1e7ef",
+                    borderColor: errors.description ? "#FF0000" : "#CCC",
                     boxShadow: errors.description
                       ? "0 0 0 3px rgba(239,68,68,0.15)"
                       : "none",
                   }}
                   onFocus={(e) =>
-                    (e.currentTarget.style.boxShadow = focusShadow)
+                    (e.currentTarget.style.border = "1px solid #FF5A5A")
                   }
-                  onBlur={(e) =>
-                  (e.currentTarget.style.boxShadow = errors.description
+                  onBlur={(e) => {
+                  (e.currentTarget.style.boxShadow = errors.name
                     ? "0 0 0 3px rgba(239,68,68,0.15)"
-                    : "none")
+                    : "none");
+                     (e.currentTarget.style.border = "1px solid #CCC")
+                  }
                   }
                 />
               </Field>
@@ -530,7 +534,7 @@ const isAdmin = (() => {
                     <div
                       key={group.category}
                       style={{
-                        borderBottom: "1px solid #e1e7ef",
+                        borderBottom: "1px solid #CCC",
                         paddingBottom: 12,
                       }}
                     >
@@ -642,7 +646,7 @@ const isAdmin = (() => {
                 onClick={onClose}
                 style={{
                   padding: "10px 16px",
-                  border: "1px solid #e1e7ef",
+                  border: "1px solid #CCC",
                   borderRadius: 8,
                   backgroundColor: "#ffffff",
                   color: "#404553",
@@ -691,7 +695,7 @@ const isAdmin = (() => {
 const inputStyle = {
   width: "100%",
   padding: "10px 12px",
-  border: "1px solid #e1e7ef",
+  border: "1px solid #CCC",
   borderRadius: 8,
   fontSize: 14,
   background: "#fff",
@@ -781,7 +785,7 @@ function PrivilegesChips({ value }) {
             key={g.category}
             style={{
               marginBottom: 10,
-              border: "1px solid #e1e7ef", // nhấn mạnh block bằng #e1e7ef
+              border: "1px solid #CCC", // nhấn mạnh block bằng #CCC
               background: "#ffffff",
               borderRadius: 10,
               padding: 12,
@@ -813,7 +817,7 @@ function PrivilegesChips({ value }) {
                   style={{
                     display: "inline-block",
                     padding: "4px 8px",
-                    border: "1px solid #e1e7ef",
+                    border: "1px solid #CCC",
                     background: "#dbeafe",
                     color: "#000000ff",
                     borderRadius: 999,

@@ -43,6 +43,9 @@ label,
 .ant-card * {
   font-family: Arial, Roboto, sans-serif !important;
 }
+.ant-form-item .ant-form-item-explain-error {
+    color: #FF0000 !important; /* overrides default red */
+}
 
 /* Global min-height for buttons, table and list rows */
 button,

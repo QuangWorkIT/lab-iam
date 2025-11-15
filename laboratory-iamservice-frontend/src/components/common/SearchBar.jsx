@@ -35,6 +35,7 @@ export default function SearchBar({
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const roleBtnRef = useRef(null);
   const roleMenuRef = useRef(null);
+
   // Date popover state
   const [showDateMenu, setShowDateMenu] = useState(false);
   const dateBtnRef = useRef(null);
@@ -169,7 +170,7 @@ export default function SearchBar({
           flexShrink: 1,
           backgroundColor: "#ffffff",
           borderRadius: 12,
-          border: `1.5px solid ${focused ? "#FF5A5A" : "#dbe4f2"}`,
+          border: `1px solid ${focused ? "#FF5A5A" : "#CCC"}`,
           boxShadow: focused
             ? "0 0 0 3px rgba(254, 83, 91, 0.15)"
             : "0 2px 8px rgba(219, 228, 242, 0.6)",
@@ -284,7 +285,7 @@ export default function SearchBar({
             zIndex: 1000,
             minWidth: 240,
             background: "#fff",
-            border: "1px solid #e6eaf0",
+            border: "1px solid #CCC",
             borderRadius: 10,
             boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
             padding: 12,
@@ -309,12 +310,19 @@ export default function SearchBar({
             style={{
               width: "100%",
               padding: "8px 10px",
-              border: "1px solid #e1e7ef",
+              border: "1px solid #CCC",
               borderRadius: 6,
               fontSize: 14,
               backgroundColor: "#fff",
               color: "#000000ff",
               cursor: "pointer",
+              outline: "none",
+            }}
+            onFocus={(e) => {
+              e.target.style.border = "1px solid #FF5A5A"; // red border on focus
+            }}
+            onBlur={(e) => {
+              e.target.style.border = "1px solid #CCC"; // back to default on blur
             }}
             aria-label="Role filter"
             name="roleFilter"
@@ -414,12 +422,19 @@ export default function SearchBar({
                 }
                 style={{
                   padding: "6px 10px",
-                  border: "1px solid #e1e7ef",
+                  border: "1px solid #CCC",
                   borderRadius: 6,
                   fontSize: 14,
                   backgroundColor: "#fff",
                   color: "#333",
                   cursor: "pointer",
+                  outline: "none",
+                }}
+                onFocus={(e) => {
+                  e.target.style.border = "1px solid #FF5A5A"; // red border on focus
+                }}
+                onBlur={(e) => {
+                  e.target.style.border = "1px solid #CCC"; // back to default on blur
                 }}
                 aria-label="From date"
                 name="fromDateTemp"
@@ -444,6 +459,13 @@ export default function SearchBar({
                   backgroundColor: "#fff",
                   color: "#333",
                   cursor: "pointer",
+                  outline: "none",
+                }}
+                onFocus={(e) => {
+                  e.target.style.border = "1px solid #FF5A5A"; // red border on focus
+                }}
+                onBlur={(e) => {
+                  e.target.style.border = "1px solid #CCC"; // back to default on blur
                 }}
                 aria-label="To date"
                 name="toDateTemp"

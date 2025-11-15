@@ -291,7 +291,7 @@ export default function UserTable({
               <th
                 style={{
                   padding: "12px 15px",
-                  textAlign: "center",
+                  textAlign: "left",
                   color: "white",
                   fontWeight: "600",
                   fontSize: "14px",
@@ -415,6 +415,7 @@ export default function UserTable({
                         padding: "12px 15px",
                         fontWeight: "500",
                         color: "#000",
+                        textAlign: "left",
                       }}
                     >
                       {user.name}
@@ -423,6 +424,7 @@ export default function UserTable({
                       style={{
                         padding: "12px 15px",
                         color: "#000",
+                        textAlign: "left",
                       }}
                     >
                       {user.email}
@@ -430,6 +432,7 @@ export default function UserTable({
                     <td
                       style={{
                         padding: "12px 15px",
+                        textAlign: "left",
                       }}
                     >
                       <UserBadge roleName={user.roleCode || user.role} />
@@ -438,6 +441,7 @@ export default function UserTable({
                       style={{
                         padding: "12px 15px",
                         color: "#000",
+                        textAlign: "center",
                       }}
                     >
                       {formatDate(user.createdAt)}

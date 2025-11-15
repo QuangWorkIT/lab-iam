@@ -12,6 +12,7 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
     const dispath = useDispatch()
     const { bannedElements } = useSelector(state => state.user)
     const [resetPassWordState, setResetPassWordState] = useState(null)
+    const [focusedField, setFocusedField] = useState("");
     const [form] = Form.useForm();
 
     const resetPassWord = async (values) => {
@@ -52,6 +53,15 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
         }
     }
 
+    const getInputStyle = (fieldName) => ({
+        border: focusedField === fieldName ? "1px solid #FF5A5A" : "1px solid #CCC",
+        borderRadius: 6,
+        padding: "4px 12px",
+        width: "100%",
+        outline: "none",
+        boxShadow: "none",
+    })
+
     return (
         <div className="flex flex-col h-full items-center justify-center">
             <Form
@@ -68,7 +78,13 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                             name="currentPassword"
                             rules={[{ required: true, message: "Please enter current password" }]}
                         >
-                            <Input.Password visibilityToggle={true} placeholder="Enter current password" />
+                            <Input.Password
+                            visibilityToggle={true}
+                            placeholder="Enter current password"
+                            style={getInputStyle("currentPassword")}
+                            onFocus={() => setFocusedField("currentPassword")}
+                            onBlur={() => setFocusedField("")}
+                        />
                         </Form.Item>
                     )
                 }
@@ -78,7 +94,13 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                     name="password"
                     rules={[{ required: true, message: "Please enter new password" }]}
                 >
-                    <Input.Password visibilityToggle={true} placeholder="Enter new password" />
+                    <Input.Password
+                        visibilityToggle={true}
+                        placeholder="Enter new password"
+                        style={getInputStyle("password")}
+                        onFocus={() => setFocusedField("password")}
+                        onBlur={() => setFocusedField("")}
+                    />
                 </Form.Item>
 
                 <Form.Item
@@ -97,7 +119,13 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                         })
                     ]}
                 >
-                    <Input.Password visibilityToggle={true} placeholder="Confirm new password" />
+                     <Input.Password
+                        visibilityToggle={true}
+                        placeholder="Confirm new password"
+                        style={getInputStyle("confirm")}
+                        onFocus={() => setFocusedField("confirm")}
+                        onBlur={() => setFocusedField("")}
+                    />
                 </Form.Item>
 
                 <Form.Item

@@ -27,6 +27,8 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const { roles, rolesLoading } = useSelector((state) => state.users);
     const { userInfo } = useSelector((state) => state.user); // Get current logged-in user
     const [isHovering, setIsHovering] = useState(false);
+    const calendarWrapperRef = useRef(null);
+
 
 
     // Check if current user is ADMIN
@@ -506,7 +508,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         style={{
                                             width: "100%",
                                             padding: "12px",
-                                            border: `1px solid ${errors.fullName ? "#FF0000" : "#ddd"}`,
+                                            border: `1px solid ${errors.fullName ? "#FF0000" : "#CCC"}`, // default
                                             borderRadius: "4px",
                                             fontSize: "14px",
                                             boxSizing: "border-box",
@@ -516,11 +518,11 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             outline: "none",
                                         }}
                                         onFocus={(e) => {
-                                            e.target.style.border = `1px solid ${errors.fullName ? "#FF0000" : "#999"}`;
+                                            e.target.style.border = `1px solid ${errors.fullName ? "#FF0000" : "#FF5A5A"}`; // focus
                                             e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         onBlur={(e) => {
-                                            e.target.style.border = `1px solid ${errors.fullName ? "#FF0000" : "#ddd"}`;
+                                            e.target.style.border = `1px solid ${errors.fullName ? "#FF0000" : "#CCC"}`; // back to default
                                             e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         placeholder="Enter full name"
@@ -552,7 +554,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         style={{
                                             width: "100%",
                                             padding: "12px",
-                                            border: `1px solid ${errors.identityNumber ? "#FF0000" : "#ddd"}`,
+                                            border: `1px solid ${errors.identityNumber ? "#FF0000" : "#CCC"}`, // default
                                             borderRadius: "4px",
                                             fontSize: "14px",
                                             boxSizing: "border-box",
@@ -562,15 +564,16 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             outline: "none",
                                         }}
                                         onFocus={(e) => {
-                                            e.target.style.border = `1px solid ${errors.identityNumber ? "#FF0000" : "#999"}`;
+                                            e.target.style.border = `1px solid ${errors.identityNumber ? "#FF0000" : "#FF5A5A"}`; // focus
                                             e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         onBlur={(e) => {
-                                            e.target.style.border = `1px solid ${errors.identityNumber ? "#FF0000" : "#ddd"}`;
+                                            e.target.style.border = `1px solid ${errors.identityNumber ? "#FF0000" : "#CCC"}`; // default
                                             e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         placeholder="Enter identity number"
                                     />
+
                                     {errors.identityNumber && (
                                         <span style={{ color: "#FF0000", fontSize: "12px" }}>
                                             {errors.identityNumber}
@@ -598,7 +601,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         style={{
                                             width: "100%",
                                             padding: "12px",
-                                            border: `1px solid ${errors.phoneNumber ? "#FF0000" : "#ddd"}`,
+                                            border: `1px solid ${errors.phoneNumber ? "#FF0000" : "#CCC"}`, // default border
                                             borderRadius: "4px",
                                             fontSize: "14px",
                                             boxSizing: "border-box",
@@ -606,17 +609,19 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             backgroundColor: "white",
                                             color: "#000000",
                                             outline: "none",
+                                            minHeight: "40px", // added min-height
                                         }}
                                         onFocus={(e) => {
-                                            e.target.style.border = `1px solid ${errors.phoneNumber ? "#FF0000" : "#999"}`;
+                                            e.target.style.border = `1px solid ${errors.phoneNumber ? "#FF0000" : "#FF5A5A"}`; // focus border
                                             e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         onBlur={(e) => {
-                                            e.target.style.border = `1px solid ${errors.phoneNumber ? "#FF0000" : "#ddd"}`;
+                                            e.target.style.border = `1px solid ${errors.phoneNumber ? "#FF0000" : "#CCC"}`; // back to default
                                             e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         placeholder="Enter phone number"
                                     />
+
                                     {errors.phoneNumber && (
                                         <span style={{ color: "#FF0000", fontSize: "12px" }}>
                                             {errors.phoneNumber}
@@ -644,7 +649,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         style={{
                                             width: "100%",
                                             padding: "12px",
-                                            border: `1px solid ${errors.email ? "#FF0000" : "#ddd"}`,
+                                            border: `1px solid ${errors.email ? "#FF0000" : "#CCC"}`,
                                             borderRadius: "4px",
                                             fontSize: "14px",
                                             boxSizing: "border-box",
@@ -654,11 +659,11 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             outline: "none",
                                         }}
                                         onFocus={(e) => {
-                                            e.target.style.border = `1px solid ${errors.email ? "#FF0000" : "#999"}`;
+                                            e.target.style.border = `1px solid ${errors.email ? "#FF0000" : "#ff5a5f"}`;
                                             e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         onBlur={(e) => {
-                                            e.target.style.border = `1px solid ${errors.email ? "#FF0000" : "#ddd"}`;
+                                            e.target.style.border = `1px solid ${errors.email ? "#FF0000" : "#CCC"}`;
                                             e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         placeholder="Enter email address"
@@ -689,9 +694,11 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         <style>{`
                                             .birthdate-input::placeholder { font-size: 14px; }
                                         `}</style>
-                                        <div style={{
+                                        <div 
+                                        ref={calendarWrapperRef}
+                                        style={{
                                             position: "relative",
-                                            border: `1px solid ${errors.birthdate ? "#FF0000" : "#ddd"}`,
+                                            border: `1px solid ${errors.birthdate ? "#FF0000" : "#CCC"}`,
                                             borderLeft: "3px solid #ff5a5f",
                                             borderRadius: "4px",
                                         }}>
@@ -733,7 +740,13 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                                     outline: "none",
                                                 }}
                                                 className="birthdate-input"
+                                                onFocus={() => {
+                                                    calendarWrapperRef.current.style.border = `1px solid ${errors.birthdate ? "#FF0000" : "#FF5A5A"}`;
+                                                    calendarWrapperRef.current.style.borderLeft = "3px solid #ff5a5f";
+                                                }}
                                                 onBlur={() => {
+                                                    calendarWrapperRef.current.style.border = `1px solid ${errors.birthdate ? "#FF0000" : "#CCC"}`;
+                                                    calendarWrapperRef.current.style.borderLeft = "3px solid #ff5a5f";
                                                     // Validate date is valid and within range (1900 to today)
                                                     if (formData.birthdate) {
                                                         const selectedDate = dayjs(formData.birthdate, "YYYY-MM-DD");
@@ -931,7 +944,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         style={{
                                             width: "100%",
                                             padding: "12px",
-                                            border: `1px solid ${errors.address ? "#FF0000" : "#ddd"}`,
+                                            border: `1px solid ${errors.address ? "#FF0000" : "#CCC"}`,
                                             borderRadius: "4px",
                                             fontSize: "14px",
                                             boxSizing: "border-box",
@@ -941,11 +954,11 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             outline: "none",
                                         }}
                                         onFocus={(e) => {
-                                            e.target.style.border = `1px solid ${errors.address ? "#FF0000" : "#999"}`;
+                                            e.target.style.border = `1px solid ${errors.address ? "#FF0000" : "#ff5a5f"}`;
                                             e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         onBlur={(e) => {
-                                            e.target.style.border = `1px solid ${errors.address ? "#FF0000" : "#ddd"}`;
+                                            e.target.style.border = `1px solid ${errors.address ? "#FF0000" : "#CCC"}`;
                                             e.target.style.borderLeft = "3px solid #ff5a5f";
                                         }}
                                         placeholder="Enter address"
@@ -1050,7 +1063,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     style={{
                                         width: "100%",
                                         padding: "12px",
-                                        border: `1px solid ${errors.roleCode ? "#FF0000" : "#ddd"}`,
+                                        border: `1px solid ${errors.roleCode ? "#FF0000" : "#CCC"}`,
                                         borderRadius: "4px",
                                         fontSize: "14px",
                                         boxSizing: "border-box",
@@ -1062,13 +1075,13 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         outline: "none",
                                     }}
                                     onFocus={(e) => {
-                                        e.target.style.borderColor = errors.roleCode ? "#FF0000" : "#999";
+                                        e.target.style.borderColor = errors.roleCode ? "#FF0000" : "#ff5a5f";
                                         e.target.style.borderLeft = "3px solid #ff5a5f";
                                         e.target.style.outline = "none";
                                         e.target.style.boxShadow = "none";
                                     }}
                                     onBlur={(e) => {
-                                        e.target.style.borderColor = errors.roleCode ? "#FF0000" : "#ddd";
+                                        e.target.style.borderColor = errors.roleCode ? "#FF0000" : "#CCC";
                                         e.target.style.borderLeft = "3px solid #ff5a5f";
                                         e.target.style.outline = "none";
                                         e.target.style.boxShadow = "none";
@@ -1116,7 +1129,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                                 style={{
                                                     width: "100%",
                                                     padding: "12px 40px 12px 12px",
-                                                    border: `1px solid ${errors.password ? "#FF0000" : "#ddd"}`,
+                                                    border: `1px solid ${errors.password ? "#FF0000" : "#CCC"}`,
                                                     borderRadius: "4px",
                                                     fontSize: "14px",
                                                     boxSizing: "border-box",
@@ -1126,13 +1139,13 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                                     outline: "none",
                                                 }}
                                                 onFocus={(e) => {
-                                                    e.target.style.borderColor = errors.password ? "#FF0000" : "#999";
+                                                    e.target.style.borderColor = errors.password ? "#FF0000" : "#ff5a5f";
                                                     e.target.style.borderLeft = "3px solid #ff5a5f";
                                                     e.target.style.outline = "none";
                                                     e.target.style.boxShadow = "none";
                                                 }}
                                                 onBlur={(e) => {
-                                                    e.target.style.borderColor = errors.password ? "#FF0000" : "#ddd";
+                                                    e.target.style.borderColor = errors.password ? "#FF0000" : "#CCC";
                                                     e.target.style.borderLeft = "3px solid #ff5a5f";
                                                     e.target.style.outline = "none";
                                                     e.target.style.boxShadow = "none";
@@ -1210,7 +1223,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             style={{
                                                 width: "100%",
                                                 padding: "12px",
-                                                border: `1px solid ${errors.confirmPassword ? "#FF0000" : "#ddd"}`,
+                                                border: `1px solid ${errors.confirmPassword ? "#FF0000" : "#CCC"}`,
                                                 borderRadius: "4px",
                                                 fontSize: "14px",
                                                 boxSizing: "border-box",
@@ -1220,13 +1233,13 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                                 outline: "none",
                                             }}
                                             onFocus={(e) => {
-                                                e.target.style.borderColor = errors.confirmPassword ? "#FF0000" : "#999";
+                                                e.target.style.borderColor = errors.confirmPassword ? "#FF0000" : "#ff5a5f";
                                                 e.target.style.borderLeft = "3px solid #ff5a5f";
                                                 e.target.style.outline = "none";
                                                 e.target.style.boxShadow = "none";
                                             }}
                                             onBlur={(e) => {
-                                                e.target.style.borderColor = errors.confirmPassword ? "#FF0000" : "#ddd";
+                                                e.target.style.borderColor = errors.confirmPassword ? "#FF0000" : "#CCC";
                                                 e.target.style.borderLeft = "3px solid #ff5a5f";
                                                 e.target.style.outline = "none";
                                                 e.target.style.boxShadow = "none";
