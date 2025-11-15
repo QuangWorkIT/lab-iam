@@ -15,7 +15,7 @@ export default function MainLayout({ children, pageTitle, pageDescription }) {
         position: "relative"
       }}
     >
-      <Sidebar classes={"absolute  md:relative"}/>
+      <Sidebar classes={"absolute  md:relative hidden md:inline"}/>
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <Header pageTitle={pageTitle} />

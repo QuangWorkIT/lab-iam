@@ -8,11 +8,17 @@ import { motion, AnimatePresence } from "motion/react"
 import NotificationComponent from "../common/NotificationComponent"
 import { Tooltip } from "antd";
 import { useNavigate } from "react-router";
+import MobileSidebar from "../common/MobileSideBar";
+import MobileToggle from "../common/MobileToggle";
+import { useSidebarMenu } from "../../hooks/useSideBarMenu";
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
   const nav = useNavigate()
   const { userInfo } = useSelector((state) => state.user);
+  const displayMenuItems = useSidebarMenu()
+  const [isOpen, setIsOpen] = useState(false)
+
   const notifyItems = [
     {
       text: 'Success 1',
@@ -166,6 +172,8 @@ export default function Header({ pageTitle }) {
     },
   };
 
+  const toggleSidebar = () => setIsOpen(!isOpen)
+
   return (
     <>
       <header
@@ -176,43 +184,47 @@ export default function Header({ pageTitle }) {
           justifyContent: "space-between",
           alignItems: "center",
           backgroundColor: "white",
+          height: "60px"
         }}
       >
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <FaHeartbeat
-              style={{
-                color: "#fe535b",
-                fontSize: "24px",
-                marginRight: "10px",
-              }}
-            />
-            <span
-              style={{ color: "black", fontWeight: "bold", fontSize: "18px" }}
-            >
-              Laboratory Management
-            </span>
+        <div className="flex">
+          <div className="md:hidden">
+            <MobileToggle isOpen={isOpen} onToggle={toggleSidebar} />
+            <MobileSidebar isOpen={isOpen} menuItems={displayMenuItems} toggleSideBar={toggleSidebar} />
           </div>
-          {pageTitle && (
-            <>
-              <span style={{ margin: "0 10px", color: "lightgray" }}>
-                <DoubleRightOutlined />
+
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <div className="items-center hidden md:flex">
+              <FaHeartbeat
+                style={{
+                  color: "#fe535b",
+                  fontSize: "24px",
+                  marginRight: "10px",
+                }}
+              />
+              <span
+                className="text-[18px] font-bold "
+              >
+                Laboratory Management
               </span>
-              <span style={{ color: "#fe535b", fontWeight: "bold" }}>{pageTitle}</span>
-            </>
-          )}
+            </div>
+            {pageTitle && (
+              <div className="hidden md:inline">
+                <span className="mx-[10px] text-gray-400">
+                  <DoubleRightOutlined />
+                </span>
+                <span style={{ color: "#fe535b", fontWeight: "bold" }}>{pageTitle}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center" }}>
           <div
-            style={{
-              marginRight: "15px",
-              display: "flex",
-              alignItems: "center",
-            }}
+            className="hidden md:flex mr-[15px] items-center"
           >
-            <span style={{ marginRight: "5px", color: "#888", cursor: "default" }}>Welcome, </span>
-            <span style={{ fontWeight: "bold", color: "#fe535b", cursor: "default" }}>
+            <span className="mr-1 text-gray-400 cursor-default">Welcome, </span>
+            <span className="font-bold text-[#fe535b] cursor-default">
               [{userInfo?.userName || "User"}]
             </span>
           </div>
@@ -220,14 +232,14 @@ export default function Header({ pageTitle }) {
             <NotificationComponent items={notifyItems} />
             <Tooltip title={"User details"}>
               <FaUserCog
-                style={{ color: "#888", fontSize: "19px", cursor: "pointer" }}
+                style={{ color: "#888", fontSize: "24px", cursor: "pointer" }}
                 onClick={handleViewUserDetail}
                 className="hover:scale-120 transition-all duration-300 ease-in-out"
               />
             </Tooltip>
             <Tooltip title={"Logout"} placement="bottomLeft">
               <FaSignOutAlt
-                style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
+                style={{ color: "#888", fontSize: "24px", cursor: "pointer" }}
                 onClick={handleLogout}
                 className="hover:scale-120 transition-all duration-300 ease-in-out"
               />

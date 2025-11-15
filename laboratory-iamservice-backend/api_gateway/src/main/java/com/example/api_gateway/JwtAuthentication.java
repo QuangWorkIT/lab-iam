@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpHeaders;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -27,6 +28,7 @@ public class JwtAuthentication implements WebFilter {
         String path =  exchange.getRequest().getPath().value();
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
+        System.out.println("request path " + path);
         if(path.startsWith("/iam/api/auth") || authHeader == null || !authHeader.startsWith("Bearer ")) {
             return chain.filter(exchange);
         }
@@ -55,19 +57,27 @@ public class JwtAuthentication implements WebFilter {
                         h.add("X-Auth-Token", token);
                     }))
                     .build();
-
+            System.out.println("JWT valid");
             return chain.filter(mutatedExchange)
                     .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
         } catch (JwtException e) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            exchange.getResponse().getHeaders().add("Content-Type", "application/json");
+            System.out.println("JWT not valid");
+            ServerHttpResponse response = exchange.getResponse();
+            response.setStatusCode(HttpStatus.UNAUTHORIZED);
 
-            String body = "{\"error\": \"" + e.getMessage() + "\"}";
-            DataBuffer buffer = exchange.getResponse()
+            // manually config CORS
+            response.getHeaders().add("Access-Control-Allow-Origin", "http://localhost:5173");
+            response.getHeaders().add("Access-Control-Allow-Credentials", "true");
+            response.getHeaders().add("Access-Control-Allow-Headers", "*");
+            response.getHeaders().add("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+            response.getHeaders().add("Content-Type", "application/json");
+
+            String body = "{\"error\": \"" + "JWT invalid or expired" + "\"}";
+            DataBuffer buffer = response
                     .bufferFactory()
                     .wrap(body.getBytes(StandardCharsets.UTF_8));
 
-            return exchange.getResponse().writeWith(Mono.just(buffer));
+            return response.writeWith(Mono.just(buffer));
         }
     }
 }

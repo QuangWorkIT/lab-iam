@@ -1,6 +1,5 @@
 server:
   port: 8089
-  address: ${ALLOWED_PORT}   # <== Listen on all interfaces (NOT just localhost)
   error:
     include-message: always
 
@@ -8,7 +7,7 @@ spring:
   application:
     name: iam-service
   datasource:
-    url: jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -43,13 +42,27 @@ google:
   web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
 eureka:
   client:
-    register-with-eureka: true      # Cho phép đăng ký với Eureka
-    fetch-registry: true            # Cho phép lấy danh sách các service khác
     service-url:
-      defaultZone: https://discovery-server-zsph.onrender.com/eureka
+      defaultZone: https://discovery-server-zsph.onrender.com/eureka/
+    registry-fetch-interval-seconds: 30
+
   instance:
-    prefer-ip-address: true         # Dùng IP thay vì hostname (tránh lỗi trong Docker)
-    instance-id: iam-service-dep:8089
+    prefer-ip-address: false
+
+    hostname:  35.172.58.177
+
+    instance-id: ${spring.application.name}:${eureka.instance.hostname}:${server.port}
+
+    non-secure-port: ${server.port}
+    non-secure-port-enabled: true
+
+    health-check-url: http://${eureka.instance.hostname}:${server.port}/actuator/health
+    status-page-url: http://${eureka.instance.hostname}:${server.port}/actuator/info
+    home-page-url: http://${eureka.instance.hostname}:${server.port}/
+
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
 management:
   endpoints:
     web:

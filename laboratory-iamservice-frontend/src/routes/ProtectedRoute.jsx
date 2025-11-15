@@ -17,12 +17,12 @@ const ProtectedRoute = ({ element: Component, allowedRoles, privilege }) => {
 
   // Check role if provided
   if (allowedRoles && !allowedRoles.includes(userInfo.role)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   // Check privilege if provided
   if (privilege && !userInfo.privileges?.includes(privilege)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   return <Component />;

@@ -93,10 +93,14 @@ function LoginForm({ setIsResetPassWord }) {
                     dispatch(addBannedElement(
                         {
                             type: "loginBanned",
-                            banUntil: formatBannedDate(error.response.data.status)
+                            banUntil: formatBannedDate(error.response.data.data)
                         })
                     )
-                } else toast.error("Invalid credentials!")
+                } 
+                else if(errMess === "Email not found" || errMess === "Password is invalid") {
+                    toast.error("Invalid creadetail!")
+                }
+                else toast.error(errMess)
             }
             else toast.error("Login failed!")
             console.log(error)

@@ -15,6 +15,7 @@ import com.example.iam_service.serviceImpl.ResetPasswordRateLimiterImpl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.ws.rs.BadRequestException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +37,7 @@ public class AuthController {
     private final EmailService emailService;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<TokenResponse>> login(
+    public ResponseEntity<ApiResponse<?>> login(
             @Valid @RequestBody LoginRequest loginRq,
             @RequestHeader(value = "X-Forwarded-For", required = false) String clientIp,
             HttpServletRequest servletRequest
@@ -48,9 +49,10 @@ public class AuthController {
                 return ResponseEntity
                         .status(429)
                         .body(new ApiResponse<>(
-                                loginLimiterService.getBanUntil(ip).toString(),
+                                "error",
                                 String.format("Too many attempts. Try after %s minutes",
-                                        loginLimiterService.getBanUntil(ip).toString())
+                                        loginLimiterService.getBanUntil(ip).toString()),
+                                loginLimiterService.getBanUntil(ip).toString()
                         ));
             }
 
@@ -72,15 +74,15 @@ public class AuthController {
                                     tokens.get("refreshToken")
                             )));
 
-        } catch (UsernameNotFoundException | BadCredentialsException e) {
+        } catch (UsernameNotFoundException | BadCredentialsException | BadRequestException e) {
             loginLimiterService.recordFailedAttempt(
                     clientIp != null
                             ? clientIp
                             : servletRequest.getRemoteAddr()
             );
             return ResponseEntity
-                    .status(401)
-                    .body(new ApiResponse<>("Error", e.getMessage()));
+                    .status(400)
+                    .body(new ApiResponse<>("error", e.getMessage()));
         }
     }
 
