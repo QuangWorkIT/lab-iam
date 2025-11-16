@@ -201,14 +201,14 @@ export default function Header({ pageTitle }) {
                 }}
               />
               <span
-                style={{ color: "black", fontWeight: "bold", fontSize: "18px" }}
+                style={{ color: "black", fontWeight: "bold", fontSize: "16px" }}
               >
                 Laboratory Management
               </span>
             </div>
             {pageTitle && (
               <>
-                <span style={{ margin: "0 10px", color: "#888"}}>
+                <span style={{ margin: "0 10px", color: "#777777"}}>
                   <DoubleRightOutlined style={{fontSize: "24px"}}/>
                 </span>
                 <span style={{ color: "#FF5A5A", fontWeight: "bold" }}>{pageTitle}</span>
@@ -221,8 +221,8 @@ export default function Header({ pageTitle }) {
           <div
             className="md:flex items-center mr-[15px] hidden"
           >
-            <span style={{ marginRight: "5px", color: "#777777", cursor: "default" }}>Welcome, </span>
-            <span style={{ fontWeight: "bold", color: "#FF5A5A", cursor: "default" }}>
+            <span style={{ marginTop: "5px", marginRight: "5px", color: "#777777", cursor: "default", fontSize: "14px" }}>Welcome, </span>
+            <span style={{ fontWeight: "bold", color: "black", cursor: "default" }}>
               [{userInfo?.userName || "User"}]
             </span>
           </div>

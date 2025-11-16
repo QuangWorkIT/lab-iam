@@ -433,7 +433,7 @@ export default function AccountTable({
                       <button
                         onClick={() => onActivate && onActivate(account)}
                         style={{
-                          backgroundColor: "#48bb78",
+                          backgroundColor: "#FF5A5A",
                           color: "white",
                           border: "none",
                           borderRadius: "6px",
@@ -450,10 +450,10 @@ export default function AccountTable({
                         }}
                         title="Activate Account"
                         onMouseEnter={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#38a169")
+                          (e.currentTarget.style.backgroundColor = "#FF3A3A")
                         }
                         onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#48bb78")
+                          (e.currentTarget.style.backgroundColor = "#FF5A5A")
                         }
                       >
                         <FiUnlock size={18} />
