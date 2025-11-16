@@ -39,7 +39,9 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
 
             const errMess = error.response.data?.message
             if (errMess) {
-                toast.error(errMess)
+                toast.error(errMess, {
+                    className: "!text-[#FF0000] font-bold text-[14px]"
+                })
                 if (error.response.status === 429 &&
                     errMess === "Too many reset password attempts") {
                     dispath(addBannedElement({
@@ -48,8 +50,12 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                     }))
                 }
             }
-            else if (error.response.data?.error) toast.error(error.response.data.error)
-            else toast.error(`Error ${updateOption} password`)
+            else if (error.response.data?.error) toast.error(error.response.data.error, {
+                className: "!text-[#FF0000] font-bold text-[14px]"
+            })
+            else toast.error(`Error ${updateOption} password`, {
+                className: "!text-[#FF0000] font-bold text-[14px]"
+            })
         }
     }
 
@@ -79,12 +85,12 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                             rules={[{ required: true, message: "Please enter current password" }]}
                         >
                             <Input.Password
-                            visibilityToggle={true}
-                            placeholder="Enter current password"
-                            style={getInputStyle("currentPassword")}
-                            onFocus={() => setFocusedField("currentPassword")}
-                            onBlur={() => setFocusedField("")}
-                        />
+                                visibilityToggle={true}
+                                placeholder="Enter current password"
+                                style={getInputStyle("currentPassword")}
+                                onFocus={() => setFocusedField("currentPassword")}
+                                onBlur={() => setFocusedField("")}
+                            />
                         </Form.Item>
                     )
                 }
@@ -119,7 +125,7 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                         })
                     ]}
                 >
-                     <Input.Password
+                    <Input.Password
                         visibilityToggle={true}
                         placeholder="Confirm new password"
                         style={getInputStyle("confirm")}
@@ -177,7 +183,7 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                                 ) : (
                                     <motion.span
                                         key="reset"
-                                        initial={{ opacity: 0 }}q
+                                        initial={{ opacity: 0 }} q
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
                                         transition={{ duration: 0.2 }}

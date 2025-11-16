@@ -11,14 +11,4 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  // server: {
-  //   host: true,
-  //   port: 5173,
-  //   strictPort: false,
-  //   cors: true,
-  //   allowedHosts: ['ec2-35-172-58-177.compute-1.amazonaws.com'],
-  //   hmr: {
-  //     host: '0.0.0.0',
-  //   }
-  // }
 })

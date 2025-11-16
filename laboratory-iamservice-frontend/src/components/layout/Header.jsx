@@ -165,7 +165,7 @@ export default function Header({ pageTitle }) {
       right: "10px",
       background: "transparent",
       border: "none",
-      fontSize: "22px",
+      fontSize: "24px",
       color: "#9ca3af",
       cursor: "pointer",
       lineHeight: 1,
@@ -208,8 +208,8 @@ export default function Header({ pageTitle }) {
             </div>
             {pageTitle && (
               <>
-                <span style={{ margin: "0 10px", color: "lightgray" }}>
-                  <DoubleRightOutlined />
+                <span style={{ margin: "0 10px", color: "#888"}}>
+                  <DoubleRightOutlined style={{fontSize: "24px"}}/>
                 </span>
                 <span style={{ color: "#FF5A5A", fontWeight: "bold" }}>{pageTitle}</span>
               </>
@@ -221,7 +221,7 @@ export default function Header({ pageTitle }) {
           <div
             className="md:flex items-center mr-[15px] hidden"
           >
-            <span style={{ marginRight: "5px", color: "#888", cursor: "default" }}>Welcome, </span>
+            <span style={{ marginRight: "5px", color: "#777777", cursor: "default" }}>Welcome, </span>
             <span style={{ fontWeight: "bold", color: "#FF5A5A", cursor: "default" }}>
               [{userInfo?.userName || "User"}]
             </span>
@@ -230,14 +230,14 @@ export default function Header({ pageTitle }) {
             <NotificationComponent items={notifyItems} />
             <Tooltip title={"User details"}>
               <FaUserCog
-                style={{ color: "#888", fontSize: "19px", cursor: "pointer" }}
+                style={{ color: "#888", fontSize: "24px", cursor: "pointer" }}
                 onClick={handleViewUserDetail}
                 className="hover:scale-120 transition-all duration-300 ease-in-out"
               />
             </Tooltip>
             <Tooltip title={"Logout"} placement="bottomLeft">
               <FaSignOutAlt
-                style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
+                style={{ color: "#888", fontSize: "24px", cursor: "pointer" }}
                 onClick={handleLogout}
                 className="hover:scale-120 transition-all duration-300 ease-in-out"
               />
@@ -264,7 +264,7 @@ export default function Header({ pageTitle }) {
             </button>
 
             <div style={styles.titleRow}>
-              <FaSignOutAlt style={{ color: "#FF5A5A", fontSize: "20px" }} />
+              <FaSignOutAlt style={{ color: "#FF5A5A", fontSize: "24px" }} />
               <h3 id="logout-title" style={styles.title}>
                 Confirm Logout
               </h3>

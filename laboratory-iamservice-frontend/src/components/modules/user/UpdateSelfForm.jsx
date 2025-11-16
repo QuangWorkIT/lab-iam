@@ -69,7 +69,7 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
         fontSize: "14px",
         border: focusedField === fieldName
             ? "1px solid #FF5A5A"
-            : `1px solid ${errors[fieldName] ? "#dc3545" : baseColor}`,
+            : `1px solid ${errors[fieldName] ? "#FF0000" : baseColor}`,
         outline: "none"
     });
 
@@ -87,7 +87,7 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px 25px" }}>
                 {/* LEFT COLUMN */}
                 <div>
-                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 500 }}>Full Name <span style={{ color: "#ff5a5f" }}>*</span></label>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 500 }}>Full Name <span style={{ color: "#FF5A5A" }}>*</span></label>
                     <input
                         type="text"
                         name="fullName"

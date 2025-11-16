@@ -89,7 +89,9 @@ export default function AccountList() {
     }
     // Check if account is deleted
     if (account.isDelete || account.deletedAt) {
-      toast.error("Cannot activate a deleted account! Please restore it first.");
+      toast.error("Cannot activate a deleted account! Please restore it first.", {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
       return;
     }
     setConfirmState({ open: true, type: "activate", account });
@@ -107,7 +109,9 @@ export default function AccountList() {
     } catch (error) {
       console.error("Activate error:", error);
       const errorMessage = error || "Unknown error";
-      toast.error(`Failed to activate account: ${errorMessage}`);
+      toast.error(`Failed to activate account: ${errorMessage}`, {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
     }
   };
 
@@ -129,8 +133,9 @@ export default function AccountList() {
     } catch (error) {
       toast.error(
         `Failed to restore account: ${error?.message || error || "Unknown error"
-        }`
-      );
+        }`, {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
     }
   };
 

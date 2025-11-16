@@ -285,7 +285,7 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                                 cursor: "pointer",
                                 fontSize: "14px",
                                 fontWeight: 600,
-                                transition: "all 0.2s ease"
+                                transition: "all 0.2s ease",
                             }}
                             onMouseEnter={(e) => { e.target.style.backgroundColor = "#218838"; }}
                             onMouseLeave={(e) => { e.target.style.backgroundColor = "#28a745"; }}
@@ -535,7 +535,8 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
     return (
         <>
             <div
-                className="relative mx-10 top-1/2 -translate-y-1/2 md:-translate-y-0 md:top-0 md:flex md:left-[20px] bg-white rounded-[12px] md:w-[650px] min-h-[450px] shadow-lg"
+                className="relative mx-10 top-1/2 -translate-y-1/2 md:-translate-y-0 md:top-0 md:flex 
+                md:left-[20px] bg-white rounded-[12px] md:w-[650px] min-h-[450px] shadow-lg"
             >
                 <div className="md:w-[150px]">
                     <LeftPanel
@@ -604,14 +605,14 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                 {/* Close Button */}
                 <button
                     onClick={isResetPassWordOpen ? () => setIsResetPassWordOpen(false) : isSelfUpdateOpen ? () => setIsSelfUpdateOpen(false) : onClose}
-                    className={`absolute ${isResetPassWordOpen ? "top-10 right-10" : "top-5 right-5"} 
+                    className={`absolute ${isResetPassWordOpen ? "top-10 right-10" : "top-10 right-10 md:top-5 md:right-5"} 
                     hover:scale-120 flex items-center justify-center
                     cursor-pointer font-bold transition-all duration-400 ease-in-out z-[9999] p-2`}
                 >
                     {isResetPassWordOpen ? (
-                        <ArrowLeftOutlined className="md:!text-[#FF5A5A] !text-white text-[25px]" />
+                        <ArrowLeftOutlined className="md:!text-[#FF5A5A] !text-white text-[24px]" />
                     ) : (
-                        <FaTimes className="md:!text-[#FF5A5A] !text-white text-[20px]" />
+                        <FaTimes className="md:!text-[#FF5A5A] !text-white text-[24px]" />
                     )}
                 </button>
             </div>

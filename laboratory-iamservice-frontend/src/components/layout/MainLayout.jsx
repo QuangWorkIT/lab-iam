@@ -42,7 +42,7 @@ export default function MainLayout({ children, pageTitle, pageDescription }) {
                 {pageTitle}
               </h1>
               {pageDescription && (
-                <p style={{ color: "#888" }}>{pageDescription}</p>
+                <p style={{ color: "#777777" }}>{pageDescription}</p>
               )}
             </div>
           )}

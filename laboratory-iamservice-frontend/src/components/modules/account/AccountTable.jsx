@@ -427,7 +427,7 @@ export default function AccountTable({
                       }}
                       title="View Details"
                     >
-                      <FiEye size={18} />
+                      <FiEye size={24} />
                     </button>
                     {!account.isActive && (
                       <button

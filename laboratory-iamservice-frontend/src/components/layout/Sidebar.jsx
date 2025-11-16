@@ -64,7 +64,7 @@ export default function Sidebar({ classes }) {
   return (
     <div
       className={` text-white z-[100] transition-all duration-200 ease-in-out ${classes}
-        ${isSideBarOpen ? "w-screen md:w-[250px]" : "w-[60px]"}`}
+        ${isSideBarOpen ? "md:w-[200px]" : "w-[60px]"}`}
     >
       <div
         className={`p-[6px] border-b border-white/20 w-full h-[60px] bg-[#FF5A5A]`}

@@ -11,15 +11,6 @@ import {
   FaUserCheck,
 } from "react-icons/fa";
 
-const MENU_PRIVILEGES = {
-  HOME: "READ_ONLY",
-  ROLE_MANAGEMENT: "VIEW_ROLE",
-  USER_MANAGEMENT: "VIEW_USER",
-  LAB_TESTS: "READ_ONLY",
-  EQUIPMENT_MANAGEMENT: "VIEW_INSTRUMENT",
-  BLOOD_TESTING_MANAGEMENT: "EXECUTE_BLOOD_TESTING",
-  ANALYTICS: "VIEW_EVENT_LOGS",
-};
 
 export const useSidebarMenu = () => {
   const { userInfo } = useSelector((state) => state.user);

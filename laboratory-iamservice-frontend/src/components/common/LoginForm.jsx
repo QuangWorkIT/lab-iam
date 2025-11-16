@@ -93,20 +93,28 @@ function LoginForm({ setIsResetPassWord }) {
                 if (error.response?.status === 429 &&
                     errMess.split(".")[0] === "Too many attempts"
                 ) {
-                    toast.error("Too many attempts!")
+                    toast.error("Too many attempts!", {
+                       className: "!text-[#FF0000] font-bold text-[14px]"
+                    })
                     dispatch(addBannedElement(
                         {
                             type: "loginBanned",
                             banUntil: formatBannedDate(error.response.data.data)
                         })
                     )
-                } 
-                else if(errMess === "Email not found" || errMess === "Password is invalid") {
-                    toast.error("Invalid creadetail!")
                 }
-                else toast.error(errMess)
+                else if (errMess === "Email not found" || errMess === "Password is invalid") {
+                    toast.error("Invalid creadetail!", {
+                        className: "!text-[#FF0000] font-bold text-[14px]"
+                    })
+                }
+                else toast.error(errMess, {
+                   className: "!text-[#FF0000] font-bold text-[14px]"
+                })
             }
-            else toast.error("Login failed!")
+            else toast.error("Login failed!", {
+               className: "!text-[#FF0000] font-bold text-[14px]"
+            })
             console.log(error)
         } finally {
             setIsSubmitting(false)
@@ -139,7 +147,7 @@ function LoginForm({ setIsResetPassWord }) {
                                 placeholder="Email"
                                 variant='underlined'
                             />
-                        </div>  
+                        </div>
                     </Form.Item>
                 </ConfigProvider>
                 <ConfigProvider theme={theme}>
@@ -173,7 +181,7 @@ function LoginForm({ setIsResetPassWord }) {
 
                 <div className="mt-15">
                     {bannedElements.some(e => e.type === "loginBanned") &&
-                        (<h2 className="text-center italic text-red-500">
+                        (<h2 className="text-center text-[12px] italic text-[#FF0000]">
                             Your account is locked! Please try again after
                             <span className='font-bold'>
                                 <CountDownTimer
@@ -186,7 +194,7 @@ function LoginForm({ setIsResetPassWord }) {
                         <Button
                             className='md:w-[200px] w-50'
                             style={{ backgroundColor: "#FF5A5A", color: "white" }} // primary color
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FF3A3A"} // hover
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FF3A3A"}
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                             htmlType='submit'
                             loading={isSubmitting}

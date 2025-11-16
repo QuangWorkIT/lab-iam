@@ -408,7 +408,7 @@ export default function DeletedAccountsTable({
                                                 }}
                                                 title="View Details"
                                             >
-                                                <FiEye size={18} />
+                                                <FiEye size={24} />
                                             </button>
 
                                             {/* Restore button */}
