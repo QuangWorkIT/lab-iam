@@ -455,7 +455,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     style={{
                                         fontSize: "12px",
                                         color: currentStep >= step.id ? "#ff5a5f" : "#999",
-                                        fontWeight: "500",
+                                        fontWeight: "600",
                                     }}
                                 >
                                     {step.label}
@@ -464,7 +464,9 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                             {index < steps.length - 1 && (
                                 <div
                                     style={{
-                                        margin: "0 16px",
+                                        marginLeft: "24px",
+                                        marginRight: "10px",
+                                        marginBottom: "18px",
                                         color: "#ccc",
                                         fontSize: "16px",
                                     }}
@@ -494,7 +496,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             display: "block",
                                             marginBottom: "8px",
                                             fontSize: "14px",
-                                            fontWeight: "500",
+                                            fontWeight: "600",
                                             color: "#000000",
                                         }}
                                     >
@@ -540,7 +542,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             display: "block",
                                             marginBottom: "8px",
                                             fontSize: "14px",
-                                            fontWeight: "500",
+                                            fontWeight: "600",
                                             color: "#000000",
                                         }}
                                     >
@@ -587,7 +589,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             display: "block",
                                             marginBottom: "8px",
                                             fontSize: "14px",
-                                            fontWeight: "500",
+                                            fontWeight: "600",
                                             color: "#000000",
                                         }}
                                     >
@@ -635,7 +637,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             display: "block",
                                             marginBottom: "8px",
                                             fontSize: "14px",
-                                            fontWeight: "500",
+                                            fontWeight: "600",
                                             color: "#000000",
                                         }}
                                     >
@@ -684,7 +686,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             display: "block",
                                             marginBottom: "8px",
                                             fontSize: "14px",
-                                            fontWeight: "500",
+                                            fontWeight: "600",
                                             color: "#000000",
                                         }}
                                     >
@@ -694,14 +696,14 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         <style>{`
                                             .birthdate-input::placeholder { font-size: 14px; }
                                         `}</style>
-                                        <div 
-                                        ref={calendarWrapperRef}
-                                        style={{
-                                            position: "relative",
-                                            border: `1px solid ${errors.birthdate ? "#FF0000" : "#CCC"}`,
-                                            borderLeft: "3px solid #ff5a5f",
-                                            borderRadius: "4px",
-                                        }}>
+                                        <div
+                                            ref={calendarWrapperRef}
+                                            style={{
+                                                position: "relative",
+                                                border: `1px solid ${errors.birthdate ? "#FF0000" : "#CCC"}`,
+                                                borderLeft: "3px solid #ff5a5f",
+                                                borderRadius: "4px",
+                                            }}>
                                             <input
                                                 type="text"
                                                 value={birthdateInput}
@@ -930,7 +932,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             display: "block",
                                             marginBottom: "8px",
                                             fontSize: "14px",
-                                            fontWeight: "500",
+                                            fontWeight: "600",
                                             color: "#000000",
                                         }}
                                     >
@@ -976,7 +978,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             display: "block",
                                             marginBottom: "8px",
                                             fontSize: "14px",
-                                            fontWeight: "500",
+                                            fontWeight: "600",
                                             color: "#000000",
                                         }}
                                     >
@@ -1049,7 +1051,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         display: "block",
                                         marginBottom: "8px",
                                         fontSize: "14px",
-                                        fontWeight: "500",
+                                        fontWeight: "600",
                                         color: "#ff5a5f",
                                     }}
                                 >
@@ -1111,7 +1113,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             style={{
                                                 marginBottom: "8px",
                                                 fontSize: "14px",
-                                                fontWeight: "500",
+                                                fontWeight: "600",
                                                 color: "#ff5a5f",
                                                 display: "flex",
                                                 alignItems: "center",
@@ -1186,7 +1188,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             color: "#777777",
                                             lineHeight: "1.4"
                                         }}>
-                                            <div style={{ fontWeight: "500", marginBottom: "4px", color: "#495057" }}>
+                                            <div style={{ fontWeight: "600", marginBottom: "4px", color: "#495057" }}>
                                                 Password Requirements:
                                             </div>
                                             <ul style={{ margin: "0", paddingLeft: "16px" }}>
@@ -1209,7 +1211,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                                 display: "block",
                                                 marginBottom: "8px",
                                                 fontSize: "14px",
-                                                fontWeight: "500",
+                                                fontWeight: "600",
                                                 color: "#ff5a5f",
                                             }}
                                         >
@@ -1328,7 +1330,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                 color: "#666",
                                 cursor: "pointer",
                                 fontSize: "14px",
-                                fontWeight: "500",
+                                fontWeight: "600",
                             }}
                         >
                             Cancel
@@ -1345,7 +1347,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     color: "#666",
                                     cursor: "pointer",
                                     fontSize: "14px",
-                                    fontWeight: "500",
+                                    fontWeight: "600",
                                 }}
                             >
                                 Back
@@ -1365,7 +1367,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     color: "white",
                                     cursor: "pointer",
                                     fontSize: "14px",
-                                    fontWeight: "500",
+                                    fontWeight: "600",
                                     transition: "background-color 0.2s ease",
                                 }}
                             >
@@ -1385,7 +1387,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     color: "white",
                                     cursor: isSubmitting ? "not-allowed" : "pointer",
                                     fontSize: "14px",
-                                    fontWeight: "500",
+                                    fontWeight: "600",
                                     opacity: isSubmitting ? 0.6 : 1,
                                     transition: "background-color 0.2s ease",
                                 }}

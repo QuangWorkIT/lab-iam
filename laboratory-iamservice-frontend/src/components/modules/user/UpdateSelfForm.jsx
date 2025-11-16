@@ -87,7 +87,7 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px 25px" }}>
                 {/* LEFT COLUMN */}
                 <div>
-                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 500 }}>Full Name <span style={{ color: "#FF5A5A" }}>*</span></label>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 600  }}>Full Name <span style={{ color: "#FF5A5A" }}>*</span></label>
                     <input
                         type="text"
                         name="fullName"
@@ -103,7 +103,7 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
 
                 {/* RIGHT COLUMN */}
                 <div>
-                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 500 }}>Date of Birth <span style={{ color: "#ff5a5f" }}>*</span></label>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 600 }}>Date of Birth <span style={{ color: "#ff5a5f" }}>*</span></label>
                     <input
                         type="date"
                         name="birthdate"
@@ -119,7 +119,7 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
 
                 {/* LEFT COLUMN */}
                 <div>
-                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 500 }}>Phone Number <span style={{ color: "#ff5a5f" }}>*</span></label>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 600 }}>Phone Number <span style={{ color: "#ff5a5f" }}>*</span></label>
                     <input
                         type="tel"
                         name="phoneNumber"
@@ -135,7 +135,7 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
 
                 {/* RIGHT COLUMN */}
                 <div>
-                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 500 }}>Address <span style={{ color: "#ff5a5f" }}>*</span></label>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 600 }}>Address <span style={{ color: "#ff5a5f" }}>*</span></label>
                     <input
                         type="text"
                         name="address"

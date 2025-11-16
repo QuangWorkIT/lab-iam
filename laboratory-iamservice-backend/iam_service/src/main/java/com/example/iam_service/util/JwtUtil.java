@@ -17,7 +17,7 @@ import java.util.*;
 @Component
 public class JwtUtil {
     private final SecretKey key;
-    private final long expiration = 2 * 60 * 60 * 1000;
+    private final long expiration = 15 * 60 * 1000;
     private final UserGrantAuthority grantAuthority;
 
 

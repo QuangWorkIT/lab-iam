@@ -302,7 +302,7 @@ export default function Header({ pageTitle }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="fixed inset-0 bg-black/80 flex md:items-center justify-center z-[3000]"
+            className="fixed inset-0 bg-black/80 flex md:items-center justify-center z-[1000]"
           >
             <motion.div
               key="modal"

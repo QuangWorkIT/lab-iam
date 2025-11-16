@@ -8,6 +8,9 @@ import { useSelector } from "react-redux";
 import { motion as Motion, AnimatePresence } from "motion/react"
 import { useDispatch } from "react-redux";
 import { updateOwnProfile, requestSelfDeletion } from "../../redux/features/userManagementSlice";
+import { IoInformationCircleOutline } from "react-icons/io5";
+
+
 /**
  * User Detail Modal - Reusable modal component for displaying user/account details
  * 
@@ -23,7 +26,7 @@ function LeftPanel({ user, statusColor, statusText }) {
                         hover:shadow-[0_6px_14px_rgba(82,196,26,0.6)] `
     const inActiveClass = `shadow-[0_4px_10px_rgba(150,0,0,0.4)]
     hover:shadow-[0_6px_18px_rgba(100,0,0,0.7)`
-    
+
     return (
         <div
             className="bg-[#FF5A5A] md:w-[250px] flex flex-col items-center
@@ -66,7 +69,7 @@ function LeftPanel({ user, statusColor, statusText }) {
                 className="w-[50px] h-[50px] md:w-[100px] md:h-[100px] bg-white flex rounded-full items-center 
                 justify-center mb-[20px] mt-[10px]"
             >
-                <FaUser className="text-[24px] md:text-[50px] text-[#FF5A5A]"/>
+                <FaUser className="text-[24px] md:text-[50px] text-[#FF5A5A]" />
             </div>
 
             {/* User Name */}
@@ -132,37 +135,44 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                 <div>
                     <p
                         style={{
-                            fontSize: "14px",
+                            fontSize: "13px",
                             fontWeight: "600",
                             margin: "0 0 5px 0",
                             textTransform: "uppercase",
                             cursor: "default",
                             position: "relative"
                         }}
-                        className="text-[#5170ff] hover:text-[#748cfc] transition-all duration-300 ease"
+                        className="text-[#000000] transition-all duration-300 ease"
                     >
                         {label}
                         {label === "Identity Number" && userInfo.id === propUser.id &&
                             <Tooltip
                                 placement="top"
-                                title="To update your Identity Number, please contact an administrator"
+                                title={
+                                    <span style={{ display: 'inline-block', maxWidth: '250px', textAlign: 'center' }}>
+                                        To update your Identity Number, please contact an administrator
+                                    </span>
+                                }
                                 color="#000000"
                             >
-                                <InfoCircleOutlined
-                                    className="ml-2 text-[16px] cursor-pointer"
-                                    style={{
-                                        color: "#000000",
-                                        verticalAlign: "middle"
-                                    }}
-                                />
+                                <button
+                                    onClick={() => setIsResetPassWordOpen(true)}
+                                    className="absolute top-[-14px] right-[-35px] p-3
+                                    transition-all duration-300 ease-in-out
+                                    !text-[#0f0f0f] hover:text-[#5170ff]
+                                    rounded-full cursor-pointer hover:bg-[#e1e7ef]"
+                                    aria-label="Edit password"
+                                >
+                                   <IoInformationCircleOutline className="text-[20px]"/>
+                                </button>
                             </Tooltip>
                         }
                         {label === "Password" && userInfo.id === propUser.id &&
                             <Tooltip placement="top" title={"Change password"} >
                                 <button
                                     onClick={() => setIsResetPassWordOpen(true)}
-                                    className="absolute top-[-10px] p-2
-                                    transition-all duration-200 ease-in-out
+                                    className="absolute top-[-14px] right-[-35px] p-3
+                                    transition-all duration-300 ease-in-out
                                     !text-[#0f0f0f] hover:text-[#5170ff]
                                     rounded-full cursor-pointer hover:bg-[#e1e7ef]"
                                     aria-label="Edit password"
@@ -174,7 +184,7 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                     </p>
                     <p
                         style={{
-                            color: "#000000ff",
+                            color: "#777777",
                             fontSize: "14px",
                             fontWeight: "500",
                             marginTop: "5px",
@@ -278,7 +288,7 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                             onClick={onOpenUpdate}
                             style={{
                                 padding: "8px 12px",
-                                backgroundColor: "#28a745",
+                                backgroundColor: "#FF5A5A",
                                 color: "white",
                                 border: "none",
                                 borderRadius: "6px",
@@ -287,8 +297,8 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                                 fontWeight: 600,
                                 transition: "all 0.2s ease",
                             }}
-                            onMouseEnter={(e) => { e.target.style.backgroundColor = "#218838"; }}
-                            onMouseLeave={(e) => { e.target.style.backgroundColor = "#28a745"; }}
+                            onMouseEnter={(e) => { e.target.style.backgroundColor = "#FF3A3A"; }}
+                            onMouseLeave={(e) => { e.target.style.backgroundColor = "#FF5A5A"; }}
                         >
                             Update
                         </button>
