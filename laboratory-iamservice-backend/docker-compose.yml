@@ -63,7 +63,9 @@ services:
       - iam-net
 
   frontend:
-    image: quangf1/iam-fe-dep:lastest
+    build:
+      context: ../laboratory-iamservice-frontend
+      dockerfile: Dockerfile
     ports:
       - "5173:5173"
     depends_on:
