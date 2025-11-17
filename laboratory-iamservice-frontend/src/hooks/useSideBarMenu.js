@@ -30,11 +30,6 @@ export const useSidebarMenu = () => {
     { path: "/roles", icon: FaUsers, privilege: "VIEW_ROLE", desc: "Role management" },
     { path: "/users", icon: FaUserCog, privilege: "VIEW_USER", desc: "User management" },
     { path: "/accounts", icon: FaUserCheck, privilege: "VIEW_USER", desc: "Account management" },
-    { path: "/test", icon: FaFlask, privilege: "READ_ONLY", desc: "Laboratory test" },
-    { path: "/test", icon: FaTools, privilege: "VIEW_INSTRUMENT", desc: "Lab equipment" },
-    { path: "/test", icon: FaShieldAlt, privilege: "EXECUTE_BLOOD_TESTING", desc: "Laboratory test" },
-    { path: "/test", icon: FaCalendarAlt, privilege: "EXECUTE_BLOOD_TESTING", desc: "Laboratory test" },
-    { path: "/test", icon: FaChartLine, privilege: "VIEW_EVENT_LOGS", desc: "Analytics" },
   ];
 
   return menuItems.filter((item) => hasPrivilege(item.privilege));

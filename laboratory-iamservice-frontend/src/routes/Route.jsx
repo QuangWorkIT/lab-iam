@@ -1,6 +1,3 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
-import TestPages from "../pages/TestPages";
 import RoleList from "../pages/role/RoleList";
 import UserList from "../pages/user/UserList";
 import AccountList from "../pages/account/AccountList";
@@ -12,10 +9,6 @@ const MENU_PRIVILEGES = {
   HOME: "READ_ONLY",
   ROLE_MANAGEMENT: "VIEW_ROLE",
   USER_MANAGEMENT: "VIEW_USER",
-  LAB_TESTS: "READ_ONLY",
-  EQUIPMENT_MANAGEMENT: "VIEW_INSTRUMENT",
-  BLOOD_TESTING_MANAGEMENT: "EXECUTE_BLOOD_TESTING",
-  ANALYTICS: "VIEW_EVENT_LOGS",
 };
 
 const routes = [
@@ -59,13 +52,6 @@ const routes = [
       />
     ),
   },
-  {
-    path: "/test",
-    element: (
-      <TestPages />
-    ),
-  },
-
 ];
 
 export default routes;

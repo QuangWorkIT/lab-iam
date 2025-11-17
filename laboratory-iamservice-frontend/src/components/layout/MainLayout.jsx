@@ -1,4 +1,3 @@
-import React from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 
@@ -15,7 +14,7 @@ export default function MainLayout({ children, pageTitle, pageDescription }) {
         position: "relative"
       }}
     >
-      <Sidebar classes={"hidden md:inline"}/>
+      <Sidebar classes={"hidden lg:inline"}/>
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <Header pageTitle={pageTitle} />

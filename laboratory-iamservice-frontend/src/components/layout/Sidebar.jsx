@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "motion/react"
 import { useSidebarMenu } from "../../hooks/useSideBarMenu";
 import { FaBars } from "react-icons/fa";
@@ -63,11 +62,11 @@ export default function Sidebar({ classes }) {
 
   return (
     <div
-      className={` text-white z-[100] transition-all duration-200 ease-in-out ${classes}
+      className={`bg-[#FF5A5A] text-white z-[100] transition-all duration-200 ease-in-out ${classes}
         ${isSideBarOpen ? "md:w-[200px]" : "w-[60px]"}`}
     >
       <div
-        className={`p-[6px] border-b border-white/20 w-full h-[60px] bg-[#FF5A5A]`}
+        className={`p-[6px] border-b border-white/20 w-full h-[60px] bg-[#FF5A5A] `}
       >
         <motion.div
           className={`p-2 ml-[2px] w-max rounded-[5px] hover:cursor-pointer hover:scale-110 transition-all duration-200
@@ -80,7 +79,7 @@ export default function Sidebar({ classes }) {
         </motion.div>
       </div>
 
-      <div className={`pt-5 bg-[#FF5A5A] w-full h-screen md:h-full md:opacity-100
+      <div className={`pt-5 bg-[#FF5A5A] w-full md:opacity-100
                       ${isSideBarOpen ? "opacity-100" : "opacity-0"}`}>
         {
           visibleMenuItems.map((item, index) => (

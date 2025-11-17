@@ -21,7 +21,7 @@ const NotificationDropdown = ({ items = [] }) => {
             {/* Notification Bell Icon */}
             <IoIosNotifications
                 onClick={() => setIsNotifyTriggered((prev) => !prev)}
-                className="hover:cursor-pointer hover:scale-120 transition-transform duration-300 ease-in-out"
+                className="hover:cursor-pointer hover:scale-110 transition-transform duration-300 ease-in-out"
                 color="#888"
                 style={{ fontSize: "24px" }}
             />

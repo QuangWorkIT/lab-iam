@@ -187,7 +187,7 @@ export default function Header({ pageTitle }) {
       >
 
         <div className="flex">
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <MobileToggle isOpen={isOpen} onToggle={toggleSideBar} />
             <MobileSidebar isOpen={isOpen} menuItems={displayItems} toggleSideBar={toggleSideBar} />
           </div>
@@ -221,7 +221,7 @@ export default function Header({ pageTitle }) {
           <div
             className="md:flex items-center mr-[15px] hidden"
           >
-            <span style={{ marginTop: "5px", marginRight: "5px", color: "#777777", cursor: "default", fontSize: "14px" }}>Welcome, </span>
+            <span style={{ marginTop: "3px", marginRight: "5px", color: "#777777", cursor: "default", fontSize: "14px" }}>Welcome, </span>
             <span style={{ fontWeight: "bold", color: "black", cursor: "default" }}>
               [{userInfo?.userName || "User"}]
             </span>
@@ -232,14 +232,14 @@ export default function Header({ pageTitle }) {
               <FaUserCog
                 style={{ color: "#888", fontSize: "24px", cursor: "pointer" }}
                 onClick={handleViewUserDetail}
-                className="hover:scale-120 transition-all duration-300 ease-in-out"
+                className="hover:scale-108 transition-all duration-300 ease-in-out"
               />
             </Tooltip>
             <Tooltip title={"Logout"} placement="bottomLeft">
               <FaSignOutAlt
                 style={{ color: "#888", fontSize: "24px", cursor: "pointer" }}
                 onClick={handleLogout}
-                className="hover:scale-120 transition-all duration-300 ease-in-out"
+                className="hover:scale-108 transition-all duration-300 ease-in-out"
               />
             </Tooltip>
           </div>

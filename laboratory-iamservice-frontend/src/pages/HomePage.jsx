@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { Card } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import MainLayout from "../components/layout/MainLayout";
+import ServiceWidget from "../components/common/ServiceWidget";
 
 export default function HomePage() {
   const { userInfo } = useSelector((state) => state.user);
@@ -86,10 +87,10 @@ export default function HomePage() {
       <div
         style={{
           display: "flex",
-          justifyContent: "center",
           alignItems: "center",
-          height: deletionInfo ? "70vh" : "80vh",
+          height: deletionInfo ? "60vh" : "70vh",
           flexDirection: "column",
+          gap: "30px"
         }}
       >
         <Card
@@ -97,9 +98,8 @@ export default function HomePage() {
             width: "100%",
             maxWidth: "600px",
             textAlign: "center",
-            padding: "40px 20px",
             borderRadius: "10px",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+            boxShadow: "0 4px 5px rgba(0,0,0,0.1)",
           }}
         >
           <h2 style={{ color: "#FF5A5A", fontWeight: "bold", fontSize: "18px" }}>
@@ -113,11 +113,13 @@ export default function HomePage() {
               lineHeight: "1.5",
             }}
           >
-            Please choose one of the available features on the left to get started.
+            Please choose one of the available features to get started.
             <br />
             We’re happy to have you back 💖
           </p>
         </Card>
+
+        <ServiceWidget />
       </div>
     </MainLayout>
   );
