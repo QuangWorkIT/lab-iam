@@ -150,7 +150,9 @@ export default function UserList() {
   const handleViewUser = (user) => {
     // ✅ Kiểm tra quyền VIEW_USER
     if (!canViewUser) {
-      toast.error("You don't have permission to view user details");
+      toast.error("You don't have permission to view user details", {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
       return;
     }
     setViewingUser(user);
@@ -160,7 +162,9 @@ export default function UserList() {
   const handleAddUser = () => {
     // ✅ Kiểm tra quyền CREATE_USER
     if (!canCreateUser) {
-      toast.error("You don't have permission to create users");
+      toast.error("You don't have permission to create users", {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
       return;
     }
     setIsAddModalOpen(true);
@@ -169,7 +173,9 @@ export default function UserList() {
   const handleEditUser = async (user) => {
     // ✅ Kiểm tra quyền MODIFY_USER
     if (!canModifyUser) {
-      toast.error("You don't have permission to modify users");
+      toast.error("You don't have permission to modify users", {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
       return;
     }
 
@@ -178,14 +184,18 @@ export default function UserList() {
       setEditingUser(result);
       setIsUpdateModalOpen(true);
     } catch (error) {
-      toast.error("Failed to load user details");
+      toast.error("Failed to load user details", {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
     }
   };
 
   const handleDeleteUser = async (userId) => {
     // ✅ Kiểm tra quyền DELETE_USER
     if (!canDeleteUser) {
-      toast.error("You don't have permission to delete users");
+      toast.error("You don't have permission to delete users", {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
       return;
     }
 
@@ -206,7 +216,9 @@ export default function UserList() {
         errorMessage = error.message;
       }
 
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
     }
   };
 
@@ -224,7 +236,9 @@ export default function UserList() {
       setChartRefreshTrigger((prev) => prev + 1);
       toast.success("Create user successfully!");
     } catch (error) {
-      toast.error(error?.message || "Failed to create user!");
+      toast.error(error?.message || "Failed to create user!", {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
     }
   };
 
@@ -237,7 +251,9 @@ export default function UserList() {
   const handleUpdateUser = async (userData) => {
     // ✅ Kiểm tra quyền MODIFY_USER
     if (!canModifyUser) {
-      toast.error("You don't have permission to modify users");
+      toast.error("You don't have permission to modify users", {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
       return;
     }
 
@@ -256,7 +272,9 @@ export default function UserList() {
       await dispatch(fetchUsers(searchParams));
       setChartRefreshTrigger((prev) => prev + 1);
     } catch (error) {
-      toast.error(error || "Failed to update user!");
+      toast.error(error || "Failed to update user!", {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
     }
   };
 
@@ -317,7 +335,7 @@ export default function UserList() {
               style={{
                 fontSize: "18px",
                 margin: 0,
-                color: "#ff5a5f",
+                color: "#FF5A5A",
                 fontWeight: "600",
               }}
             >

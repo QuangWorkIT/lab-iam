@@ -109,7 +109,7 @@ export default function HomePage() {
             style={{
               marginTop: "10px",
               fontSize: "16px",
-              color: "#555",
+              color: "#777777",
               lineHeight: "1.5",
             }}
           >

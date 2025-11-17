@@ -15,7 +15,7 @@ export default function MainLayout({ children, pageTitle, pageDescription }) {
         position: "relative"
       }}
     >
-      <Sidebar classes={"absolute  md:relative"}/>
+      <Sidebar classes={"hidden md:inline"}/>
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <Header pageTitle={pageTitle} />
@@ -42,7 +42,7 @@ export default function MainLayout({ children, pageTitle, pageDescription }) {
                 {pageTitle}
               </h1>
               {pageDescription && (
-                <p style={{ color: "#888" }}>{pageDescription}</p>
+                <p style={{ color: "#777777" }}>{pageDescription}</p>
               )}
             </div>
           )}

@@ -55,9 +55,6 @@ export default function TestPages() {
 
           <Button onClick={() => fetchRoles()}>Get roles</Button>
         </Card>
-
-        <CountDownTimer endTime={endTime}/>
-
       </div>
     </MainLayout>
   );

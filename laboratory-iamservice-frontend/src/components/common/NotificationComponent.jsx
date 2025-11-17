@@ -23,7 +23,7 @@ const NotificationDropdown = ({ items = [] }) => {
                 onClick={() => setIsNotifyTriggered((prev) => !prev)}
                 className="hover:cursor-pointer hover:scale-120 transition-transform duration-300 ease-in-out"
                 color="#888"
-                style={{ fontSize: "21px" }}
+                style={{ fontSize: "24px" }}
             />
 
             {/* Dropdown */}

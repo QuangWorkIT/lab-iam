@@ -1,133 +1,107 @@
-🚀 Overview
+**Project Overview**
+- **Name**: `laboratory-iamservice-frontend`
+- **Purpose**: Front-end single-page application for the Laboratory IAM Service. It provides authentication, user/role management UIs and consumes the backend APIs exposed by the IAM microservices.
 
-This project is a React + Redux Toolkit + Vite setup designed as the frontend base for the Laboratory Management System.
-It’s clean, persistent, and ready for JWT authentication and future API integration.
+**Quick Start**
+- **Prerequisites**: Node.js (>=16), npm, backend services running or reachable (see `VITE_API_URL`).
+- **Install dependencies**:
 
-This repo includes:
-
-🔧 Redux Toolkit for predictable state management
-
-💾 redux-persist to store login sessions
-
-⚙️ Axios with built-in JWT header handling
-
-🧭 React Router for navigation
-
-🌱 A minimal component structure to scale up easily
-
-🧩 Project Structure
-src/
- ├─ configs/
- │   ├─ axios.js           # Axios instance with JWT interceptor
- │   └─ TokenValidator.js  # Placeholder for token validation logic
- │
- ├─ redux/
- │   ├─ features/
- │   │   └─ userSlice.js   # Handles login/logout and user state
- │   ├─ rootReducer.js     # Combines all Redux slices
- │   └─ store.js           # Configures store + persistence
- │
- ├─ routes/
- │   └─ Route.jsx          # Defines all routes
- │
- ├─ pages/
- │   └─ TestPages.jsx      # Test page for Redux & routing check
- │
- ├─ components/            # Reusable UI elements (Button, Card, etc.)
- │
- ├─ layouts/               # Page layouts (MainLayout, AuthLayout, etc.)
- │
- ├─ App.jsx                # Main entry, connects store & router
- └─ main.jsx               # Vite entry file (default)
-
-
- ⚙️ Environment Setup
-
-Create two environment files in the root directory:
-
-.env.development
-VITE_API_URL=[put development API URL here]
-VITE_ENV=development
-
-.env.production
-VITE_API_URL=[put production API URL here]
-VITE_ENV=production
-
-**Vite automatically picks the correct file based on the build mode.
-**These URLs will be used by the Axios instance.
-
-🧠 Core Setup Explanation
-🔹 axios.js
-Defines a preconfigured Axios instance with an interceptor that automatically attaches JWT tokens to authorized requests.
-🔹 store.js
-Handles:
-    - Redux store creation
-    - Redux Persist setup
-    - Middleware configuration
-The store persists only selected slices via whitelist. (demo setup's whitelist is user)
-This ensures login data survives refreshes while avoiding stale cache for other slices.
-🔹 userSlice.js
-Controls authentication and user session state.
-Includes reducers:
-    - login: saves token + user info
-    - logout: clears both Redux + localStorage
-🔹 rootReducer.js
-Combines all slices into one Redux state tree.
-Add new features here as the app grows.
-🔹 TokenValidator.js
-Currently a placeholder.
-Later, you can enhance it to:
-    - Decode JWTs
-    - Auto-logout on token expiry
-    - Refresh tokens when supported by backend
-🔹 Route.jsx
-Centralizes all route definitions for the React Router.
-You can later expand this with protected routes, layouts, etc.
-🔹 App.jsx
-Wires everything together — router, Redux provider, and persist gate.
-
-🧱 How to Run Locally
-# 1️⃣ Install dependencies
+```powershell
 npm install
+```
 
-# 2️⃣ Start dev server
+- **Run development server** (hot-reload):
+
+```powershell
 npm run dev
+```
 
-# 3️⃣ Build for production
+- **Build for production**:
+
+```powershell
 npm run build
+```
 
-Open http://localhost:5173 to view in your browser.
+- **Preview production build**:
 
-🧰 Adding New Features
-To add a new slice:
-    - Create src/redux/features/yourSlice.js
-    - Add it to rootReducer.js
-    - (Optional) Add it to whitelist in store.js if you want to persist it
+```powershell
+npm run preview
+```
 
-To add a new page:
-    - Create src/pages/NewPage.jsx
-    - Import and register it in routes/Route.jsx
+**Scripts**
+- **`dev`**: Launches Vite dev server (`vite`).
+- **`build`**: Builds production assets (`vite build`).
+- **`preview`**: Serves the production build locally (`vite preview`).
+- **`lint`**: Runs ESLint over the source tree (`eslint .`).
 
+These scripts are defined in `package.json`.
 
-## Below is a breakdown of the key dependencies used in this project and what each one does.
+**Environment / Configuration**
+- This project uses Vite env variables. All public env variables must begin with the `VITE_` prefix and are accessible via `import.meta.env`.
+- Important variables:
+    - **`VITE_API_URL`**: Base URL for the backend API. The app's HTTP clients (`src/configs/axios.js` and `src/configs/publicAxios.js`) use this value as `baseURL`.
+    - **`VITE_ENABLE_CLAUDE_HAIKU`** (suggested): Example flag to enable the `Claude Haiku 4.5` feature for all clients. Set to `1` or `true` to enable. Example usage in code: `const enabled = import.meta.env.VITE_ENABLE_CLAUDE_HAIKU === '1'`.
 
-🧠 Core Dependencies
+Example `.env` for local development (create `.env.local` or use your preferred env management):
 
-react – Core React library for building the UI.
-react-dom – Enables React to render components to the DOM.
-react-router-dom – Handles navigation and page routing in the app.
-axios – For making HTTP requests to the backend API.
-@reduxjs/toolkit – Simplifies Redux setup with slices, reducers, and store configuration.
-react-redux – Connects React components to the Redux store.
-redux-persist – Persists specific Redux states (like user login) in localStorage.
-antd – UI component library providing styled, responsive components.
-@ant-design/icons – Official icon pack for Ant Design components.
+```text
+VITE_API_URL=http://localhost:8080
+VITE_ENABLE_CLAUDE_HAIKU=1
+```
 
-⚙️ Development Dependencies
+**Feature Flags**
+- Short-term / simple flags: Use `VITE_` env variables and rebuild for global toggles.
+- Recommendation for production: use a feature-flag service (LaunchDarkly, Flagsmith, etc.) or a server-side feature endpoint so runtime toggles don't require rebuilds. The frontend can fetch a `/api/features` endpoint on startup and enable/disable behavior client-side.
 
-vite – Fast development server and build tool for React projects.
-@vitejs/plugin-react – Adds React and fast-refresh support to Vite.
-eslint – Static code analysis tool to catch bugs and enforce consistent style.
-@eslint/js, eslint-plugin-react-hooks, eslint-plugin-react-refresh – ESLint plugins for React-specific linting and hook rules.
-globals – Provides common global variables list for ESLint.
-@types/react, @types/react-dom – TypeScript type definitions for React (helpful if switching to TS later).    
+**API Contract / Authentication**
+- The client expects the backend API to be reachable at `VITE_API_URL`.
+- HTTP clients:
+    - `src/configs/axios.js` — authenticated requests; adds `Authorization` header if token exists in storage and implements refresh flow (`/api/auth/refresh`).
+    - `src/configs/publicAxios.js` — public requests.
+- Auth flows and token parsing are implemented in `src/utils/jwtUtil.js` and `src/redux/features/userSlice.js`.
+
+**Project Structure (high level)**n+ - `src/` — application source
+    - `src/components/` — UI components and modal dialogs
+    - `src/pages/` — route pages and views
+    - `src/configs/` — `axios` clients and app-level configuration
+    - `src/redux/` — store and slices (user, auth, etc.)
+    - `src/utils/` — helper utilities
+- `index.html`, `vite.config.js` — Vite entry and configuration
+
+**Styling**
+- Uses `Tailwind CSS` and `Ant Design` for layout & components. See `tailwindcss` and `antd` dependencies in `package.json`.
+
+**Linting & Formatting**
+- ESLint configured; run `npm run lint` to check the codebase.
+
+**Docker / Deployment**
+- The repository root contains a `docker-compose.yml` that composes frontend and backend for local deployment. The frontend can be served as a static site behind a webserver or served from a simple container.
+- If building a containerized frontend, build the production assets (`npm run build`) and serve `dist/` with a static server (e.g. `nginx` image). Keep env values for runtime (API URL and flags) in your hosting environment or use an injection mechanism during image start.
+
+**Testing**
+- No unit test runner is defined in `package.json`. Add testing frameworks (Vitest/Jest/React Testing Library) if required.
+
+**MCP Notes (Model Context Protocol README guidance)**
+- **Purpose**: Provide environment and runtime expectations so model/agents can interact with the frontend during local dev or CI.
+- **Entry points**:
+    - Local dev server: `http://localhost:5173` (default Vite port) after `npm run dev`.
+    - API base: `import.meta.env.VITE_API_URL`.
+- **Feature toggles**: `Claude Haiku 4.5` can be enabled for all clients via `VITE_ENABLE_CLAUDE_HAIKU=1` or controlled by a runtime feature endpoint:
+    - Server approach: Provide `/api/features` that returns JSON toggles. Frontend should fetch this at bootstrap and store it in Redux for consistent access.
+- **Observability hooks**: For model-driven tests or user-simulated flows, ensure API endpoints return predictable response shapes; the axios clients already centralize auth and refresh logic.
+
+**Contributing & PR Guidance**
+- Keep UI changes small and componentized.
+- Update README env notes if adding new `VITE_` variables.
+- When adding a feature flag used by both backend and frontend, sync names and default values across services.
+
+**Who to contact**
+- Project owner / maintainer: check repository `README.md` in the repo root for team details.
+
+---
+
+File created by the development assistant to capture MCP-focused operational details for `laboratory-iamservice-frontend`. If you want, I can:
+- Add a runtime `/api/features` fetch example and small Redux slice for feature flags.
+- Create a Dockerfile example to serve the `dist/` folder with `nginx`.
+
+If you'd like any of those follow-ups, tell me which one to implement next.

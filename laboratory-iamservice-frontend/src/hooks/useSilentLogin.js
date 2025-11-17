@@ -1,9 +1,9 @@
-import { isTokenExpired, parseClaims } from '../utils/jwtUtil'
+import {  parseClaims } from '../utils/jwtUtil'
 import publicApi from '../configs/publicAxios'
-import { login, logout, setLoading } from '../redux/features/userSlice'
+import { login, setLoading, removeLocalUser } from '../redux/features/userSlice'
 import { useDispatch } from 'react-redux'
 import { useEffect } from 'react';
-import { toast } from 'react-toastify';
+
 function useSilentLogin() {
     const dispatch = useDispatch()
 
@@ -41,7 +41,8 @@ function useSilentLogin() {
                 }
             } catch (error) {
                 console.log("error refresh user ", error)
-            }finally{
+                dispatch(removeLocalUser())
+            } finally {
                 dispatch(setLoading(false))
             }
         }

@@ -76,15 +76,15 @@ public class AuthControllerTest {
             tokens.put("refreshToken", "refresh123");
             when(authService.login(loginRq.getEmail(), loginRq.getPassword())).thenReturn(tokens);
 
-            ResponseEntity<ApiResponse<TokenResponse>> response =
+            ResponseEntity<ApiResponse<?>> response =
                     authController.login(loginRq, null, servletRequest);
 
             assertEquals(200, response.getStatusCode().value());
             assertNotNull(response.getBody());
             assertEquals("login success", response.getBody().getMessage());
-            assertEquals("access123", response.getBody().getData().getAccessToken());
-            assertEquals("refresh123", response.getBody().getData().getRefreshToken());
-
+            TokenResponse tokenResponse = (TokenResponse) response.getBody().getData();
+            assertEquals("access123", tokenResponse.getAccessToken());
+            assertEquals("refresh123", tokenResponse.getRefreshToken());
             verify(authService, times(1)).login("user@example.com", "password123");
             verify(loginLimiterService, times(1)).resetAttempt(ip);
 
@@ -104,7 +104,7 @@ public class AuthControllerTest {
                     .thenReturn(LocalDateTime.now().atZone(ZoneId.of("Asia/Ho_Chi_Minh")).plusMinutes(10));
 
             // When
-            ResponseEntity<ApiResponse<TokenResponse>> response =
+            ResponseEntity<ApiResponse<?>> response =
                     authController.login(loginRq, null, servletRequest);
 
             // Then
@@ -129,7 +129,7 @@ public class AuthControllerTest {
                     .thenThrow(new BadCredentialsException("Invalid credentials"));
 
             // When
-            ResponseEntity<ApiResponse<TokenResponse>> response =
+            ResponseEntity<ApiResponse<?>> response =
                     authController.login(loginRq, null, servletRequest);
 
             // Then

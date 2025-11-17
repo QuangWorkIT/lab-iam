@@ -8,11 +8,22 @@ import { motion, AnimatePresence } from "motion/react"
 import NotificationComponent from "../common/NotificationComponent"
 import { Tooltip } from "antd";
 import { useNavigate } from "react-router";
+import MobileSidebar from "../common/MobileSideBar";
+import MobileToggle from "../common/MobileToggle";
+import { useSidebarMenu } from "../../hooks/useSideBarMenu";
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
   const nav = useNavigate()
   const { userInfo } = useSelector((state) => state.user);
+  const [isOpen, setIsOpen] = useState(false);
+  const displayItems = useSidebarMenu()
+
+  const toggleSideBar = () => {
+    setIsOpen(!isOpen);
+  };
+
+
   const notifyItems = [
     {
       text: 'Success 1',
@@ -66,11 +77,6 @@ export default function Header({ pageTitle }) {
     setIsDetailModalOpen(true);
   };
 
-  // Handler for refresh user detail
-  const handleRefreshUser = () => {
-    // Can add refresh logic here if needed
-    // For now, just refresh the page or fetch user info again
-  };
 
   // Convert userInfo to the format expected by UserDetailModal
   const getUserDetailData = () => {
@@ -159,7 +165,7 @@ export default function Header({ pageTitle }) {
       right: "10px",
       background: "transparent",
       border: "none",
-      fontSize: "22px",
+      fontSize: "24px",
       color: "#9ca3af",
       cursor: "pointer",
       lineHeight: 1,
@@ -176,43 +182,47 @@ export default function Header({ pageTitle }) {
           justifyContent: "space-between",
           alignItems: "center",
           backgroundColor: "white",
+          height: "60px"
         }}
       >
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <FaHeartbeat
-              style={{
-                color: "#FF5A5A",
-                fontSize: "24px",
-                marginRight: "10px",
-              }}
-            />
-            <span
-              style={{ color: "black", fontWeight: "bold", fontSize: "18px" }}
-            >
-              Laboratory Management
-            </span>
+
+        <div className="flex">
+          <div className="md:hidden">
+            <MobileToggle isOpen={isOpen} onToggle={toggleSideBar} />
+            <MobileSidebar isOpen={isOpen} menuItems={displayItems} toggleSideBar={toggleSideBar} />
           </div>
-          {pageTitle && (
-            <>
-              <span style={{ margin: "0 10px", color: "lightgray" }}>
-                <DoubleRightOutlined />
+          <div className=" items-center hidden md:flex">
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <FaHeartbeat
+                style={{
+                  color: "#FF5A5A",
+                  fontSize: "24px",
+                  marginRight: "10px",
+                }}
+              />
+              <span
+                style={{ color: "black", fontWeight: "bold", fontSize: "16px" }}
+              >
+                Laboratory Management
               </span>
-              <span style={{ color: "#FF5A5A", fontWeight: "bold" }}>{pageTitle}</span>
-            </>
-          )}
+            </div>
+            {pageTitle && (
+              <>
+                <span style={{ margin: "0 10px", color: "#777777"}}>
+                  <DoubleRightOutlined style={{fontSize: "24px"}}/>
+                </span>
+                <span style={{ color: "#FF5A5A", fontWeight: "bold" }}>{pageTitle}</span>
+              </>
+            )}
+          </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center" }}>
           <div
-            style={{
-              marginRight: "15px",
-              display: "flex",
-              alignItems: "center",
-            }}
+            className="md:flex items-center mr-[15px] hidden"
           >
-            <span style={{ marginRight: "5px", color: "#888", cursor: "default" }}>Welcome, </span>
-            <span style={{ fontWeight: "bold", color: "#FF5A5A", cursor: "default" }}>
+            <span style={{ marginTop: "5px", marginRight: "5px", color: "#777777", cursor: "default", fontSize: "14px" }}>Welcome, </span>
+            <span style={{ fontWeight: "bold", color: "black", cursor: "default" }}>
               [{userInfo?.userName || "User"}]
             </span>
           </div>
@@ -220,14 +230,14 @@ export default function Header({ pageTitle }) {
             <NotificationComponent items={notifyItems} />
             <Tooltip title={"User details"}>
               <FaUserCog
-                style={{ color: "#888", fontSize: "19px", cursor: "pointer" }}
+                style={{ color: "#888", fontSize: "24px", cursor: "pointer" }}
                 onClick={handleViewUserDetail}
                 className="hover:scale-120 transition-all duration-300 ease-in-out"
               />
             </Tooltip>
             <Tooltip title={"Logout"} placement="bottomLeft">
               <FaSignOutAlt
-                style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
+                style={{ color: "#888", fontSize: "24px", cursor: "pointer" }}
                 onClick={handleLogout}
                 className="hover:scale-120 transition-all duration-300 ease-in-out"
               />
@@ -254,7 +264,7 @@ export default function Header({ pageTitle }) {
             </button>
 
             <div style={styles.titleRow}>
-              <FaSignOutAlt style={{ color: "#FF5A5A", fontSize: "20px" }} />
+              <FaSignOutAlt style={{ color: "#FF5A5A", fontSize: "24px" }} />
               <h3 id="logout-title" style={styles.title}>
                 Confirm Logout
               </h3>
@@ -292,7 +302,7 @@ export default function Header({ pageTitle }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000]"
+            className="fixed inset-0 bg-black/80 flex md:items-center justify-center z-[1000]"
           >
             <motion.div
               key="modal"

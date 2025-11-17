@@ -26,7 +26,7 @@ export default function UserActionButtons({
           title="View"
           onClick={() => onView(user)}
         >
-          <FiEye size={18} />
+          <FiEye size={24} />
         </button>
       )}
       {canModifyUser && (
@@ -43,7 +43,7 @@ export default function UserActionButtons({
           title="Edit"
           onClick={() => onEdit(user)}
         >
-          <FiEdit size={18} />
+          <FiEdit size={24} />
         </button>
       )}
       {canDeleteUser && (
@@ -60,7 +60,7 @@ export default function UserActionButtons({
           title="Delete"
           onClick={() => onDelete(user.id)}
         >
-          <FiTrash2 size={18} />
+          <FiTrash2 size={24} />
         </button>
       )}
     </div>

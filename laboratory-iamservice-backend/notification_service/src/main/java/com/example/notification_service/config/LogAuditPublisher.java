@@ -1,27 +1,29 @@
-package com.example.iam_service.audit;
+package com.example.notification_service.config;
 
+import com.example.notification_service.event.TestOrderCommentEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @RequiredArgsConstructor
-public class LogAuditPublisher implements AuditPublisher {
+@Component
+public class LogAuditPublisher {
 
-    private final String TOPIC = "iam-services";
+    private final String TOPIC = "comment-events-topic";
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
 
 
-    @Override
-    public void publish(AuditEvent event) {
+    public void publish(TestOrderCommentEvent event) {
         try {
             String payload = mapper.writeValueAsString(event);
-            kafkaTemplate.send(TOPIC, event.getUserId(), payload);
+            kafkaTemplate.send(TOPIC, event.getEventId(), payload);
         } catch (RuntimeException | JsonProcessingException e) {
             throw new RuntimeException(e);
         }

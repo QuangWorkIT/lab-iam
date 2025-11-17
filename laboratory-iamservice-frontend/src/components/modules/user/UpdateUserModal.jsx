@@ -61,7 +61,7 @@ export default function UpdateUserModal({ isOpen, user, roles, onClose, onSubmit
                             cursor: "pointer",
                             color: "#666",
                             zIndex: 10,
-                            width: 36,
+                            width: 40,
                             height: 36,
                             display: "flex",
                             alignItems: "center",

@@ -8,6 +8,9 @@ import { useSelector } from "react-redux";
 import { motion as Motion, AnimatePresence } from "motion/react"
 import { useDispatch } from "react-redux";
 import { updateOwnProfile, requestSelfDeletion } from "../../redux/features/userManagementSlice";
+import { IoInformationCircleOutline } from "react-icons/io5";
+
+
 /**
  * User Detail Modal - Reusable modal component for displaying user/account details
  * 
@@ -23,28 +26,15 @@ function LeftPanel({ user, statusColor, statusText }) {
                         hover:shadow-[0_6px_14px_rgba(82,196,26,0.6)] `
     const inActiveClass = `shadow-[0_4px_10px_rgba(150,0,0,0.4)]
     hover:shadow-[0_6px_18px_rgba(100,0,0,0.7)`
+
     return (
         <div
-            style={{
-                backgroundColor: "#ff5a5f",
-                minWidth: "180px",
-                width: "250px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                padding: "30px 15px",
-                borderRadius: "12px",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
-                height: "75%",
-                position: "relative",
-                top: "50%",
-                transform: "translateY(-50%)",
-                left: "-80%",
-                zIndex: 2000,
-            }}
+            className="bg-[#FF5A5A] md:w-[250px] flex flex-col items-center
+            p-[30px_15px] rounded-xl shadow-lg h-[75%] relative md:top-1/2 
+            md:-translate-y-1/2 md:-left-[80%] z-[2000]"
         >
             <div
-                className={`absolute top-3 right-3 flex items-center justify-center 
+                className={`absolute hidden md:flex top-3 right-3 md:flex items-center justify-center 
                             rounded-full text-white gap-1 group transition-all
                             duration-500 ease-in-out overflow-hidden w-[28px] hover:w-[90px] px-[10px] py-[5px]
                             hover:cursor-pointer ${statusText === "Active" ? activeClass : inActiveClass}`}
@@ -76,19 +66,10 @@ function LeftPanel({ user, statusColor, statusText }) {
 
             {/* User Avatar */}
             <div
-                style={{
-                    width: "100px",
-                    height: "100px",
-                    backgroundColor: "white",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: "20px",
-                    marginTop: "10px"
-                }}
+                className="w-[50px] h-[50px] md:w-[100px] md:h-[100px] bg-white flex rounded-full items-center 
+                justify-center mb-[20px] mt-[10px]"
             >
-                <FaUser style={{ fontSize: "50px", color: "#FF5A5A" }} />
+                <FaUser className="text-[24px] md:text-[50px] text-[#FF5A5A]" />
             </div>
 
             {/* User Name */}
@@ -154,37 +135,44 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                 <div>
                     <p
                         style={{
-                            fontSize: "14px",
+                            fontSize: "13px",
                             fontWeight: "600",
                             margin: "0 0 5px 0",
                             textTransform: "uppercase",
                             cursor: "default",
                             position: "relative"
                         }}
-                        className="text-[#5170ff] hover:text-[#748cfc] transition-all duration-300 ease"
+                        className="text-[#000000] transition-all duration-300 ease"
                     >
                         {label}
                         {label === "Identity Number" && userInfo.id === propUser.id &&
                             <Tooltip
                                 placement="top"
-                                title="To update your Identity Number, please contact an administrator"
+                                title={
+                                    <span style={{ display: 'inline-block', maxWidth: '250px', textAlign: 'center' }}>
+                                        To update your Identity Number, please contact an administrator
+                                    </span>
+                                }
                                 color="#000000"
                             >
-                                <InfoCircleOutlined
-                                    className="ml-2 text-[16px] cursor-pointer"
-                                    style={{
-                                        color: "#000000",
-                                        verticalAlign: "middle"
-                                    }}
-                                />
+                                <button
+                                    onClick={() => setIsResetPassWordOpen(true)}
+                                    className="absolute top-[-14px] right-[-35px] p-3
+                                    transition-all duration-300 ease-in-out
+                                    !text-[#0f0f0f] hover:text-[#5170ff]
+                                    rounded-full cursor-pointer hover:bg-[#e1e7ef]"
+                                    aria-label="Edit password"
+                                >
+                                   <IoInformationCircleOutline className="text-[20px]"/>
+                                </button>
                             </Tooltip>
                         }
                         {label === "Password" && userInfo.id === propUser.id &&
                             <Tooltip placement="top" title={"Change password"} >
                                 <button
                                     onClick={() => setIsResetPassWordOpen(true)}
-                                    className="absolute top-[-10px] p-2
-                                    transition-all duration-200 ease-in-out
+                                    className="absolute top-[-14px] right-[-35px] p-3
+                                    transition-all duration-300 ease-in-out
                                     !text-[#0f0f0f] hover:text-[#5170ff]
                                     rounded-full cursor-pointer hover:bg-[#e1e7ef]"
                                     aria-label="Edit password"
@@ -196,7 +184,7 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                     </p>
                     <p
                         style={{
-                            color: "#000000ff",
+                            color: "#777777",
                             fontSize: "14px",
                             fontWeight: "500",
                             marginTop: "5px",
@@ -219,23 +207,13 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                 padding: "25px",
                 position: "relative",
                 backgroundColor: "white",
-                borderRadius: "0 12px 12px 0",
+                borderRadius: "12px",
                 minHeight: "400px",
             }}
         >
             {/* User Information Grid */}
             <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "10px",
-                    marginTop: "65px",
-                    wordBreak: "break-word",
-                    overflowWrap: "break-word",
-                    justifyContent: "center",
-                    alignItems: "flex-start",
-                    height: "100%",
-                }}
+                className="grid grid-cols-2 gap-10 mt-[12px] md:mt-[65px] break-words justify-center items-start h-full"
             >
                 {/* Left Column */}
                 <div>
@@ -310,17 +288,17 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                             onClick={onOpenUpdate}
                             style={{
                                 padding: "8px 12px",
-                                backgroundColor: "#28a745",
+                                backgroundColor: "#FF5A5A",
                                 color: "white",
                                 border: "none",
                                 borderRadius: "6px",
                                 cursor: "pointer",
                                 fontSize: "14px",
                                 fontWeight: 600,
-                                transition: "all 0.2s ease"
+                                transition: "all 0.2s ease",
                             }}
-                            onMouseEnter={(e) => { e.target.style.backgroundColor = "#218838"; }}
-                            onMouseLeave={(e) => { e.target.style.backgroundColor = "#28a745"; }}
+                            onMouseEnter={(e) => { e.target.style.backgroundColor = "#FF3A3A"; }}
+                            onMouseLeave={(e) => { e.target.style.backgroundColor = "#FF5A5A"; }}
                         >
                             Update
                         </button>
@@ -567,18 +545,10 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
     return (
         <>
             <div
-                style={{
-                    background: "white",
-                    borderRadius: "12px",
-                    width: "650px",
-                    height: "450px",
-                    display: "flex",
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-                    position: "relative",
-                    left: "20px"
-                }}
+                className="relative mx-10 top-1/2 -translate-y-1/2 md:-translate-y-0 md:top-0 md:flex 
+                md:left-[20px] bg-white rounded-[12px] md:w-[650px] min-h-[450px] shadow-lg"
             >
-                <div style={{ width: "150px" }}>
+                <div className="md:w-[150px]">
                     <LeftPanel
                         user={user}
                         statusColor={getStatusColor(user.isActive)}
@@ -594,7 +564,7 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -40 }}
                             transition={{ duration: 0.3, ease: "easeInOut" }}
-                            className="ml-[70px]"
+                            className="md:ml-[70px] p-10 md:p-0"
                         >
                             <ResetPassWord
                                 setIsResetPassWord={setIsResetPassWordOpen}
@@ -645,14 +615,14 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
                 {/* Close Button */}
                 <button
                     onClick={isResetPassWordOpen ? () => setIsResetPassWordOpen(false) : isSelfUpdateOpen ? () => setIsSelfUpdateOpen(false) : onClose}
-                    className={`absolute ${isResetPassWordOpen ? "top-10 right-10" : "top-5 right-5"} 
-                    text-white hover:text-[#dc3545] hover:scale-120 flex items-center justify-center
-                    cursor-pointer font-bold text-[20px] transition-all duration-400 ease-in-out z-[9999] p-2`}
+                    className={`absolute ${isResetPassWordOpen ? "top-10 right-10" : "top-10 right-10 md:top-5 md:right-5"} 
+                    hover:scale-120 flex items-center justify-center
+                    cursor-pointer font-bold transition-all duration-400 ease-in-out z-[9999] p-2`}
                 >
                     {isResetPassWordOpen ? (
-                        <ArrowLeftOutlined className="!text-[#ff5a5f] text-[25px]" />
+                        <ArrowLeftOutlined className="md:!text-[#FF5A5A] !text-white text-[24px]" />
                     ) : (
-                        <FaTimes className="text-[#ff5a5f] text-[20px]" />
+                        <FaTimes className="md:!text-[#FF5A5A] !text-white text-[24px]" />
                     )}
                 </button>
             </div>

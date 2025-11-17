@@ -2,31 +2,12 @@ import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "motion/react"
-import {
-  FaHome,
-  FaUsers,
-  FaFlask,
-  FaTools,
-  FaShieldAlt,
-  FaCalendarAlt,
-  FaChartLine,
-  FaBars,
-  FaUserCog,
-  FaUserCheck,
-} from "react-icons/fa";
+import { useSidebarMenu } from "../../hooks/useSideBarMenu";
+import { FaBars } from "react-icons/fa";
 
-const MENU_PRIVILEGES = {
-  HOME: "READ_ONLY",
-  ROLE_MANAGEMENT: "VIEW_ROLE",
-  USER_MANAGEMENT: "VIEW_USER",
-  LAB_TESTS: "READ_ONLY",
-  EQUIPMENT_MANAGEMENT: "VIEW_INSTRUMENT",
-  BLOOD_TESTING_MANAGEMENT: "EXECUTE_BLOOD_TESTING",
-  ANALYTICS: "VIEW_EVENT_LOGS",
-};
 
 // Inline component
-function SidebarIcon({ icon, active, isSideBarOpen }) {
+export function SidebarIcon({ icon, active, isSideBarOpen }) {
   return (
     <div
       className={`w-10 h-10 rounded-[5px] flex justify-center items-center
@@ -41,7 +22,6 @@ function SidebarIcon({ icon, active, isSideBarOpen }) {
 
 export default function Sidebar({ classes }) {
   const location = useLocation();
-  const { userInfo } = useSelector((state) => state.user);
   const [isSideBarOpen, setIsSideBarOpen] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme) {
@@ -58,77 +38,8 @@ export default function Sidebar({ classes }) {
     localStorage.setItem("theme", JSON.stringify(theme));
   };
 
-  // Check users privileges
-  const hasPrivilege = (privilege) => {
-    if (!privilege) return true;
-    if (!userInfo?.privileges) return false;
-    return (
-      Array.isArray(userInfo.privileges) &&
-      userInfo.privileges.includes(privilege)
-    );
-  };
 
-  // Định nghĩa menu items
-  const menuItems = [
-    {
-      path: "/home",
-      icon: <FaHome size={20} />,
-      privilege: MENU_PRIVILEGES.HOME,
-      desc: "Home",
-    },
-    {
-      path: "/roles",
-      icon: <FaUsers size={20} />,
-      privilege: MENU_PRIVILEGES.ROLE_MANAGEMENT,
-      desc: "Role management",
-    },
-    {
-      path: "/users",
-      icon: <FaUserCog size={20} />,
-      privilege: MENU_PRIVILEGES.USER_MANAGEMENT,
-      desc: "User management",
-    }, // User management
-    {
-      path: "/accounts",
-      icon: <FaUserCheck size={20} />,
-      privilege: MENU_PRIVILEGES.USER_MANAGEMENT,
-      desc: "Account management",
-    }, // Account status management
-    {
-      path: "/test",
-      icon: <FaFlask size={20} />,
-      privilege: MENU_PRIVILEGES.LAB_TESTS,
-      desc: "Laboratory test",
-    },
-    {
-      path: "/test",
-      icon: <FaTools size={20} />,
-      privilege: MENU_PRIVILEGES.EQUIPMENT_MANAGEMENT,
-      desc: "Lab equipment",
-    },
-    {
-      path: "/test",
-      icon: <FaShieldAlt size={20} />,
-      privilege: MENU_PRIVILEGES.BLOOD_TESTING_MANAGEMENT,
-      desc: "Laboratory test",
-    },
-    {
-      path: "/test",
-      icon: <FaCalendarAlt size={20} />,
-      privilege: MENU_PRIVILEGES.BLOOD_TESTING_MANAGEMENT,
-      desc: "Laboratory test",
-    },
-    {
-      path: "/test",
-      icon: <FaChartLine size={20} />,
-      privilege: MENU_PRIVILEGES.ANALYTICS,
-      desc: "Analytics",
-    },
-  ];
-
-  const visibleMenuItems = menuItems.filter((item) =>
-    hasPrivilege(item.privilege)
-  );
+  const visibleMenuItems = useSidebarMenu()
 
   // disable scroll on tablet and mobile viewport
   useEffect(() => {
@@ -152,17 +63,14 @@ export default function Sidebar({ classes }) {
 
   return (
     <div
-      className={` text-white flex flex-col items-center
-          z-[100] transition-all duration-200 ease-in-out ${classes}
-        ${isSideBarOpen ? "w-screen md:w-[250px]" : "w-[100px]"}`}
+      className={` text-white z-[100] transition-all duration-200 ease-in-out ${classes}
+        ${isSideBarOpen ? "md:w-[200px]" : "w-[60px]"}`}
     >
       <div
-        className={`p-[6px] border-b border-white/20 w-full flex 
-        justify-start md:justify-center items-center h-[96px] md:h-[58px]
-        md:bg-[#FF5A5A]`}
+        className={`p-[6px] border-b border-white/20 w-full h-[60px] bg-[#FF5A5A]`}
       >
         <motion.div
-          className={`p-2 rounded-[5px] hover:cursor-pointer hover:scale-120 transition-all duration-200
+          className={`p-2 ml-[2px] w-max rounded-[5px] hover:cursor-pointer hover:scale-110 transition-all duration-200
           ${location.pathname === "/" && "bg-[#FFFFFF33]" }`}
         >
           <FaBars
@@ -172,7 +80,7 @@ export default function Sidebar({ classes }) {
         </motion.div>
       </div>
 
-      <div className={`pt-5 bg-[#FF5A5A] w-full h-screen md:h-full md:opacity-100 
+      <div className={`pt-5 bg-[#FF5A5A] w-full h-screen md:h-full md:opacity-100
                       ${isSideBarOpen ? "opacity-100" : "opacity-0"}`}>
         {
           visibleMenuItems.map((item, index) => (
@@ -180,13 +88,13 @@ export default function Sidebar({ classes }) {
               to={item.path}
               key={index}
               className={`flex items-center w-full px-2 mb-5 transition-all duration-200 ease-in-out
-                        hover:cursor-pointer hover:scale-110
+                        hover:cursor-pointer hover:scale-105
                         ${isSideBarOpen ? "hover:bg-white/20 rounded-r-full" : "bg-transparent hover:bg-transparent"}
                         ${isSideBarOpen && location.pathname === item.path && "bg-[#FFFFFF33]"}`}
             >
-              <div className="pl-[22px]">
+              <div>
                 <SidebarIcon
-                  icon={item.icon}
+                  icon={<item.icon size={24} />}
                   active={!isSideBarOpen && location.pathname === item.path}
                   isSideBarOpen={isSideBarOpen}
                 />

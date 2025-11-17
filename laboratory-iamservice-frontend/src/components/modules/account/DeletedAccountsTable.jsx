@@ -408,14 +408,14 @@ export default function DeletedAccountsTable({
                                                 }}
                                                 title="View Details"
                                             >
-                                                <FiEye size={18} />
+                                                <FiEye size={24} />
                                             </button>
 
                                             {/* Restore button */}
                                             <button
                                                 onClick={() => onRestore && onRestore(account)}
                                                 style={{
-                                                    backgroundColor: "#48bb78",
+                                                    backgroundColor: "#FF5A5A",
                                                     color: "white",
                                                     border: "none",
                                                     borderRadius: "6px",
@@ -431,10 +431,10 @@ export default function DeletedAccountsTable({
                                                     fontWeight: "500",
                                                 }}
                                                 onMouseEnter={(e) => {
-                                                    e.currentTarget.style.backgroundColor = "#38a169";
+                                                    e.currentTarget.style.backgroundColor = "#FF3A3A";
                                                 }}
                                                 onMouseLeave={(e) => {
-                                                    e.currentTarget.style.backgroundColor = "#48bb78";
+                                                    e.currentTarget.style.backgroundColor = "#FF5A5A";
                                                 }}
                                                 title="Restore Account"
                                             >

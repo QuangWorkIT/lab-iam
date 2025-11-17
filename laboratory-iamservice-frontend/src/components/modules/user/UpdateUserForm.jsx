@@ -129,7 +129,7 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                     margin: 0,
                     fontSize: 18,
                     fontWeight: 700,
-                    color: "#ff5a5f",
+                    color: "#FF5A5A",
                     textTransform: "uppercase",
                     letterSpacing: "1px"
                 }}>
@@ -152,7 +152,6 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             marginBottom: "6px",
                             fontSize: "14px",
                             fontWeight: 600,
-                            color: "#ff5a5f"
                         }}>
                             Full Name <span style={{ color: "#ff5a5f" }}>*</span>
                         </label>
@@ -188,7 +187,6 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             marginBottom: "6px",
                             fontSize: "14px",
                             fontWeight: 600,
-                            color: "#ff5a5f"
                         }}>
                             Date of Birth <span style={{ color: "#ff5a5f" }}>*</span>
                         </label>
@@ -224,7 +222,6 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             marginBottom: "6px",
                             fontSize: "14px",
                             fontWeight: 600,
-                            color: "#ff5a5f"
                         }}>
                             Identity Number <span style={{ color: "#ff5a5f" }}>*</span>
                         </label>
@@ -260,7 +257,6 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             marginBottom: "6px",
                             fontSize: "14px",
                             fontWeight: 600,
-                            color: "#ff5a5f"
                         }}>
                             Phone Number <span style={{ color: "#ff5a5f" }}>*</span>
                         </label>
@@ -296,7 +292,6 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             marginBottom: "6px",
                             fontSize: "14px",
                             fontWeight: 600,
-                            color: "#ff5a5f"
                         }}>
                             Address <span style={{ color: "#ff5a5f" }}>*</span>
                         </label>
@@ -332,7 +327,6 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             marginBottom: "6px",
                             fontSize: "14px",
                             fontWeight: 600,
-                            color: "#ff5a5f"
                         }}>
                             Role <span style={{ color: "#ff5a5f" }}>*</span>
                         </label>
@@ -398,7 +392,6 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             marginBottom: "8px",
                             fontSize: "14px",
                             fontWeight: 600,
-                            color: "#ff5a5f"
                         }}>
                             Gender <span style={{ color: "#ff5a5f" }}>*</span>
                         </label>
@@ -454,7 +447,6 @@ export default function UpdateUserForm({ user, roles, onCancel, onSubmit }) {
                             marginBottom: "8px",
                             fontSize: "14px",
                             fontWeight: 600,
-                            color: "#ff5a5f"
                         }}>
                             Account Status <span style={{ color: "#ff5a5f" }}>*</span>
                         </label>

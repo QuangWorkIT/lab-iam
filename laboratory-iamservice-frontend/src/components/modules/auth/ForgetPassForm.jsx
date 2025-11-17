@@ -41,9 +41,13 @@ function ForgetPassForm({ setIsResetPassWord }) {
 
             const errMess = error.response?.data?.message
             if (errMess && errMess === "User not found")
-                toast.error(option === "email" ? "Email not found!" : "Phone not found!")
+                toast.error(option === "email" ? "Email not found!" : "Phone not found!", {
+                    className: "!text-[#FF0000] font-bold text-[14px]"
+                })
             else
-                toast.error("Error verify email or phone")
+                toast.error("Error verify email or phone", {
+                    className: "!text-[#FF0000] font-bold text-[14px]"
+                })
         }
     };
 
@@ -55,7 +59,7 @@ function ForgetPassForm({ setIsResetPassWord }) {
                 onClick={() => {
                     setIsResetPassWord(false)
                 }}
-             className="!absolute top-10 left-10 lg:!hidden">
+                className="!absolute top-10 left-10 lg:!hidden">
                 <ArrowLeftOutlined />
             </Button>
             <AnimatePresence>
@@ -94,7 +98,7 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                     className="flex flex-col gap-5 items-center justify-center h-full min-w-[300px]">
                                     <div className="text-center">
                                         <p className="text-2xl md:text-[27px] font-semibold ml-2" style={{ marginBottom: "15px" }}>Forget your password?</p>
-                                        <p className="text-sm md:text-[16px]" style={{margin: 0}}>Please enter your email or phone</p>
+                                        <p className="text-sm md:text-[16px]" style={{ margin: 0 }}>Please enter your email or phone</p>
                                     </div >
 
                                     <div>
