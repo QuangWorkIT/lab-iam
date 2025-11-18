@@ -2,11 +2,6 @@ import { useSelector } from "react-redux";
 import {
   FaHome,
   FaUsers,
-  FaFlask,
-  FaTools,
-  FaShieldAlt,
-  FaCalendarAlt,
-  FaChartLine,
   FaUserCog,
   FaUserCheck,
 } from "react-icons/fa";

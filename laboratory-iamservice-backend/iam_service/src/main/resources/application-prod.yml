@@ -42,29 +42,34 @@ google:
   web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
 
 #  eureka cho production
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: https://discovery-server-zsph.onrender.com/eureka/
+#    registry-fetch-interval-seconds: 30
+#
+#  instance:
+#    prefer-ip-address: false
+#
+#    hostname:  35.172.58.177
+#
+#    instance-id: ${spring.application.name}:${eureka.instance.hostname}:${server.port}
+#
+#    non-secure-port: ${server.port}
+#    non-secure-port-enabled: true
+#
+#    health-check-url: http://${eureka.instance.hostname}:${server.port}/actuator/health
+#    status-page-url: http://${eureka.instance.hostname}:${server.port}/actuator/info
+#    home-page-url: http://${eureka.instance.hostname}:${server.port}/
+#
+#    lease-renewal-interval-in-seconds: 30
+#    lease-expiration-duration-in-seconds: 90
 eureka:
   client:
+    register-with-eureka: true      # Cho phép đăng ký với Eureka
+    fetch-registry: true            # Cho phép lấy danh sách các service khác
     service-url:
-      defaultZone: https://discovery-server-zsph.onrender.com/eureka/
-    registry-fetch-interval-seconds: 30
-
-  instance:
-    prefer-ip-address: false
-
-    hostname:  35.172.58.177
-
-    instance-id: ${spring.application.name}:${eureka.instance.hostname}:${server.port}
-
-    non-secure-port: ${server.port}
-    non-secure-port-enabled: true
-
-    health-check-url: http://${eureka.instance.hostname}:${server.port}/actuator/health
-    status-page-url: http://${eureka.instance.hostname}:${server.port}/actuator/info
-    home-page-url: http://${eureka.instance.hostname}:${server.port}/
-
-    lease-renewal-interval-in-seconds: 30
-    lease-expiration-duration-in-seconds: 90
-
+      defaultZone: http://service-registry:8761/eureka/
 management:
   endpoints:
     web:

@@ -11,6 +11,8 @@ import { useNavigate } from "react-router";
 import MobileSidebar from "../common/MobileSideBar";
 import MobileToggle from "../common/MobileToggle";
 import { useSidebarMenu } from "../../hooks/useSideBarMenu";
+import useSocketClient from "../../hooks/useSocketClient";
+import { ChevronsRight, Users, LogOut } from "lucide-react";
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
@@ -23,21 +25,6 @@ export default function Header({ pageTitle }) {
     setIsOpen(!isOpen);
   };
 
-
-  const notifyItems = [
-    {
-      text: 'Success 1',
-      icon: <FaCheckCircle color="#52c41a" />
-    },
-    {
-      text: 'Warning 2',
-      icon: <FaExclamationCircle color="#ffcc00" />
-    },
-    {
-      text: 'Processing 3',
-      icon: <FaRegDotCircle color="#40a6ce" />
-    },
-  ]
   // Confirm modal state
   const [showConfirm, setShowConfirm] = useState(false);
   const confirmBtnRef = useRef(null);
@@ -53,14 +40,12 @@ export default function Header({ pageTitle }) {
       document.body.style.overflow = "auto";
     }
 
-    // Cleanup to restore scroll when component unmounts
     return () => {
       document.body.style.overflow = "auto";
     };
   }, [isDetailModalOpen]);
 
   const handleLogout = () => {
-    // Mở popup confirm thay vì window.confirm
     setShowConfirm(true);
   };
 
@@ -209,7 +194,7 @@ export default function Header({ pageTitle }) {
             {pageTitle && (
               <>
                 <span style={{ margin: "0 10px", color: "#777777"}}>
-                  <DoubleRightOutlined style={{fontSize: "24px"}}/>
+                  <ChevronsRight style={{fontSize: "24px"}}/>
                 </span>
                 <span style={{ color: "#FF5A5A", fontWeight: "bold" }}>{pageTitle}</span>
               </>
@@ -221,23 +206,23 @@ export default function Header({ pageTitle }) {
           <div
             className="md:flex items-center mr-[15px] hidden"
           >
-            <span style={{ marginTop: "3px", marginRight: "5px", color: "#777777", cursor: "default", fontSize: "14px" }}>Welcome, </span>
+            <span style={{ marginTop: "3px", marginRight: "10px", color: "#777777", cursor: "default", fontSize: "14px" }}>Welcome: </span>
             <span style={{ fontWeight: "bold", color: "black", cursor: "default" }}>
-              [{userInfo?.userName || "User"}]
+              {userInfo?.userName || "User"}
             </span>
           </div>
           <div style={{ display: "flex", gap: "25px", alignItems: "center" }}>
-            <NotificationComponent items={notifyItems} />
+            <NotificationComponent />
             <Tooltip title={"User details"}>
-              <FaUserCog
-                style={{ color: "#888", fontSize: "24px", cursor: "pointer" }}
+              <Users
+                style={{ color: "#777", fontSize: "24px", cursor: "pointer" }}
                 onClick={handleViewUserDetail}
                 className="hover:scale-108 transition-all duration-300 ease-in-out"
               />
             </Tooltip>
             <Tooltip title={"Logout"} placement="bottomLeft">
-              <FaSignOutAlt
-                style={{ color: "#888", fontSize: "24px", cursor: "pointer" }}
+              <LogOut
+                style={{ color: "#777", fontSize: "24px", cursor: "pointer" }}
                 onClick={handleLogout}
                 className="hover:scale-108 transition-all duration-300 ease-in-out"
               />

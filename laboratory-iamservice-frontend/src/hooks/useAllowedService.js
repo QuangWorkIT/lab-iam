@@ -39,6 +39,10 @@ const privilegesBaseService = {
             "VIEW_INSTRUMENT",
             "ACTIVATE_DEACTIVATE_INSTRUMENT",
         ]
+    },
+    patient: {
+        desc: "PATIENT_SERVICE",
+        privileges: ["READ_ONLY"]
     }
 }
 

@@ -17,6 +17,7 @@ public class TestOrderNotification {
     @Indexed
     private String email;
     private String commentId;
+    private String testOrderId;
     private String commentText;
     private String createdFrom;
 

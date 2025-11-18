@@ -1,4 +1,3 @@
-import { use } from "react";
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
 import AuthenticatinLoading from "../components/common/AuthenticatinLoading";
@@ -7,12 +6,13 @@ const ProtectedRoute = ({ element: Component, allowedRoles, privilege }) => {
   const token = useSelector((state) => state.user.token);
   const userInfo = useSelector((state) => state.user.userInfo);
   const loading = useSelector((state) => state.user.loading);
+  const localToken = localStorage.getItem("token")
 
   if(loading) {
     return <AuthenticatinLoading />
   }
   
-  if (!token || !userInfo) {
+  if (!token || !userInfo || !localToken) {
     return <Navigate to="/login" replace />;
   }
 

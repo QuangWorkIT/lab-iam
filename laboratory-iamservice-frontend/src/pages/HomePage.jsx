@@ -88,7 +88,6 @@ export default function HomePage() {
         style={{
           display: "flex",
           alignItems: "center",
-          height: deletionInfo ? "60vh" : "70vh",
           flexDirection: "column",
           gap: "30px"
         }}

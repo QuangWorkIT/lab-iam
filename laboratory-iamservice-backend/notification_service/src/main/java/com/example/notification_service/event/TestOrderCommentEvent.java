@@ -15,7 +15,6 @@ public class TestOrderCommentEvent {
     private String eventTimestamp;
     private String commentId;
     private String testOrderId;
-    private String patientId;
     private String email;
     private String commentText;
     private String createdBy;
