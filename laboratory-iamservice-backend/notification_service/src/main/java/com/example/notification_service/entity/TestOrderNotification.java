@@ -21,6 +21,6 @@ public class TestOrderNotification {
     private String commentText;
     private String createdFrom;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 }

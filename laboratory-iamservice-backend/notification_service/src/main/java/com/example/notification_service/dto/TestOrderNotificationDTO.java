@@ -15,6 +15,7 @@ public class TestOrderNotificationDTO {
     private NotificationStatus status;
     private String source;
     private String text;
+    private String email;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
@@ -26,6 +27,7 @@ public class TestOrderNotificationDTO {
         testDto.setSource(testOrderNotification.getCreatedFrom());
         testDto.setStatus(NotificationStatus.INFO);
         testDto.setCreatedAt(testOrderNotification.getCreatedAt());
+        testDto.setEmail(testOrderNotification.getEmail());
 
         return testDto;
     }

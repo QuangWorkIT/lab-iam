@@ -11,7 +11,6 @@ import { useNavigate } from "react-router";
 import MobileSidebar from "../common/MobileSideBar";
 import MobileToggle from "../common/MobileToggle";
 import { useSidebarMenu } from "../../hooks/useSideBarMenu";
-import useSocketClient from "../../hooks/useSocketClient";
 import { ChevronsRight, Users, LogOut } from "lucide-react";
 
 export default function Header({ pageTitle }) {

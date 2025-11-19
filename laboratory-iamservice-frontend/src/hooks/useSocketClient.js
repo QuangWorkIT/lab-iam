@@ -29,9 +29,11 @@ function useSocketClient() {
                 onConnect: () => {
                     clientRef.current.subscribe("/topic/notification", (msg) => {
                         const payload = JSON.parse(msg.body);
-                        payload.createdAt = formatDate(payload.createdAt);
-                        console.log("Received notification:", payload);
-                        setNotifications(prev => [...prev, payload]);
+                        if(payload.email === userInfo.email){
+                            setNotifications(prev => [...prev, payload]);
+                        }else{
+                            console.log("Notification ignore because different email")
+                        }  
                     });
                 },
             });
