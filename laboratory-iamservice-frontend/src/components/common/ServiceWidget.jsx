@@ -29,7 +29,7 @@ function ServiceWidget() {
             title: "Test Order Management",
             icon: <FaFlask size={24} />,
             desc: "Handles creating, updating, reviewing test orders and related comments.",
-            path: "#",
+            path: "http://18.141.34.176:5173/",
             color: "from-purple-500 to-pink-500",
         },
         INSTRUMENT_SERVICE: {

@@ -16,8 +16,7 @@ public class LogAuditPublisher {
 
     private final String TOPIC = "comment-events-topic";
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private final ObjectMapper mapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule());
+    private final ObjectMapper mapper;
 
 
     public void publish(TestOrderCommentEvent event) {

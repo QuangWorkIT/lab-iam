@@ -1,5 +1,6 @@
 package com.example.notification_service.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -11,12 +12,15 @@ import java.util.Arrays;
 @Configuration
 public class CorsConfig {
 
+    @Value("${ALLOWED_ORIGIN}")
+    private String allowedOrigins;
+
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
         // allow frontend URL
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+        config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
 
         // allow headers
         config.setAllowedHeaders(Arrays.asList(

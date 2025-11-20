@@ -4,10 +4,7 @@ import { Client } from "@stomp/stompjs";
 import fetchNotifications from '../services/fetchNotifications';
 import { useSelector } from 'react-redux';
 
-const formatDate = (dateString) => {
-    if (!dateString || isNaN(Date.parse(dateString))) return "N/A";
-    return new Date(dateString).toLocaleDateString("vi-VN");
-}
+const websocket_host = import.meta.env.VITE_WEBSOCKET_HOST || "http://localhost:7070/ws"
 
 function useSocketClient() {
     const [notifications, setNotifications] = useState([])
@@ -22,18 +19,15 @@ function useSocketClient() {
             const data = await fetchNotifications(userInfo.email);
             setNotifications(data.data);
 
-            const socket = new SockJS("http://localhost:9090/ws");
+            const socket = new SockJS(`${websocket_host}/ws`);
 
             clientRef.current = new Client({
                 webSocketFactory: () => socket,
                 onConnect: () => {
-                    clientRef.current.subscribe("/topic/notification", (msg) => {
+                    console.log("connected")
+                    clientRef.current.subscribe(`/topic/notification/${userInfo.email}`, (msg) => {
                         const payload = JSON.parse(msg.body);
-                        if(payload.email === userInfo.email){
-                            setNotifications(prev => [...prev, payload]);
-                        }else{
-                            console.log("Notification ignore because different email")
-                        }  
+                        setNotifications(prev => [payload, ...prev]);
                     });
                 },
             });

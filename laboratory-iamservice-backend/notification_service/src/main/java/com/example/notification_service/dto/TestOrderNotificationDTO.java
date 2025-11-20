@@ -9,8 +9,6 @@ import java.time.LocalDateTime;
 
 @Data
 public class TestOrderNotificationDTO {
-    // id of test-order
-    // maybe optional if it is warehouse msg
     private String typeId;
     private NotificationStatus status;
     private String source;
