@@ -1,4 +1,3 @@
-import React from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 
@@ -8,18 +7,18 @@ export default function MainLayout({ children, pageTitle, pageDescription }) {
       style={{
         display: "flex",
         minHeight: "100vh",
-        backgroundColor: "#f8f9fa",
+        backgroundColor: "#f7f7f7",
         width: "100%",
         maxWidth: "100%",
         overflowX: "hidden",
         position: "relative"
       }}
     >
-      <Sidebar classes={"hidden md:inline"}/>
+      <Sidebar classes={"hidden lg:inline"}/>
 
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0}}>
         <Header pageTitle={pageTitle} />
-
+      
         <div
           style={{
             padding: "20px 30px",

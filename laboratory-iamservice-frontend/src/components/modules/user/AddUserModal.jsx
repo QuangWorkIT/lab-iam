@@ -434,7 +434,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         width: "40px",
                                         height: "40px",
                                         borderRadius: "50%",
-                                        backgroundColor: currentStep >= step.id ? "#ff5a5f" : "#e0e0e0",
+                                        backgroundColor: currentStep === step.id ? "#ff5a5f" : "#e0e0e0",
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
@@ -497,7 +497,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             marginBottom: "8px",
                                             fontSize: "14px",
                                             fontWeight: "600",
-                                            color: "#000000",
+                                            color: "#FF5A5A",
                                         }}
                                     >
                                         Full Name <span style={{ color: "#ff5a5f" }}>*</span>
@@ -507,6 +507,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         name="fullName"
                                         value={formData.fullName}
                                         onChange={handleInputChange}
+                                        className="placeholder:text-[#777777]"
                                         style={{
                                             width: "100%",
                                             padding: "12px",
@@ -516,7 +517,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             boxSizing: "border-box",
                                             borderLeft: "3px solid #ff5a5f",
                                             backgroundColor: "white",
-                                            color: "#000000",
                                             outline: "none",
                                         }}
                                         onFocus={(e) => {
@@ -543,7 +543,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             marginBottom: "8px",
                                             fontSize: "14px",
                                             fontWeight: "600",
-                                            color: "#000000",
+                                            color: "#FF5A5A",
                                         }}
                                     >
                                         Identity Number <span style={{ color: "#ff5a5f" }}>*</span>
@@ -553,6 +553,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         name="identityNumber"
                                         value={formData.identityNumber}
                                         onChange={handleInputChange}
+                                        className="placeholder:text-[#777777]"
                                         style={{
                                             width: "100%",
                                             padding: "12px",
@@ -562,7 +563,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             boxSizing: "border-box",
                                             borderLeft: "3px solid #ff5a5f",
                                             backgroundColor: "white",
-                                            color: "#000000",
                                             outline: "none",
                                         }}
                                         onFocus={(e) => {
@@ -590,7 +590,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             marginBottom: "8px",
                                             fontSize: "14px",
                                             fontWeight: "600",
-                                            color: "#000000",
+                                            color: "#FF5A5A",
                                         }}
                                     >
                                         Phone Number <span style={{ color: "#ff5a5f" }}>*</span>
@@ -600,6 +600,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         name="phoneNumber"
                                         value={formData.phoneNumber}
                                         onChange={handleInputChange}
+                                        className="placeholder:text-[#777777]"
                                         style={{
                                             width: "100%",
                                             padding: "12px",
@@ -609,7 +610,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             boxSizing: "border-box",
                                             borderLeft: "3px solid #ff5a5f",
                                             backgroundColor: "white",
-                                            color: "#000000",
                                             outline: "none",
                                             minHeight: "40px", // added min-height
                                         }}
@@ -638,7 +638,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             marginBottom: "8px",
                                             fontSize: "14px",
                                             fontWeight: "600",
-                                            color: "#000000",
+                                            color: "#FF5A5A",
                                         }}
                                     >
                                         Email <span style={{ color: "#ff5a5f" }}>*</span>
@@ -648,6 +648,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         name="email"
                                         value={formData.email}
                                         onChange={handleInputChange}
+                                        className="placeholder:text-[#777777]"
                                         style={{
                                             width: "100%",
                                             padding: "12px",
@@ -657,7 +658,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             boxSizing: "border-box",
                                             borderLeft: "3px solid #ff5a5f",
                                             backgroundColor: "white",
-                                            color: "#000000",
                                             outline: "none",
                                         }}
                                         onFocus={(e) => {
@@ -687,7 +687,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             marginBottom: "8px",
                                             fontSize: "14px",
                                             fontWeight: "600",
-                                            color: "#000000",
+                                            color: "#FF5A5A",
                                         }}
                                     >
                                         Birthdate <span style={{ color: "#ff5a5f" }}>*</span>
@@ -738,10 +738,9 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                                     fontSize: "14px",
                                                     boxSizing: "border-box",
                                                     backgroundColor: "white",
-                                                    color: "#000000",
                                                     outline: "none",
                                                 }}
-                                                className="birthdate-input"
+                                                className="birthdate-input placeholder:text-[#777777]"
                                                 onFocus={() => {
                                                     calendarWrapperRef.current.style.border = `1px solid ${errors.birthdate ? "#FF0000" : "#FF5A5A"}`;
                                                     calendarWrapperRef.current.style.borderLeft = "3px solid #ff5a5f";
@@ -933,7 +932,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             marginBottom: "8px",
                                             fontSize: "14px",
                                             fontWeight: "600",
-                                            color: "#000000",
+                                            color: "#FF5A5A",
                                         }}
                                     >
                                         Address <span style={{ color: "#ff5a5f" }}>*</span>
@@ -943,6 +942,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         name="address"
                                         value={formData.address}
                                         onChange={handleInputChange}
+                                        className="placeholder:text-[#777777]"
                                         style={{
                                             width: "100%",
                                             padding: "12px",
@@ -952,7 +952,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             boxSizing: "border-box",
                                             borderLeft: "3px solid #ff5a5f",
                                             backgroundColor: "white",
-                                            color: "#000000",
                                             outline: "none",
                                         }}
                                         onFocus={(e) => {
@@ -976,10 +975,9 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     <label
                                         style={{
                                             display: "block",
-                                            marginBottom: "8px",
                                             fontSize: "14px",
                                             fontWeight: "600",
-                                            color: "#000000",
+                                            color: "#FF5A5A",
                                         }}
                                     >
                                         Gender <span style={{ color: "#ff5a5f" }}>*</span>
@@ -1071,7 +1069,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         boxSizing: "border-box",
                                         backgroundColor: "white",
                                         borderLeft: "3px solid #ff5a5f",
-                                        color: "#000000",
+                                        color: "#777777",
                                         cursor: rolesLoading ? "not-allowed" : "pointer",
                                         opacity: rolesLoading ? 0.6 : 1,
                                         outline: "none",
@@ -1128,6 +1126,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                                 name="password"
                                                 value={formData.password}
                                                 onChange={handleInputChange}
+                                                className="placeholder:text-[#777777]"
                                                 style={{
                                                     width: "100%",
                                                     padding: "12px 40px 12px 12px",
@@ -1222,6 +1221,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                             name="confirmPassword"
                                             value={formData.confirmPassword}
                                             onChange={handleInputChange}
+                                            className="placeholder:text-[#777777]"
                                             style={{
                                                 width: "100%",
                                                 padding: "12px",

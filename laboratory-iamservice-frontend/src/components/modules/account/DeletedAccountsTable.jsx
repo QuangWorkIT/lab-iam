@@ -148,19 +148,6 @@ export default function DeletedAccountsTable({
                                     color: "white",
                                     fontWeight: "600",
                                     fontSize: "14px",
-                                    minWidth: "80px",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
-                                ID
-                            </th>
-                            <th
-                                style={{
-                                    padding: "12px 15px",
-                                    textAlign: "left",
-                                    color: "white",
-                                    fontWeight: "600",
-                                    fontSize: "14px",
                                     minWidth: "160px",
                                     whiteSpace: "nowrap",
                                 }}
@@ -329,17 +316,7 @@ export default function DeletedAccountsTable({
                                         <td
                                             style={{
                                                 padding: "12px 15px",
-                                                fontWeight: "500",
-                                                color: "#000",
-                                            }}
-                                            title={account.id}
-                                        >
-                                            {truncateId(account.id)}
-                                        </td>
-                                        <td
-                                            style={{
-                                                padding: "12px 15px",
-                                                fontWeight: "500",
+                                                fontWeight: "600",
                                                 color: "#000",
                                             }}
                                         >

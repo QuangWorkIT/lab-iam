@@ -156,21 +156,6 @@ export default function AccountTable({
                   color: "white",
                   fontWeight: "600",
                   fontSize: "14px",
-                  minWidth: "80px",
-                  whiteSpace: "nowrap",
-                  verticalAlign: "middle",
-                }}
-              >
-                ID
-              </th>
-              <th
-                style={{
-                  padding: "12px 15px",
-                  textAlign: "left",
-                  borderBottom: "none",
-                  color: "white",
-                  fontWeight: "600",
-                  fontSize: "14px",
                   minWidth: "160px",
                   whiteSpace: "nowrap",
                   verticalAlign: "middle",
@@ -349,18 +334,7 @@ export default function AccountTable({
                     style={{
                       padding: "12px 15px",
                       borderBottom: "none",
-                      fontWeight: "500",
-                      color: "#000",
-                    }}
-                    title={account.id}
-                  >
-                    {truncateId(account.id)}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                      borderBottom: "none",
-                      fontWeight: "500",
+                      fontWeight: "600",
                       color: "#000",
                     }}
                   >

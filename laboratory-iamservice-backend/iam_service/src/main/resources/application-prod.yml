@@ -64,18 +64,19 @@ eureka:
 
     lease-renewal-interval-in-seconds: 30
     lease-expiration-duration-in-seconds: 90
-
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics
+        include: health,info,prometheus,metrics
   endpoint:
     health:
       show-details: always
-  info:
-    env:
-      enabled: true
+    prometheus:
+      enable: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 logging:
   level:

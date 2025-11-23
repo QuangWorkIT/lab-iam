@@ -341,7 +341,7 @@ export default function RoleTable({
                     style={{
                       padding: "12px 15px",
                       borderBottom: "none",
-                      fontWeight: "500",
+                      fontWeight: "600",
                       color: "#333",
                     }}
                   >

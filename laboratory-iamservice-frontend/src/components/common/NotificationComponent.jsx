@@ -1,10 +1,37 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoIosNotifications } from "react-icons/io";
-
-const NotificationDropdown = ({ items = [] }) => {
+import { Bell } from "lucide-react";
+import useSocketClient from "../../hooks/useSocketClient";
+import { Tag } from 'antd';
+import {
+    InfoCircleOutlined,
+    WarningOutlined,
+    ClockCircleOutlined,
+    ExclamationCircleOutlined
+} from '@ant-design/icons';
+const NotificationDropdown = () => {
     const [isNotifyTriggered, setIsNotifyTriggered] = useState(false);
     const dropdownRef = useRef(null);
+    const items = useSocketClient()
+
+    const statusIcon = {
+        ALERT: <ExclamationCircleOutlined className="!text-[#FF5A5A] text-[16px] p-3 bg-[#ebebeb] rounded-full" />,
+        WARNING: <WarningOutlined className="!text-[#f59f0a] text-[16px] p-3 bg-[#ebebeb] rounded-full" />,
+        INFO: <InfoCircleOutlined className="!text-[#0da2e7] text-[16px] p-3 bg-[#ebebeb] rounded-full" />,
+    }
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'ALERT':
+                return '#FF5A5A';
+            case 'WARNING':
+                return '#F59F0A';
+            case 'INFO':
+                return "#0DA2E7"
+            default:
+                return '#ebebeb';
+        }
+    };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -19,10 +46,10 @@ const NotificationDropdown = ({ items = [] }) => {
     return (
         <div ref={dropdownRef} className="relative flex flex-col items-end">
             {/* Notification Bell Icon */}
-            <IoIosNotifications
+            <Bell
                 onClick={() => setIsNotifyTriggered((prev) => !prev)}
-                className="hover:cursor-pointer hover:scale-120 transition-transform duration-300 ease-in-out"
-                color="#888"
+                className="hover:cursor-pointer hover:scale-110 transition-transform duration-300 ease-in-out"
+                color="#777"
                 style={{ fontSize: "24px" }}
             />
 
@@ -34,32 +61,63 @@ const NotificationDropdown = ({ items = [] }) => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2, ease: "easeInOut" }}
-                        className="absolute top-8 right-0 bg-white rounded-[10px] shadow-lg z-50"
+                        className="absolute top-8 right-0 bg-white max-h-[400px] overflow-y-auto overflow-x-hidden rounded-[10px] shadow-lg z-50 
+                        p-5 border-2 border-gray-200 scroll-smooth thin-scrollbar"
                     >
-                        <ul className="flex flex-col min-w-[200px] w-max" style={{ margin: 0 }}>
+                        <ul className="flex flex-col min-w-[350px] w-max " style={{ margin: 0 }}>
                             {items?.length > 0 ? (
-                                items.map((item, index) => (
-                                    <li
-                                        key={index}
-                                        className={`w-full flex gap-2  justify-start px-4 py-5 text-sm text-gray-700 group bg-white hover:bg-[#f5f5f5] cursor-pointer
-                                    ${index === 0 && "rounded-t-[8px] border-t-4 border-[#888]"}
-                                    ${index === items.length - 1 && "rounded-b-[8px] border-b-4 border-[#888]"}`}
-                                    >
-                                        {/* Icon */}
-                                        {item.icon && (
-                                            <span className="inline-block transform transition-transform duration-300 mt-1">
-                                                {item.icon}
-                                            </span>
-                                        )}
-                                        {/* Text */}
-                                        <span className="inline-block transform transition-transform duration-300 group-hover:scale-105">
-                                            {item.text}
-                                        </span>
-                                    </li>
-                                ))
+                                <div>
+                                    <p className="text-2xl font-bold !mb-2">Notifications</p>
+                                    {items.map((item, index) => (
+                                        <div key={index + item.typeId}>
+                                            <li
+                                                className={`w-full flex gap-5 justify-start p-3 text-sm text-gray-700 group bg-white hover:bg-[#f5f5f5] cursor-pointer`}
+                                            >
+                                                {/* Icon */}
+                                                <div className="flex-shrink-0">
+                                                    <div className="relative">
+                                                        <div className="absolute right-0 w-2 h-2 rounded-full"
+                                                            style={{ backgroundColor: getStatusColor(item.status) }} />
+                                                        {statusIcon[item.status]}
+                                                    </div>
+                                                </div>
+
+                                                {/* main content */}
+                                                <div className="flex flex-col gap-3">
+                                                    {/* Source*/}
+                                                    <div className="flex items-center gap-2">
+                                                        <Tag
+                                                            color="blue"
+                                                            style={{ borderRadius: "10px", padding: "0 15px", fontSize: "12px" }}
+                                                        >
+                                                            {item.source}
+                                                        </Tag>
+                                                    </div>
+
+                                                    {/* Text */}
+                                                    <p className="text-[14px] !mb-1 font-semibold max-w-[300px]">
+                                                        {item.text}
+                                                    </p>
+
+                                                    {/* Create at */}
+                                                    <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                                                        <ClockCircleOutlined className="text-[12px]" />
+                                                        <span>{item.createdAt}</span>
+                                                    </div>
+
+
+                                                </div>
+
+                                            </li>
+                                            {index !== items.length - 1 && (
+                                                <div className="w-full h-[1px] bg-gray-200 my-2"></div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             ) : (
                                 <li>
-                                    <div className="relative group flex justify-center rounded-[8px] bg-white  cursor-pointer p-3">
+                                    <div className="relative group flex justify-center rounded-[5px] bg-white cursor-pointer p-3 overflow-hidden">
                                         <svg
                                             className="group-hover:scale-110 group-hover:-translate-y-4 transition-all duration-300 ease-in-out"
                                             width="250" height="200" viewBox="0 0 250 200" fill="none" xmlns="http://www.w3.org/2000/svg">

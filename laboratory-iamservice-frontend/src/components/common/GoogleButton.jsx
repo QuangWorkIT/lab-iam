@@ -38,7 +38,11 @@ function GoogleButton({ setIsGoogleLogin }) {
             }))
             toast.success("Login successfully!")
             localStorage.removeItem("banUntil")
-            nav("/test", { replace: true })
+             if (payload.role === "ROLE_ADMIN" || payload.role === "ROLE_LAB_MANAGER") {
+                nav("/roles", { replace: true });
+            } else {
+                nav("/home", { replace: true });
+            }
         } catch (error) {
             console.error("Error google login ", error)
             toast.error("Login fail!")

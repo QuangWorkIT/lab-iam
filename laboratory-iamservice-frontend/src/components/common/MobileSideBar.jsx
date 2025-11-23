@@ -34,7 +34,9 @@ export default function MobileSidebar({ isOpen, menuItems, toggleSideBar }) {
                                 key={index}
                                 className={`flex items-center w-full px-2 mb-5 transition-all duration-200 ease-in-out hover:cursor-pointer 
                                 ${isOpen ? "hover:bg-white/20 rounded-r-full" : "bg-transparent hover:bg-transparent"}
-                                ${isOpen && location.pathname === item.path && "bg-[#FFFFFF33]"}`}
+                                ${isOpen && location.pathname === item.path && "bg-[#FFFFFF33]"}
+                                ${index === 0 && "mt-4"}
+                                `}
             
                             >
                                 <SidebarIcon

@@ -2,6 +2,7 @@ package com.example.notification_service.controller;
 
 import com.example.notification_service.config.LogAuditPublisher;
 import com.example.notification_service.dto.ApiResponse;
+import com.example.notification_service.dto.TestOrderNotificationDTO;
 import com.example.notification_service.entity.TestOrderNotification;
 import com.example.notification_service.event.TestOrderCommentEvent;
 import com.example.notification_service.serviceImpl.NotificationServiceImpl;
@@ -19,7 +20,7 @@ public class NotificationController {
     private final LogAuditPublisher publisher;
 
     @GetMapping("/test-order-notifications/{email}")
-    public ResponseEntity<ApiResponse<List<TestOrderNotification>>> getAllNotificationByEmail(
+    public ResponseEntity<ApiResponse<List<TestOrderNotificationDTO>>> getAllNotificationByEmail(
             @PathVariable String email
     ) {
         if (email == null || email.trim().isEmpty()) {
@@ -28,7 +29,7 @@ public class NotificationController {
                     .body(new ApiResponse<>("error", "Email is required"));
         }
 
-        List<TestOrderNotification> notifications = notificationService.getAllNotifyByEmail(email);
+        List<TestOrderNotificationDTO> notifications = notificationService.getAllNotifyByEmail(email);
 
         if (notifications.isEmpty()) {
             return ResponseEntity

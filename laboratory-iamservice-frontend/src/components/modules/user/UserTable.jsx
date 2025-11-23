@@ -413,9 +413,10 @@ export default function UserTable({
                     <td
                       style={{
                         padding: "12px 15px",
-                        fontWeight: "500",
+                        fontWeight: "600",
                         color: "#000",
                         textAlign: "left",
+                        minWidth: "200px"
                       }}
                     >
                       {user.name}
