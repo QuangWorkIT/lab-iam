@@ -40,7 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String path = request.getServletPath();
             String jwt = request.getHeader("X-Auth-Token");
 
-            if (path.startsWith("/api/auth") || jwt == null || path.startsWith("/actuator/")) {
+            if (path.startsWith("/api/auth") || jwt == null || path.startsWith("/actuator/") || path.startsWith("/internal/")) {
                 filterChain.doFilter(request, response);
                 return;
             }
