@@ -33,7 +33,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/roles")
+@RequestMapping("/roles")
 @RequiredArgsConstructor
 public class RoleController {
 

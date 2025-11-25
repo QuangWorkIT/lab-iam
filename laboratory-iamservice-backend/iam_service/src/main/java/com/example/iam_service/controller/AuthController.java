@@ -27,7 +27,7 @@ import java.util.Map;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     private final AuthenticationServiceImpl authService;
@@ -177,17 +177,17 @@ public class AuthController {
     private ResponseCookie setCookieToken(String refreshToken) {
         return ResponseCookie.from("refreshToken", refreshToken)
                 .maxAge(7 * 24 * 60 * 60)
-                .secure(false) // change to true in production
+                .secure(true)
                 .httpOnly(true)
                 .path("/")
-                .sameSite("Lax") // change to None in production
+                .sameSite("None")
                 .build();
     }
 
     @PostMapping("/user-lookup")
     public ResponseEntity<ApiResponse<UserDTO>> findUserByOptions(
             @Valid @RequestBody ResetPassOptionRequest request) {
-        User user = authService.findUserByEmailOrPhone(request.getOption(), request.getData());
+        User user = authService.searchUserByEmail(request.getData());
         if (user == null) {
             return ResponseEntity
                     .status(404)

@@ -26,7 +26,7 @@ import java.util.UUID;
 
 @Tag(name = "User Management", description = "APIs for managing users and their accounts")
 @RestController
-@RequestMapping("/api/users") // all routes start with /api/users
+@RequestMapping("/users") // all routes start with /api/users
 @RequiredArgsConstructor
 public class UserController {
 

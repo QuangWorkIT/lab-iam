@@ -36,7 +36,7 @@ function ServiceWidget() {
             title: "Instrument Management",
             icon: <FaTools size={24} />,
             desc: "Manages laboratory instruments, reagents and executing blood testing.",
-            path: "#",
+            path: "http://52.76.52.123:3000/",
             color: "from-orange-500 to-red-500",
         },
         WAREHOUSE_SERVICE: {
@@ -50,7 +50,7 @@ function ServiceWidget() {
             title: "Patient Management",
             icon: <FaUserShield size={24} />,
             desc: "Handles patient records, appointments, and essential patient-related information.",
-            path: "http://54.206.211.154:3000",
+            path: "http://54.206.211.154:3000/",
             color: "from-indigo-400 to-purple-500",
         },
     };

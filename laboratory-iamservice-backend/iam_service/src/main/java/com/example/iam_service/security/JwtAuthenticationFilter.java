@@ -37,16 +37,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NotNull FilterChain filterChain) throws ServletException, IOException {
         try {
             // filter ignores public request
-            String path = request.getServletPath();
-            String jwt = request.getHeader("X-Auth-Token");
+            String path = request.getRequestURI();
+            System.out.println("request: " + path);
+            String authHeader = request.getHeader("X-Auth-Token") != null
+                    ? request.getHeader("X-Auth-Token")
+                    : request.getHeader("Authorization");
 
-            if (path.startsWith("/api/auth") || jwt == null || path.startsWith("/actuator/") || path.startsWith("/internal/")) {
+            if (path.startsWith("/auth") || path.startsWith("/api/auth")
+                    || path.startsWith("/v3/api-docs")
+                    || path.startsWith("/swagger-ui")
+                    || path.equals("/swagger-ui.html")
+                    || path.startsWith("/actuator/")
+                    || path.startsWith("/internal/")
+            ) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
+            // filter ignore auth endpoints
+            if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+                filterChain.doFilter(request,response);
+                return;
+            }
+    
+            // extract token from headers
+            String jwt = authHeader.startsWith("Bearer ")
+                    ? authHeader.substring(7).trim()
+                    : authHeader.trim();
 
-            String userId = request.getHeader("X-User-Id");
+            String userId = jwtUtil.validate(jwt);
             User user = userRepository.findById(UUID.fromString(userId))
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
 

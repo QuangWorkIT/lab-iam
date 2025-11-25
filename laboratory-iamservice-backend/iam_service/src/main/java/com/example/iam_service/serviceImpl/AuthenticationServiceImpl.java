@@ -158,12 +158,8 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
     }
 
     @Override
-    public User findUserByEmailOrPhone(String option, String data) {
-        return switch (option) {
-            case "email" -> userRepository.findByEmail(data).orElse(null);
-            case "phone" -> userRepository.findByPhoneNumber(data).orElse(null);
-            default -> throw new RuntimeException("Find user by option not found");
-        };
+    public User searchUserByEmail(String data) {
+        return userRepository.findByEmail(data).orElse(null);
     }
 
     @Transactional

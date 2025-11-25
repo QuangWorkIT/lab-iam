@@ -1,4 +1,5 @@
 server:
+  forward-headers-strategy: framework
   port: 8089
   error:
     include-message: always
@@ -37,7 +38,9 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-
+  mvc:
+    servlet:
+      path: /api
 google:
   web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
 
@@ -51,7 +54,7 @@ eureka:
   instance:
     prefer-ip-address: false
 
-    hostname:  35.172.58.177
+    hostname: 35.172.58.177
 
     instance-id: ${spring.application.name}:${eureka.instance.hostname}:${server.port}
 
