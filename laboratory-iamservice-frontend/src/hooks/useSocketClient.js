@@ -4,7 +4,7 @@ import { Client } from "@stomp/stompjs";
 import fetchNotifications from '../services/fetchNotifications';
 import { useSelector } from 'react-redux';
 
-const websocket_host = import.meta.env.VITE_WEBSOCKET_HOST || "http://localhost:7070/ws"
+const websocket_host = import.meta.env.VITE_WEBSOCKET_HOST || "http://localhost:7070"
 
 function useSocketClient() {
     const [notifications, setNotifications] = useState([])

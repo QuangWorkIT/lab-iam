@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/notification")
 public class NotificationController {
     private final NotificationServiceImpl notificationService;
     private final LogAuditPublisher publisher;
