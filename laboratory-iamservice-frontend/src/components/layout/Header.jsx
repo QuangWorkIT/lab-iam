@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaHeartbeat, FaCog, FaUserCog, FaSignOutAlt, FaCheckCircle, FaExclamationCircle, FaRegDotCircle } from "react-icons/fa";
-import { logout } from "../../redux/features/userSlice";
+import { FaHeartbeat, FaSignOutAlt } from "react-icons/fa";
 import UserDetailModal from "../common/UserDetailModal";
-import { DoubleRightOutlined } from "@ant-design/icons"
 import { motion, AnimatePresence } from "motion/react"
 import NotificationComponent from "../common/NotificationComponent"
 import { Tooltip } from "antd";
@@ -49,9 +47,8 @@ export default function Header({ pageTitle }) {
   };
 
   const confirmLogout = () => {
-    dispatch(logout());
     setShowConfirm(false);
-    nav("/login", { replace: true });
+    nav("/logout", { replace: true });
   };
 
   const closeConfirm = () => setShowConfirm(false);
@@ -185,17 +182,19 @@ export default function Header({ pageTitle }) {
                 }}
               />
               <span
-                style={{ color: "black", fontWeight: "bold", fontSize: "16px" }}
+                style={{ color: "black", fontWeight: "bold", fontSize: "16px", cursor: "default" }}
               >
                 Laboratory Management
               </span>
             </div>
             {pageTitle && (
               <>
-                <span style={{ margin: "0 10px", color: "#777777"}}>
-                  <ChevronsRight style={{fontSize: "24px"}}/>
+                <span style={{ margin: "0 10px", color: "#777777" }}>
+                  <ChevronsRight style={{ fontSize: "24px" }} />
                 </span>
-                <span style={{ color: "#FF5A5A", fontWeight: "bold" }}>{pageTitle}</span>
+                <span className="text-[#FF5A5A] font-bold cursor-default hover:!text-[#FF3A3A]">
+                  {pageTitle}
+                </span>
               </>
             )}
           </div>

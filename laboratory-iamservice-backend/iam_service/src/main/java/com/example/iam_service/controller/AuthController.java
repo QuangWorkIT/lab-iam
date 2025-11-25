@@ -146,16 +146,16 @@ public class AuthController {
             @CookieValue(value = "refreshToken", required = false) String refreshToken
     ) {
         try {
-            if (!refreshToken.trim().isEmpty()) {
+            if (refreshToken != null && !refreshToken.trim().isEmpty()) {
                 authService.deleteToken(refreshToken);
             }
 
             ResponseCookie clearCookie = ResponseCookie.from("refreshToken", "")
                     .maxAge(0)
-                    .secure(false)
+                    .secure(true)
                     .httpOnly(true)
                     .path("/")
-                    .sameSite("Lax")
+                    .sameSite("None")
                     .build();
 
             return ResponseEntity
