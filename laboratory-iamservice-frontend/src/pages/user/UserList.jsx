@@ -283,33 +283,14 @@ export default function UserList() {
       pageTitle="USER MANAGEMENT"
       pageDescription="Manage user accounts"
     >
-      {/* Add responsive styles */}
-      <style>
-        {`
-          .user-list-container {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 20px;
-            width: 100%;
-            align-items: start;
-          }
-          
-          @media (max-width: 1400px) {
-            .user-list-container {
-              grid-template-columns: 1fr 350px;
-            }
-          }
-          
-          @media (max-width: 1200px) {
-            .user-list-container {
-              grid-template-columns: 1fr;
-            }
-          }
-        `}
-      </style>
 
-      <div className="user-list-container">
-        {/* Left: User Table */}
+      <div className="flex flex-col gap-[20px] items-center justify-center">
+          {/* Left: User Role Chart */}
+        <div className="hidden md:block md:w-[600px] lg:w-[800px]">
+          <UserRoleChart refreshTrigger = {chartRefreshTrigger}/>
+        </div>
+
+        {/* Right: User Table */}
         <div
           style={{
             backgroundColor: "white",
@@ -399,8 +380,7 @@ export default function UserList() {
           )}
         </div>
 
-        {/* Right: User Role Chart */}
-        <UserRoleChart refreshTrigger={chartRefreshTrigger} />
+        
       </div>
 
       {/* ✅ Chỉ render modal nếu có quyền CREATE_USER */}
