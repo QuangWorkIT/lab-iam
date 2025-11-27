@@ -261,7 +261,7 @@ public class AuthenticationServiceTest {
                     .thenReturn(Optional.of(existedUser));
 
             // act
-            User loadUser = authenticationService.loadOrCreateUser(payload);
+            User loadUser = authenticationService.loadUserByLoginGoogle(payload);
 
             assertNotNull(loadUser);
             assertEquals("admin@example.com", loadUser.getEmail());
@@ -281,7 +281,7 @@ public class AuthenticationServiceTest {
             when(userRepository.save(any(User.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
 
-            User createdUser = authenticationService.loadOrCreateUser(payload);
+            User createdUser = authenticationService.loadUserByLoginGoogle(payload);
 
             assertNotNull(createdUser);
             assertEquals("admin@STAFFgmail.com", createdUser.getEmail());
@@ -299,7 +299,7 @@ public class AuthenticationServiceTest {
             when(userRepository.findByEmail(payload.getEmail()))
                     .thenThrow(new RuntimeException("DB connection failed"));
 
-            User loadedUser = authenticationService.loadOrCreateUser(payload);
+            User loadedUser = authenticationService.loadUserByLoginGoogle(payload);
 
             assertNull(loadedUser);
             verify(userRepository, times(1)).findByEmail(payload.getEmail());

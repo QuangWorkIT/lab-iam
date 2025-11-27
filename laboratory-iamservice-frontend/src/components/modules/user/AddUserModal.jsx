@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaInfoCircle, FaCalendarAlt, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaInfoCircle, FaEye, FaEyeSlash } from "react-icons/fa";
 import { fetchRolesForUser } from "../../../redux/features/userManagementSlice";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
-import Calendar from "react-calendar";
 import { DatePicker } from 'antd';
 import { Select } from 'antd';
 
@@ -28,8 +27,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const dispatch = useDispatch();
     const { roles, rolesLoading } = useSelector((state) => state.users);
     const { userInfo } = useSelector((state) => state.user); // Get current logged-in user
-    const [isHovering, setIsHovering] = useState(false);
-    const calendarWrapperRef = useRef(null);
+
 
     // Check if current user is ADMIN
     const isAdmin = userInfo?.role?.includes("ROLE_ADMIN");
@@ -55,8 +53,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const [showPassword, setShowPassword] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [showCalendar, setShowCalendar] = useState(false);
-    const calendarRef = useRef(null);
+
     const [birthdateInput, setBirthdateInput] = useState("");
     const dateFormat = 'YYYY-MM-DD';
     const resetForm = () => {
@@ -67,7 +64,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         setShowPassword(false);
         setPasswordStrength({});
         setIsSubmitting(false);
-        setShowCalendar(false);
         setBirthdateInput("");
     };
 
@@ -276,7 +272,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                 isActive: isAdmin ? true : false,     // ADMIN -> Active, MANAGER -> Inactive
                 phoneNumber: formData.phoneNumber,
                 identityNumber: formData.identityNumber,
-                birthdate: birthdateInput,
+                birthdate: formData.birthdate,
                 address: formData.address.trim(),
                 gender: formData.gender,
             };
@@ -291,12 +287,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                 await onSave(userData);
                 // clear form for next creation
                 resetForm();
-                // Success toast will be shown in handleSaveNewUser (UserList.jsx)
             } catch (error) {
-                // Handle backend errors
-
-                // Try multiple possible error fields from backend response
-                // Backend can return: {error: "..."} or {message: "..."}
                 const errorMessage =
                     error ||
                     error?.response?.data?.error ||

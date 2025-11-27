@@ -84,38 +84,12 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
     }
 
     @Transactional
-    public User loadOrCreateUser(GoogleIdToken.Payload payload) {
-        try {
-            Optional<User> optUser = userRepository.findByEmail(payload.getEmail());
-            String firstName = (String) payload.get("given_name");
-            String lastName = (String) payload.get("family_name");
-
-            if (optUser.isEmpty()) {
-                User insertUser = new User();
-                insertUser.setEmail(payload.getEmail());
-                insertUser.setFullName(lastName.concat(" " + firstName));
-
-                // default value when not updated
-                insertUser.setIdentityNumber("N/A");
-                insertUser.setPassword(
-                        encoder.encode("Aa" + UUID.randomUUID().toString().substring(0, 10))
-                );
-                insertUser.setPhoneNumber(null);
-                insertUser.setAddress(null);
-                insertUser.setBirthdate(null);
-                insertUser.setAge(null);
-                insertUser.setGender("MALE");
-                insertUser.setRoleCode("ROLE_PATIENT");
-                insertUser.setIsActive(true);
-
-                return userRepository.save(insertUser);
-            }
-
-            return optUser.get();
-        } catch (RuntimeException e) {
-            System.out.println("Error google login " + e);
-            return null;
+    public User loadUserByLoginGoogle(GoogleIdToken.Payload payload) {
+        Optional<User> optUser = userRepository.findByEmail(payload.getEmail());
+        if (optUser.isEmpty()) {
+            throw new UsernameNotFoundException("Email not found");
         }
+        return optUser.get();
     }
 
     //    Refresh token services

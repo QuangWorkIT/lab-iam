@@ -38,14 +38,24 @@ function GoogleButton({ setIsGoogleLogin }) {
             }))
             toast.success("Login successfully!")
             localStorage.removeItem("banUntil")
-             if (payload.role === "ROLE_ADMIN" || payload.role === "ROLE_LAB_MANAGER") {
+            if (payload.role === "ROLE_ADMIN" || payload.role === "ROLE_LAB_MANAGER") {
                 nav("/roles", { replace: true });
             } else {
                 nav("/home", { replace: true });
             }
         } catch (error) {
-            console.error("Error google login ", error)
-            toast.error("Login fail!")
+            const errMess = error.response?.data?.message
+            if (errMess) {
+                toast.error(errMess, {
+                    className: "!text-[#FF0000] font-bold text-[14px]"
+                })
+            }
+            else {
+                console.error("Error google login ", error)
+                toast.error("Login fail!", {
+                    className: "!text-[#FF0000] font-bold text-[14px]"
+                })
+            }
         } finally {
             setIsGoogleLogin(false)
         }
@@ -61,7 +71,7 @@ function GoogleButton({ setIsGoogleLogin }) {
             cookiePolicy={'single_host_origin'}
             size='large'
             width={200}
-            text='signin_with'  
+            text='signin_with'
         />
     )
 }

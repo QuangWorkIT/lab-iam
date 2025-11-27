@@ -8,7 +8,6 @@ import com.example.iam_service.entity.Token;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.mapper.UserMapper;
 import com.example.iam_service.service.EmailService;
-import com.example.iam_service.service.authen.ResetPasswordRateLimiterService;
 import com.example.iam_service.serviceImpl.AuthenticationServiceImpl;
 import com.example.iam_service.serviceImpl.LoginLimiterServiceImpl;
 import com.example.iam_service.serviceImpl.ResetPasswordRateLimiterImpl;
@@ -90,22 +89,29 @@ public class AuthController {
     public ResponseEntity<ApiResponse<TokenResponse>> googleLogin(
             @Valid @RequestBody GoogleTokenRequest credential
     ) {
-        // verify google credentials
-        GoogleIdToken.Payload payload = authService.getPayload(credential.getGoogleCredential());
-        User user = authService.loadOrCreateUser(payload);
+        try {
+            // verify google credentials
+            GoogleIdToken.Payload payload = authService.getPayload(credential.getGoogleCredential());
+            User user = authService.loadUserByLoginGoogle(payload);
 
-        // generate tokens
-        Map<String, String> tokens = authService.getTokens(user);
+            // generate tokens
+            Map<String, String> tokens = authService.getTokens(user);
 
-        ResponseCookie cookie = setCookieToken(tokens.get("refreshToken"));
+            ResponseCookie cookie = setCookieToken(tokens.get("refreshToken"));
 
-        return ResponseEntity
-                .ok()
-                .header("Set-cookie", cookie.toString())
-                .body(new ApiResponse<>(
-                        "success",
-                        "login success",
-                        new TokenResponse(tokens.get("accessToken"), tokens.get("refreshToken"))));
+            return ResponseEntity
+                    .ok()
+                    .header("Set-cookie", cookie.toString())
+                    .body(new ApiResponse<>(
+                            "success",
+                            "login success",
+                            new TokenResponse(tokens.get("accessToken"), tokens.get("refreshToken"))));
+        } catch (UsernameNotFoundException e) {
+            System.out.println("Error login google " + e.getMessage());
+            return ResponseEntity
+                    .status(400)
+                    .body(new ApiResponse<>("error", e.getMessage()));
+        }
     }
 
     @PostMapping("/refresh")

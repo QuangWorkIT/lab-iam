@@ -160,7 +160,7 @@ public class AuthControllerTest {
             tokens.put("refreshToken", "google-refresh-token");
 
             when(authService.getPayload("valid-google-token")).thenReturn(payload);
-            when(authService.loadOrCreateUser(payload)).thenReturn(user);
+            when(authService.loadUserByLoginGoogle(payload)).thenReturn(user);
             when(authService.getTokens(user)).thenReturn(tokens);
 
             // When
@@ -177,7 +177,7 @@ public class AuthControllerTest {
             assertTrue(response.getHeaders().containsKey("Set-cookie"));
 
             verify(authService, times(1)).getPayload("valid-google-token");
-            verify(authService, times(1)).loadOrCreateUser(payload);
+            verify(authService, times(1)).loadUserByLoginGoogle(payload);
             verify(authService, times(1)).getTokens(user);
         }
     }
