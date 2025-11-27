@@ -58,7 +58,7 @@ const useAllowedService = () => {
             allowedServices.push(privilegesBaseService[privilege].desc)
         }
     }    
-    return allowedServices
+    return allowedServices // return an allowed services array
 }
 
 export default useAllowedService;

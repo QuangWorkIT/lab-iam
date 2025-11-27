@@ -9,10 +9,12 @@ import {
     ClockCircleOutlined,
     ExclamationCircleOutlined
 } from '@ant-design/icons';
+import { BsBoxSeam } from "react-icons/bs";
+
 const NotificationDropdown = () => {
     const [isNotifyTriggered, setIsNotifyTriggered] = useState(false);
     const dropdownRef = useRef(null);
-    const items = useSocketClient()
+    const [testOrderNotification, reagentNotification] = useSocketClient()
 
     const statusIcon = {
         ALERT: <ExclamationCircleOutlined className="!text-[#FF5A5A] text-[16px] p-3 bg-[#ebebeb] rounded-full" />,
@@ -65,10 +67,10 @@ const NotificationDropdown = () => {
                         p-5 border-2 border-gray-200 scroll-smooth thin-scrollbar"
                     >
                         <ul className="flex flex-col min-w-[350px] w-max " style={{ margin: 0 }}>
-                            {items?.length > 0 ? (
+                            {reagentNotification?.length > 0 || testOrderNotification.length > 0 ? (
                                 <div>
                                     <p className="text-2xl font-bold !mb-2">Notifications</p>
-                                    {items.map((item, index) => (
+                                    {reagentNotification?.map((item, index) => (
                                         <div key={index + item.typeId}>
                                             <li
                                                 className={`w-full flex gap-5 justify-start p-3 text-sm text-gray-700 group bg-white hover:bg-[#f5f5f5] cursor-pointer`}
@@ -87,8 +89,64 @@ const NotificationDropdown = () => {
                                                     {/* Source*/}
                                                     <div className="flex items-center gap-2">
                                                         <Tag
-                                                            color="blue"
+                                                            color="green"
                                                             style={{ borderRadius: "10px", padding: "0 15px", fontSize: "12px" }}
+                                                        >
+                                                            {item.source}
+                                                        </Tag>
+                                                    </div>
+
+                                                    {/* Text */}
+                                                    <p className="text-[14px] !mb-1 font-semibold max-w-[300px]">
+                                                        {item.text}
+                                                    </p>
+
+                                                    <div className="flex justify-between">
+                                                         {/* quantity */}
+                                                        <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                                                            <BsBoxSeam className="text-[12px]" />
+                                                            <span className="font-bold">{item.quantity}</span>
+                                                        </div>
+
+                                                        {/* Create at */}
+                                                        <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                                                            <ClockCircleOutlined className="text-[12px]" />
+                                                            <span>{item.createdAt}</span>
+                                                        </div>                                                       
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            {index !== reagentNotification.length - 1 && (
+                                                <div className="w-full h-[1px] bg-gray-200 my-2"></div>
+                                            )}
+                                            {index === reagentNotification.length - 1 && testOrderNotification.length > 0 && (
+                                                <div className="w-full h-[1px] bg-gray-200 my-2"></div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {testOrderNotification?.map((item, index) => (
+                                        <div key={index + item.typeId}>
+                                            <li
+                                                className={`w-full flex gap-5 justify-start p-3 text-sm text-gray-700 group bg-white hover:bg-[#f5f5f5] cursor-pointer`}
+                                            >
+                                                {/* Icon */}
+                                                <div className="flex-shrink-0">
+                                                    <div className="relative">
+                                                        <div className="absolute right-0 w-2 h-2 rounded-full"
+                                                            style={{ backgroundColor: getStatusColor(item.status) }} />
+                                                        {statusIcon[item.status]}
+                                                    </div>
+                                                </div>
+
+                                                {/* main content */}
+                                                <div className="flex flex-col gap-3">
+                                                    {/* Source*/}
+                                                    <div className="flex items-center gap-2">
+                                                        <Tag
+                                                            color="magenta"
+                                                            style={{
+                                                                borderRadius: "10px", padding: "0 15px", fontSize: "12px"
+                                                            }}
                                                         >
                                                             {item.source}
                                                         </Tag>
@@ -104,12 +162,9 @@ const NotificationDropdown = () => {
                                                         <ClockCircleOutlined className="text-[12px]" />
                                                         <span>{item.createdAt}</span>
                                                     </div>
-
-
                                                 </div>
-
                                             </li>
-                                            {index !== items.length - 1 && (
+                                            {index !== testOrderNotification.length - 1 && (
                                                 <div className="w-full h-[1px] bg-gray-200 my-2"></div>
                                             )}
                                         </div>

@@ -54,16 +54,19 @@ eureka:
   instance:
     prefer-ip-address: false
 
-    hostname: 35.172.58.177
+    hostname: iam-service.site
 
     instance-id: ${spring.application.name}:${eureka.instance.hostname}:${server.port}
 
-    non-secure-port: ${server.port}
-    non-secure-port-enabled: true
+    #    non-secure-port: ${server.port}
+    #    non-secure-port-enabled: true
+    secure-port-enabled: true
+    secure-port: 443
+    non-secure-port-enabled: false
 
-    health-check-url: http://${eureka.instance.hostname}:${server.port}/actuator/health
-    status-page-url: http://${eureka.instance.hostname}:${server.port}/actuator/info
-    home-page-url: http://${eureka.instance.hostname}:${server.port}/
+    health-check-url: https://iam-service.site/api/actuator/health
+    status-page-url: https://iam-service.site/api/actuator/info
+    home-page-url: https://iam-service.site/api
 
     lease-renewal-interval-in-seconds: 30
     lease-expiration-duration-in-seconds: 90

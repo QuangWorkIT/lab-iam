@@ -44,6 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     : request.getHeader("Authorization");
 
             if (path.startsWith("/auth") || path.startsWith("/api/auth")
+                    || path.startsWith("/iam/api/auth")
                     || path.startsWith("/v3/api-docs")
                     || path.startsWith("/swagger-ui")
                     || path.equals("/swagger-ui.html")
@@ -55,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             // filter ignore auth endpoints
-            if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+            if(authHeader == null) {
                 filterChain.doFilter(request,response);
                 return;
             }
@@ -64,7 +65,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = authHeader.startsWith("Bearer ")
                     ? authHeader.substring(7).trim()
                     : authHeader.trim();
-
             String userId = jwtUtil.validate(jwt);
             User user = userRepository.findById(UUID.fromString(userId))
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -88,7 +88,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setContentType("application/json");
             response.getWriter().write("""
                     {
-                      "message": "Unauthorized request",
+                      "message": "Unauthorized request IAM Service",
                       "error": "JWT invalid or expired"
                     }
                     """);

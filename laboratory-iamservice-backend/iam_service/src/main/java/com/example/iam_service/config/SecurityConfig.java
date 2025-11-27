@@ -29,7 +29,7 @@ public class SecurityConfig {
             InternalServiceFilter internalFilter) throws Exception {
         // apply stateless configuration
         http
-                .cors(Customizer.withDefaults())
+//                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -58,7 +58,7 @@ public class SecurityConfig {
                             res.setContentType("application/json");
                             res.getWriter().write(String.format("""
                                     {
-                                      "message": "Unauthorized request",
+                                      "message": "Unauthorized request Iam Service",
                                       "error": "%s"
                                     }
                                     """, e.getMessage()));
