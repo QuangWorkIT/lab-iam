@@ -82,7 +82,7 @@ function LeftPanel({ user, statusColor, statusText }) {
                     textAlign: "center",
                 }}
             >
-                {user?.name || "N/A"}
+                {user?.userName || "N/A"}
             </h3>
 
             {/* User Role */}
@@ -163,7 +163,7 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                                     rounded-full cursor-pointer hover:bg-[#e1e7ef]"
                                     aria-label="Edit password"
                                 >
-                                   <IoInformationCircleOutline className="text-[20px]"/>
+                                    <IoInformationCircleOutline className="text-[20px]" />
                                 </button>
                             </Tooltip>
                         }
@@ -334,9 +334,11 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
 // Main Modal Component
 import UpdateSelfForm from "../modules/user/UpdateSelfForm.jsx";
 import { toast } from "react-toastify";
+import { updateUserInfo } from "../../redux/features/userSlice.js";
 
 export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
     const dispatch = useDispatch();
+    const userInfo = useSelector((state) => state.user.userInfo);
     const [isResetPassWordOpen, setIsResetPassWordOpen] = useState(false);
     const [isSelfUpdateOpen, setIsSelfUpdateOpen] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -502,7 +504,10 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
 
             // Refresh data if callback provided
             if (onRefresh) {
-                await onRefresh();
+                const updatedUser = await onRefresh(user.id);
+                if (userInfo.id === user.id) {
+                    dispatch(updateUserInfo(updatedUser))
+                }
             }
         } catch (error) {
             toast.error(error || "Failed to submit deletion request");
@@ -528,7 +533,10 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
 
             // Refresh data if callback provided
             if (onRefresh) {
-                await onRefresh();
+                const updatedUser = await onRefresh(user.id);
+                if (userInfo.id === user.id) {
+                    dispatch(updateUserInfo(updatedUser))
+                }
             }
 
             // Close modal completely

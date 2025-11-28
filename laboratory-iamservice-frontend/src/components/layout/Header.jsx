@@ -10,6 +10,7 @@ import MobileSidebar from "../common/MobileSideBar";
 import MobileToggle from "../common/MobileToggle";
 import { useSidebarMenu } from "../../hooks/useSideBarMenu";
 import { ChevronsRight, Users, LogOut } from "lucide-react";
+import { fetchUserProfile } from "../../services/fetchUserProfile";
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
@@ -58,26 +59,6 @@ export default function Header({ pageTitle }) {
     setIsDetailModalOpen(true);
   };
 
-
-  // Convert userInfo to the format expected by UserDetailModal
-  const getUserDetailData = () => {
-    if (!userInfo) return null;
-
-    return {
-      id: userInfo.id,
-      name: userInfo.userName || userInfo.name || "N/A",
-      role: userInfo.role || "N/A",
-      email: userInfo.email || "N/A",
-      identityNumber: userInfo.identityNumber || "N/A",
-      phoneNumber: userInfo.phoneNumber || userInfo.phone || "N/A",
-      gender: userInfo.gender || "N/A",
-      dateOfBirth: userInfo.dateOfBirth || userInfo.dob || null,
-      age: userInfo.age !== undefined ? userInfo.age : null,
-      address: userInfo.address || "N/A",
-      createdAt: userInfo.createdAt || userInfo.created_at || null,
-      isActive: userInfo.isActive || true,
-    };
-  };
 
   // Focus nút "Đăng xuất" và hỗ trợ phím Esc để đóng
   useEffect(() => {
@@ -296,10 +277,10 @@ export default function Header({ pageTitle }) {
               className="relative"
             >
               <UserDetailModal
-                user={getUserDetailData()}
+                user={userInfo}
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}
-                onRefresh={() => { }}
+                onRefresh={fetchUserProfile}
               />
             </motion.div>
           </motion.div>

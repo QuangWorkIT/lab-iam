@@ -160,6 +160,13 @@ public class AuthenticationServiceImpl implements LoginService, GoogleService, R
             }
         }
 
+        String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
+        if (!password.matches(passwordRegex)) {
+            throw new IllegalArgumentException("Password must be at least 8 characters long and contain" +
+                    " at least one uppercase letter, " +
+                    "one lowercase letter, and one digit");
+        }
+
         auditPublisher.publish(AuditEvent.builder()
                 .type(auditPrefix)
                 .userId(user.getUserId().toString())

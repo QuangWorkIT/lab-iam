@@ -1,10 +1,11 @@
 import { GoogleLogin } from '@react-oauth/google'
 import api from '../../configs/axios.js';
 import { useDispatch } from 'react-redux';
-import { login } from '../../redux/features/userSlice.js';
+import { addBannedElement, login } from '../../redux/features/userSlice.js';
 import { parseClaims } from '../../utils/jwtUtil.js';
 import { useNavigate } from "react-router";
 import { toast } from 'react-toastify';
+import { formatBannedDate } from '../../utils/formatter.js';
 
 
 function GoogleButton({ setIsGoogleLogin }) {
@@ -34,6 +35,8 @@ function GoogleButton({ setIsGoogleLogin }) {
                     age: payload.age,
                     address: payload.address,
                     isActive: payload.isActive === "true",
+                    deletedAt: payload.deletedAt,
+                    isDeleted: payload.isDeleted === "true"
                 }
             }))
             toast.success("Login successfully!")
@@ -46,9 +49,22 @@ function GoogleButton({ setIsGoogleLogin }) {
         } catch (error) {
             const errMess = error.response?.data?.message
             if (errMess) {
-                toast.error(errMess, {
-                    className: "!text-[#FF0000] font-bold text-[14px]"
-                })
+                if (error.response?.status === 429 &&
+                    errMess.split(".")[0] === "Too many attempts") {
+                    toast.error("Too many attempts!", {
+                        className: "!text-[#FF0000] font-bold text-[14px]"
+                    })
+                    dispatch(addBannedElement(
+                        {
+                            type: "loginBanned",
+                            banUntil: formatBannedDate(error.response.data.data)
+                        })
+                    )
+                }else {
+                    toast.error(errMess, {
+                        className: "!text-[#FF0000] font-bold text-[14px]"
+                    })
+                }
             }
             else {
                 console.error("Error google login ", error)

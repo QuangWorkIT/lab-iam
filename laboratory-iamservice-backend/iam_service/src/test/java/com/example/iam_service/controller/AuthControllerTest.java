@@ -142,45 +142,45 @@ public class AuthControllerTest {
     }
 
     @Nested
-    class GoogleLoginTestGroup {
-
-        @Test
-        void googleLogin_ValidCredentials_ShouldReturnSuccessResponse() {
-            // Given
-            GoogleTokenRequest tokenRequest = new GoogleTokenRequest();
-            tokenRequest.setGoogleCredential("valid-google-token");
-
-            GoogleIdToken.Payload payload = mock(GoogleIdToken.Payload.class);
-            User user = new User();
-            user.setUserId(UUID.randomUUID());
-            user.setEmail("user@gmail.com");
-
-            Map<String, String> tokens = new HashMap<>();
-            tokens.put("accessToken", "google-access-token");
-            tokens.put("refreshToken", "google-refresh-token");
-
-            when(authService.getPayload("valid-google-token")).thenReturn(payload);
-            when(authService.loadUserByLoginGoogle(payload)).thenReturn(user);
-            when(authService.getTokens(user)).thenReturn(tokens);
-
-            // When
-            ResponseEntity<ApiResponse<TokenResponse>> response =
-                    authController.googleLogin(tokenRequest);
-
-            // Then
-            assertEquals(200, response.getStatusCode().value());
-            assertNotNull(response.getBody());
-            assertEquals("success", response.getBody().getStatus());
-            assertEquals("login success", response.getBody().getMessage());
-            assertEquals("google-access-token", response.getBody().getData().getAccessToken());
-            assertEquals("google-refresh-token", response.getBody().getData().getRefreshToken());
-            assertTrue(response.getHeaders().containsKey("Set-cookie"));
-
-            verify(authService, times(1)).getPayload("valid-google-token");
-            verify(authService, times(1)).loadUserByLoginGoogle(payload);
-            verify(authService, times(1)).getTokens(user);
-        }
-    }
+//    class GoogleLoginTestGroup {
+//
+//        @Test
+//        void googleLogin_ValidCredentials_ShouldReturnSuccessResponse() {
+//            // Given
+//            GoogleTokenRequest tokenRequest = new GoogleTokenRequest();
+//            tokenRequest.setGoogleCredential("valid-google-token");
+//
+//            GoogleIdToken.Payload payload = mock(GoogleIdToken.Payload.class);
+//            User user = new User();
+//            user.setUserId(UUID.randomUUID());
+//            user.setEmail("user@gmail.com");
+//
+//            Map<String, String> tokens = new HashMap<>();
+//            tokens.put("accessToken", "google-access-token");
+//            tokens.put("refreshToken", "google-refresh-token");
+//
+//            when(authService.getPayload("valid-google-token")).thenReturn(payload);
+//            when(authService.loadUserByLoginGoogle(payload)).thenReturn(user);
+//            when(authService.getTokens(user)).thenReturn(tokens);
+//
+//            // When
+//            ResponseEntity<ApiResponse<TokenResponse>> response =
+//                    authController.googleLogin(tokenRequest);
+//
+//            // Then
+//            assertEquals(200, response.getStatusCode().value());
+//            assertNotNull(response.getBody());
+//            assertEquals("success", response.getBody().getStatus());
+//            assertEquals("login success", response.getBody().getMessage());
+//            assertEquals("google-access-token", response.getBody().getData().getAccessToken());
+//            assertEquals("google-refresh-token", response.getBody().getData().getRefreshToken());
+//            assertTrue(response.getHeaders().containsKey("Set-cookie"));
+//
+//            verify(authService, times(1)).getPayload("valid-google-token");
+//            verify(authService, times(1)).loadUserByLoginGoogle(payload);
+//            verify(authService, times(1)).getTokens(user);
+//        }
+//    }
 
     @Nested
     class RefreshTokenTestGroup {

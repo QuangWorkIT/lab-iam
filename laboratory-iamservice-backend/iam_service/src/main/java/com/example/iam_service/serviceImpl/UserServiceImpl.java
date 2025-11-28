@@ -469,6 +469,34 @@ public class UserServiceImpl implements UserService {
         return savedUsers;
     }
 
+    @Override
+    public User createUserByPatientService(User user) {
+        User actor = securityUtil.getCurrentUser();
+        validateUniqueEmail(user.getEmail());
+
+        // Automatically calculate age if not provided
+        if (user.getBirthdate() != null && user.getAge() == null) {
+            user.setAge(calculateAge(user.getBirthdate()));
+        }
+
+        String plainPassword = preparePatientUser(user);
+
+        try {
+            User savedUser = userRepository.save(user);
+            emailService.sendPasswordEmail(savedUser.getEmail(), plainPassword);
+            auditPublisher.publish(AuditEvent.builder()
+                    .type("PATIENT_CREATED")
+                    .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                    .target(String.valueOf(savedUser.getUserId()))
+                    .targetRole(savedUser.getRoleCode())
+                    .timestamp(OffsetDateTime.now())
+                    .details("Patient account created and credentials emailed")
+                    .build());
+            return savedUser;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("patient not found" + e.getMessage());
+        }
+    }
 
     // ================= PRIVATE HELPERS =================
 

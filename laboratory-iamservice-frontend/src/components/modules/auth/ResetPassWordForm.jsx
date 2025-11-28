@@ -98,7 +98,23 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
 
                 <Form.Item
                     name="password"
-                    rules={[{ required: true, message: "Please enter new password" }]}
+                    rules={[{ required: true, message: "Please enter new password" },
+                    ({ getFieldValue }) => ({
+                        validator(_, value) {
+                            if (!value) return Promise.resolve()
+
+                            const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+                            if (!regex.test(value)) {
+                                return Promise.reject(
+                                    "Password must contain at least 8 characters, including uppercase, lowercase, and a number"
+                                )
+                            }
+
+                            return Promise.resolve()
+                        }
+                    })]}
+                    style={{ marginTop: "30px" }}
                 >
                     <Input.Password
                         visibilityToggle={true}
@@ -113,6 +129,7 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                     name="confirm"
                     dependencies={["password"]}
                     validateTrigger="onBlur"
+                    style={{ marginTop: "30px" }}
                     rules={[
                         { required: true, message: "Please confirm your password" },
                         ({ getFieldValue }) => ({

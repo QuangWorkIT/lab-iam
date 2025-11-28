@@ -47,6 +47,18 @@ public class UserController {
     }
 
     @Operation(
+            summary = "Create a new user by patient service",
+            description = "Admins or users with PATIENT_CREATE permission can create new accounts. " +
+                    "Automatically calculates age and sends credentials if it's a patient."
+    )
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or (hasAuthority('CREATE_USER') and hasAuthority('PATIENT_CREATE'))")
+    @PostMapping("/patients")
+    public ResponseEntity<UserDTO> createUserByPatientService(@Valid @RequestBody User user) {
+        User saved = userService.createUserByPatientService(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toDto(saved));
+    }
+
+    @Operation(
             summary = "Get user by email",
             description = "Retrieve a user by their email. Available to admins and lab managers or anyone with permission VIEW_USER."
     )

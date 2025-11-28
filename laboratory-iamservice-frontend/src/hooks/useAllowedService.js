@@ -26,6 +26,9 @@ const privilegesBaseService = {
     instrument: {
         desc: "INSTRUMENT_SERVICE",
         privileges: [
+            "ADD_INSTRUMENT",
+            "VIEW_INSTRUMENT",
+            "ACTIVATE_DEACTIVATE_INSTRUMENT",
             "ADD_REAGENTS",
             "MODIFY_REAGENTS",
             "DELETE_REAGENTS",
@@ -38,11 +41,24 @@ const privilegesBaseService = {
             "ADD_INSTRUMENT",
             "VIEW_INSTRUMENT",
             "ACTIVATE_DEACTIVATE_INSTRUMENT",
+            "ADD_REAGENTS",
+            "MODIFY_REAGENTS",
+            "DELETE_REAGENTS",
+            "EXECUTE_BLOOD_TESTING"
         ]
     },
     patient: {
         desc: "PATIENT_SERVICE",
-        privileges: ["READ_ONLY"]
+        privileges: [
+            "PATIENT_VIEW",
+            "PATIENT_CREATE",
+            "PATIENT_UPDATE",
+            "PATIENT_EXPORT",
+            "PATIENT_IMPORT",
+            "PATIENT_RESTORE",
+            "PATIENT_DELETE",
+            "PATIENT_SOFT_DELETE"
+        ]
     }
 }
 
@@ -50,14 +66,14 @@ const useAllowedService = () => {
     const allowedServices = []
     const privileges = useSelector(state => state.user.userInfo?.privileges)
 
-    for(const privilege in privilegesBaseService){
+    for (const privilege in privilegesBaseService) {
         const servicePrivileges = privilegesBaseService[privilege].privileges
         const hasPrivilege = servicePrivileges.some(sp => privileges.includes(sp))
 
-        if(hasPrivilege) {
+        if (hasPrivilege) {
             allowedServices.push(privilegesBaseService[privilege].desc)
         }
-    }    
+    }
     return allowedServices // return an allowed services array
 }
 

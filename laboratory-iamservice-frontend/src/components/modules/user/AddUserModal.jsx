@@ -54,8 +54,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const [passwordStrength, setPasswordStrength] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const [birthdateInput, setBirthdateInput] = useState("");
-    const dateFormat = 'YYYY-MM-DD';
+    const dateFormat = 'DD/MM/YYYY';
     const resetForm = () => {
         setCurrentStep(1);
         setFormData(initialFormState());
@@ -64,7 +63,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         setShowPassword(false);
         setPasswordStrength({});
         setIsSubmitting(false);
-        setBirthdateInput("");
     };
 
     const steps = [
@@ -272,7 +270,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                 isActive: isAdmin ? true : false,     // ADMIN -> Active, MANAGER -> Inactive
                 phoneNumber: formData.phoneNumber,
                 identityNumber: formData.identityNumber,
-                birthdate: formData.birthdate,
+                birthdate: dayjs(formData.birthdate).format("YYYY-MM-DD"),
                 address: formData.address.trim(),
                 gender: formData.gender,
             };
@@ -667,17 +665,17 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     <div className="relative flex justify-end h-[43px]">
                                         <DatePicker
                                             name="birthdate"
-                                            value={formData.birthdate ? dayjs(formData.birthdate) : null}
-                                            onChange={(date, dateString) => {
+                                            value={formData.birthdate ? dayjs(formData.birthdate, dateFormat) : null}
+                                            onChange={(date) => {
                                                 handleInputChange({
-                                                    target: { name: "birthdate", value: dateString }
+                                                    target: { name: "birthdate", value: date ? date.format(dateFormat) : "" }
                                                 });
                                             }}
                                             className={`w-full !rounded-[4px] !border-l-3 !border-l-[#ff5a5f]
                                                 ${errors.birthdate && "!border-[#FF0000]"}`}
-                                            defaultPickerValue={dayjs('2000-01-01', dateFormat)}
-                                            minDate={dayjs('1960-01-01', dateFormat)}
-                                            maxDate={dayjs('2015-01-01', dateFormat)}
+                                            minDate={dayjs('01/01/1960', dateFormat)}
+                                            maxDate={dayjs('01/01/2015', dateFormat)}
+                                            format={{format: dateFormat, type: "mask"}}
                                         />
                                     </div>
                                     {errors.birthdate && (

@@ -42,7 +42,7 @@ function ServiceWidget() {
         WAREHOUSE_SERVICE: {
             title: "Warehouse Management",
             icon: <BsBoxSeamFill size={24} />,
-            desc: "Manages warehouse inventory including viewing and modifying equipment.",
+            desc: "Manages warehouse inventory including viewing and modifying equipment and reagents",
             path: "http://3.24.171.31:5173/",
             color: "from-green-500 to-emerald-500",
         },

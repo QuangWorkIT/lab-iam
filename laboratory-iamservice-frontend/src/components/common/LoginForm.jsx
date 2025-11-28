@@ -78,6 +78,8 @@ function LoginForm({ setIsResetPassWord }) {
                     age: payload.age,
                     address: payload.address,
                     isActive: payload.isActive === "true",
+                    deletedAt: payload.deletedAt,
+                    isDeleted: payload.isDeleted === "true"
                 }
             }))
             toast.success("Login successfully!")
