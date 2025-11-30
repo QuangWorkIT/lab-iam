@@ -29,7 +29,7 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
         const newErrors = {};
         if (!formData.fullName.trim()) {
             newErrors.fullName = "Full name is required";
-        } else if (!/^[A-Za-z ]+$/.test(formData.fullName.trim())) {
+        } else if (!/^[A-Za-zÀ-ỹ\s]+$/.test(formData.fullName.trim())) {
             newErrors.fullName = "Full name must contain only letters";
         } else if (formData.fullName.trim().length < 5) {
             newErrors.address = "Full name is too short";

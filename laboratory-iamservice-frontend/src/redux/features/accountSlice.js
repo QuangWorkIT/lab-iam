@@ -22,6 +22,12 @@ function mapUserDTOToAccount(dto) {
         role: dto.roleCode || dto.rolecode || dto.role || "",
         isActive: dto.isActive ?? true,
         createdAt: dto.createdAt || null,
+        address: dto.address || "",
+        age: dto.age || "",
+        dateOfBirth: dto.birthdate || "",
+        phoneNumber: dto.phoneNumber || "",
+        gender: dto.gender || "",
+        identityNumber: dto.identityNumber || "",
     };
 }
 
@@ -197,6 +203,12 @@ export const fetchDeletedAccounts = createAsyncThunk(
                 isDelete: dto.isDelete ?? true,
                 deletedAt: dto.deletedAt || null,
                 createdAt: dto.createdAt || null,
+                address: dto.address || "",
+                age: dto.age || "",
+                dateOfBirth: dto.birthdate || "",
+                phoneNumber: dto.phoneNumber || "",
+                gender: dto.gender || "",
+                identityNumber: dto.identityNumber || "",
             }));
 
             return {

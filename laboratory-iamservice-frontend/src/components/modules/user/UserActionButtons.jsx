@@ -1,5 +1,6 @@
 import React from "react";
 import { FiEye, FiEdit, FiTrash2 } from "react-icons/fi";
+import { useSelector } from "react-redux";
 
 export default function UserActionButtons({
   onView,
@@ -10,6 +11,7 @@ export default function UserActionButtons({
   canModifyUser = true,
   canDeleteUser = true,
 }) {
+  const userInfo = useSelector(state => state.user.userInfo)
   return (
     <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
       {canViewUser && (
@@ -29,7 +31,7 @@ export default function UserActionButtons({
           <FiEye size={24} />
         </button>
       )}
-      {canModifyUser && (
+      {canModifyUser && userInfo.id !== user.id && (
         <button
           style={{
             backgroundColor: "transparent",
@@ -46,7 +48,7 @@ export default function UserActionButtons({
           <FiEdit size={24} />
         </button>
       )}
-      {canDeleteUser && (
+      {canDeleteUser && userInfo.id !== user.id &&(
         <button
           style={{
             backgroundColor: "transparent",
