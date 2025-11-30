@@ -10,7 +10,7 @@ import java.time.ZonedDateTime;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-public class LoginLimiterServiceTest {
+public class LoginLimiterServiceImplTest {
     private LoginLimiterServiceImpl loginLimiterService;
 
     private static final String TEST_KEY = "test-user";

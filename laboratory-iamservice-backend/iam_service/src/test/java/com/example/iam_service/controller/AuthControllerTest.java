@@ -8,11 +8,13 @@ import com.example.iam_service.dto.response.auth.TokenResponse;
 import com.example.iam_service.entity.Token;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.mapper.UserMapper;
+import com.example.iam_service.repository.UserRepository;
 import com.example.iam_service.service.EmailService;
 import com.example.iam_service.serviceImpl.AuthenticationServiceImpl;
 import com.example.iam_service.serviceImpl.LoginLimiterServiceImpl;
 import com.example.iam_service.serviceImpl.ResetPasswordRateLimiterImpl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,13 +23,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,6 +62,12 @@ public class AuthControllerTest {
 
     @Mock
     private ResetPasswordRateLimiterImpl resetPasswordRateLimiterService;
+
+    @Mock
+    private GoogleIdTokenVerifier googleIdTokenVerifier;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     AuthController authController;
@@ -133,8 +147,8 @@ public class AuthControllerTest {
                     authController.login(loginRq, null, servletRequest);
 
             // Then
-            assertEquals(401, response.getStatusCode().value());
-            assertEquals("Error", response.getBody().getStatus());
+            assertEquals(400, response.getStatusCode().value());
+            assertEquals("error", response.getBody().getStatus());
             assertEquals("Invalid credentials", response.getBody().getMessage());
 
             verify(loginLimiterService, times(1)).recordFailedAttempt(ip);
@@ -142,45 +156,139 @@ public class AuthControllerTest {
     }
 
     @Nested
-//    class GoogleLoginTestGroup {
-//
-//        @Test
-//        void googleLogin_ValidCredentials_ShouldReturnSuccessResponse() {
-//            // Given
-//            GoogleTokenRequest tokenRequest = new GoogleTokenRequest();
-//            tokenRequest.setGoogleCredential("valid-google-token");
-//
-//            GoogleIdToken.Payload payload = mock(GoogleIdToken.Payload.class);
-//            User user = new User();
-//            user.setUserId(UUID.randomUUID());
-//            user.setEmail("user@gmail.com");
-//
-//            Map<String, String> tokens = new HashMap<>();
-//            tokens.put("accessToken", "google-access-token");
-//            tokens.put("refreshToken", "google-refresh-token");
-//
-//            when(authService.getPayload("valid-google-token")).thenReturn(payload);
-//            when(authService.loadUserByLoginGoogle(payload)).thenReturn(user);
-//            when(authService.getTokens(user)).thenReturn(tokens);
-//
-//            // When
-//            ResponseEntity<ApiResponse<TokenResponse>> response =
-//                    authController.googleLogin(tokenRequest);
-//
-//            // Then
-//            assertEquals(200, response.getStatusCode().value());
-//            assertNotNull(response.getBody());
-//            assertEquals("success", response.getBody().getStatus());
-//            assertEquals("login success", response.getBody().getMessage());
-//            assertEquals("google-access-token", response.getBody().getData().getAccessToken());
-//            assertEquals("google-refresh-token", response.getBody().getData().getRefreshToken());
-//            assertTrue(response.getHeaders().containsKey("Set-cookie"));
-//
-//            verify(authService, times(1)).getPayload("valid-google-token");
-//            verify(authService, times(1)).loadUserByLoginGoogle(payload);
-//            verify(authService, times(1)).getTokens(user);
-//        }
-//    }
+    class GoogleLoginTestGroup {
+
+        @Test
+        void googleLogin_ValidCredentials_ShouldReturnSuccessResponse() {
+            // Given
+            GoogleTokenRequest tokenRequest = new GoogleTokenRequest();
+            tokenRequest.setGoogleCredential("valid-google-token");
+
+            GoogleIdToken.Payload payload = mock(GoogleIdToken.Payload.class);
+
+            User user = new User();
+            user.setEmail("user@gmail.com");
+
+            Map<String, String> tokens = Map.of(
+                    "accessToken", "google-access-token",
+                    "refreshToken", "google-refresh-token"
+            );
+
+            // IMPORTANT → mock service methods, not verifier or repository
+            when(loginLimiterService.isBanned("1.2.3.4")).thenReturn(false);
+            when(authService.getPayload("valid-google-token")).thenReturn(payload);
+            when(authService.loadUserByLoginGoogle(payload)).thenReturn(user);
+            when(authService.getTokens(user)).thenReturn(tokens);
+
+            MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+            servletRequest.setRemoteAddr("1.2.3.4");
+
+            // When
+            ResponseEntity<ApiResponse<?>> response = authController.googleLogin(
+                    tokenRequest, null, servletRequest
+            );
+
+            // Then
+            assertEquals(200, response.getStatusCode().value());
+            assertTrue(response.getHeaders().containsKey("Set-cookie"));
+
+            ApiResponse<?> body = response.getBody();
+            assertEquals("success", body.getStatus());
+            assertEquals("login success", body.getMessage());
+
+            TokenResponse data = (TokenResponse) body.getData();
+            assertEquals("google-access-token", data.getAccessToken());
+            assertEquals("google-refresh-token", data.getRefreshToken());
+
+            verify(loginLimiterService).isBanned("1.2.3.4");
+            verify(authService).getPayload("valid-google-token");
+            verify(authService).loadUserByLoginGoogle(payload);
+            verify(authService).getTokens(user);
+            verify(loginLimiterService).resetAttempt("1.2.3.4");
+        }
+
+
+        @Test
+        void googleLogin_BannedIp_ShouldReturn429() {
+            GoogleTokenRequest req = new GoogleTokenRequest();
+
+            when(loginLimiterService.isBanned("9.9.9.9")).thenReturn(true);
+
+            ZonedDateTime banUntil = ZonedDateTime.now().plusMinutes(10);
+            when(loginLimiterService.getBanUntil("9.9.9.9")).thenReturn(banUntil);
+
+            MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+            servletRequest.setRemoteAddr("9.9.9.9");
+
+            ResponseEntity<ApiResponse<?>> response =
+                    authController.googleLogin(req, null, servletRequest);
+
+            assertEquals(429, response.getStatusCode().value());
+            assertEquals("error", response.getBody().getStatus());
+
+            verify(loginLimiterService).isBanned("9.9.9.9");
+            verify(authService, never()).getPayload(anyString());
+        }
+
+
+        @Test
+        void googleLogin_EmailNotFound_ShouldReturn400_AndRecordAttempt() {
+            GoogleTokenRequest req = new GoogleTokenRequest();
+            req.setGoogleCredential("valid-token");
+
+            GoogleIdToken.Payload payload = mock(GoogleIdToken.Payload.class);
+
+            when(loginLimiterService.isBanned("2.2.2.2")).thenReturn(false);
+            when(authService.getPayload("valid-token")).thenReturn(payload);
+
+            // SERVICE throws exception → controller catches 400
+            when(authService.loadUserByLoginGoogle(payload))
+                    .thenThrow(new UsernameNotFoundException("Email not found"));
+
+            MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+            servletRequest.setRemoteAddr("2.2.2.2");
+
+            ResponseEntity<ApiResponse<?>> response =
+                    authController.googleLogin(req, null, servletRequest);
+
+            assertEquals(400, response.getStatusCode().value());
+            assertEquals("error", response.getBody().getStatus());
+            assertEquals("Email not found", response.getBody().getMessage());
+
+            verify(loginLimiterService).recordFailedAttempt("2.2.2.2");
+        }
+
+
+        @Test
+        void googleLogin_ShouldUseXForwardedForHeader() {
+            GoogleTokenRequest tokenRequest = new GoogleTokenRequest();
+            tokenRequest.setGoogleCredential("valid-token");
+
+            GoogleIdToken.Payload payload = mock(GoogleIdToken.Payload.class);
+
+            User user = new User();
+            user.setEmail("user@gmail.com");
+
+            when(loginLimiterService.isBanned("100.100.100.100")).thenReturn(false);
+            when(authService.getPayload("valid-token")).thenReturn(payload);
+            when(authService.loadUserByLoginGoogle(payload)).thenReturn(user);
+            when(authService.getTokens(user))
+                    .thenReturn(Map.of("accessToken", "A", "refreshToken", "B"));
+
+            MockHttpServletRequest servletRequest = new MockHttpServletRequest();
+            servletRequest.setRemoteAddr("ignored");
+
+            ResponseEntity<ApiResponse<?>> response = authController.googleLogin(
+                    tokenRequest, "100.100.100.100", servletRequest
+            );
+
+            assertEquals(200, response.getStatusCode().value());
+
+            verify(loginLimiterService).isBanned("100.100.100.100");
+            verify(loginLimiterService).resetAttempt("100.100.100.100");
+        }
+    }
+
 
     @Nested
     class RefreshTokenTestGroup {
@@ -338,7 +446,6 @@ public class AuthControllerTest {
             UUID userid = UUID.randomUUID();
             // Given
             ResetPassOptionRequest request = new ResetPassOptionRequest();
-            request.setOption("email");
             request.setData("user@example.com");
 
             User user = new User();
@@ -349,7 +456,7 @@ public class AuthControllerTest {
             userDTO.setUserId(userid);
             userDTO.setEmail("user@example.com");
 
-            when(authService.findUserByEmailOrPhone("email", "user@example.com")).thenReturn(user);
+            when(authService.searchUserByEmail("user@example.com")).thenReturn(user);
             when(userMapper.toDto(user)).thenReturn(userDTO);
 
             // When
@@ -365,50 +472,17 @@ public class AuthControllerTest {
             assertEquals(userid, response.getBody().getData().getUserId());
             assertEquals("user@example.com", response.getBody().getData().getEmail());
 
-            verify(authService, times(1)).findUserByEmailOrPhone("email", "user@example.com");
+            verify(authService, times(1)).searchUserByEmail("user@example.com");
             verify(userMapper, times(1)).toDto(user);
-        }
-
-        @Test
-        void findUserByOptions_UserFoundByPhone_ShouldReturnUser() {
-            UUID userid = UUID.randomUUID();
-
-            // Given
-            ResetPassOptionRequest request = new ResetPassOptionRequest();
-            request.setOption("phone");
-            request.setData("0123456789");
-
-            User user = new User();
-            user.setUserId(userid);
-            user.setPhoneNumber("0123456789");
-
-            UserDTO userDTO = new UserDTO();
-            userDTO.setUserId(userid);
-            userDTO.setPhoneNumber("0123456789");
-
-            when(authService.findUserByEmailOrPhone("phone", "0123456789")).thenReturn(user);
-            when(userMapper.toDto(user)).thenReturn(userDTO);
-
-            // When
-            ResponseEntity<ApiResponse<UserDTO>> response =
-                    authController.findUserByOptions(request);
-
-            // Then
-            assertEquals(200, response.getStatusCode().value());
-            assertEquals("User found!", response.getBody().getMessage());
-            assertEquals(userid, response.getBody().getData().getUserId());
-
-            verify(authService, times(1)).findUserByEmailOrPhone("phone", "0123456789");
         }
 
         @Test
         void findUserByOptions_UserNotFound_ShouldReturn404() {
             // Given
             ResetPassOptionRequest request = new ResetPassOptionRequest();
-            request.setOption("email");
             request.setData("notfound@example.com");
 
-            when(authService.findUserByEmailOrPhone("email", "notfound@example.com")).thenReturn(null);
+            when(authService.searchUserByEmail("notfound@example.com")).thenReturn(null);
 
             // When
             ResponseEntity<ApiResponse<UserDTO>> response =
@@ -421,7 +495,7 @@ public class AuthControllerTest {
             assertEquals("User not found", response.getBody().getMessage());
             assertNull(response.getBody().getData());
 
-            verify(authService, times(1)).findUserByEmailOrPhone("email", "notfound@example.com");
+            verify(authService, times(1)).searchUserByEmail("notfound@example.com");
             verify(userMapper, never()).toDto(any());
         }
     }

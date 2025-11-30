@@ -17,9 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.util.NestedServletException;
-import static org.junit.jupiter.api.Assertions.fail;
-
 
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +24,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -40,6 +38,9 @@ class UserControllerTest {
     @InjectMocks private UserController userController;
 
     private MockMvc mockMvc;
+
+    // Define the base path with /api prefix
+    private static final String BASE_PATH = "/users";
 
     @BeforeEach
     void setup() {
@@ -57,7 +58,7 @@ class UserControllerTest {
         when(userService.createUser(any(User.class))).thenReturn(user);
         when(userMapper.toDto(any(User.class))).thenReturn(dto);
 
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post(BASE_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                             {
@@ -89,7 +90,7 @@ class UserControllerTest {
         when(userService.getUserByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(userMapper.toDto(user)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/users/email")
+        mockMvc.perform(get(BASE_PATH + "/email")
                         .param("email", "test@example.com"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("test@example.com"));
@@ -99,7 +100,7 @@ class UserControllerTest {
     void getUserByEmail_ShouldReturn404_WhenNotFound() throws Exception {
         when(userService.getUserByEmail("ghost@example.com")).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/users/email")
+        mockMvc.perform(get(BASE_PATH + "/email")
                         .param("email", "ghost@example.com"))
                 .andExpect(status().isNotFound());
     }
@@ -114,7 +115,7 @@ class UserControllerTest {
         when(userService.getAllUsers()).thenReturn(List.of(user));
         when(userMapper.toDto(any(User.class))).thenReturn(dto);
 
-        mockMvc.perform(get("/api/users"))
+        mockMvc.perform(get(BASE_PATH))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].email").value("test@list.com"));
     }
@@ -129,7 +130,7 @@ class UserControllerTest {
         when(userService.getInactiveUsers()).thenReturn(List.of(user));
         when(userMapper.toDto(any(User.class))).thenReturn(dto);
 
-        mockMvc.perform(get("/api/users/inactive"))
+        mockMvc.perform(get(BASE_PATH + "/inactive"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].email").value("inactive@user.com"));
     }
@@ -137,7 +138,7 @@ class UserControllerTest {
     // ========== ACTIVATE USER ==========
     @Test
     void activateUserByEmail_ShouldReturn200_WhenSuccess() throws Exception {
-        mockMvc.perform(put("/api/users/activate")
+        mockMvc.perform(put(BASE_PATH + "/activate")
                         .param("email", "activate@example.com"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("User with email activate@example.com has been activated successfully."));
@@ -155,7 +156,7 @@ class UserControllerTest {
         when(userService.getUserById(id)).thenReturn(Optional.of(user));
         when(userMapper.toDetailDto(user)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/users/" + id))
+        mockMvc.perform(get(BASE_PATH + "/" + id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("detail@example.com"));
     }
@@ -165,7 +166,7 @@ class UserControllerTest {
         UUID id = UUID.randomUUID();
         when(userService.getUserById(id)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/users/" + id))
+        mockMvc.perform(get(BASE_PATH + "/" + id))
                 .andExpect(status().isNotFound());
     }
 
@@ -188,7 +189,7 @@ class UserControllerTest {
         when(userService.updateOwnProfile(eq(id), any(UpdateUserProfileDTO.class))).thenReturn(updated);
         when(userMapper.toDetailDto(updated)).thenReturn(dto);
 
-        mockMvc.perform(put("/api/users/" + id + "/profile")
+        mockMvc.perform(put(BASE_PATH + "/" + id + "/profile")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                             {
@@ -211,7 +212,7 @@ class UserControllerTest {
         );
 
         try {
-            mockMvc.perform(put("/api/users/" + id + "/profile")
+            mockMvc.perform(put(BASE_PATH + "/" + id + "/profile")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{ \"address\": \"Tokyo\" }"))
                     .andReturn();
@@ -223,7 +224,6 @@ class UserControllerTest {
             assertEquals("You can only update your own profile!", cause.getMessage());
         }
     }
-
 
     // ========== ADMIN UPDATE USER ==========
     @Test
@@ -237,7 +237,7 @@ class UserControllerTest {
         when(userService.adminUpdateUser(eq(id), any(AdminUpdateUserDTO.class))).thenReturn(updated);
         when(userMapper.toDto(updated)).thenReturn(dto);
 
-        mockMvc.perform(put("/api/users/" + id)
+        mockMvc.perform(put(BASE_PATH + "/" + id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                             {
@@ -259,7 +259,7 @@ class UserControllerTest {
         when(userService.getUserById(id)).thenReturn(Optional.of(user));
         when(userMapper.toDetailDto(user)).thenReturn(dto);
 
-        mockMvc.perform(get("/api/users/" + id + "/profile"))
+        mockMvc.perform(get(BASE_PATH + "/" + id + "/profile"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("selfview@example.com"));
     }
@@ -269,7 +269,7 @@ class UserControllerTest {
     void requestSelfDeletion_ShouldReturn200() throws Exception {
         UUID id = UUID.randomUUID();
 
-        mockMvc.perform(delete("/api/users/" + id + "/request-deletion"))
+        mockMvc.perform(delete(BASE_PATH + "/" + id + "/request-deletion"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Your deletion request has been submitted. Account will be deleted after 7 days."));
     }
@@ -279,7 +279,7 @@ class UserControllerTest {
     void deleteUserByAdmin_ShouldReturn200() throws Exception {
         UUID id = UUID.randomUUID();
 
-        mockMvc.perform(delete("/api/users/" + id))
+        mockMvc.perform(delete(BASE_PATH + "/" + id))
                 .andExpect(status().isOk())
                 .andExpect(content().string("User deleted successfully."));
     }
@@ -294,7 +294,7 @@ class UserControllerTest {
         when(userService.getDeletedUsers()).thenReturn(List.of(user));
         when(userMapper.toDto(any(User.class))).thenReturn(dto);
 
-        mockMvc.perform(get("/api/users/deleted"))
+        mockMvc.perform(get(BASE_PATH + "/deleted"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].email").value("deleted@user.com"));
     }
@@ -304,8 +304,121 @@ class UserControllerTest {
     void restoreUser_ShouldReturn200() throws Exception {
         UUID id = UUID.randomUUID();
 
-        mockMvc.perform(put("/api/users/" + id + "/restore"))
+        mockMvc.perform(put(BASE_PATH + "/" + id + "/restore"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("User restored successfully."));
+    }
+
+    // ========== UPDATE USER BY EMAIL ==========
+    @Test
+    void updateUserByEmail_ShouldReturn200_WhenUpdated() throws Exception {
+        User updated = new User();
+        updated.setEmail("emailupdate@example.com");
+        UserDTO dto = new UserDTO();
+        dto.setEmail("emailupdate@example.com");
+
+        when(userService.updateUserByEmail(eq("emailupdate@example.com"), any(AdminUpdateUserDTO.class)))
+                .thenReturn(updated);
+        when(userMapper.toDto(updated)).thenReturn(dto);
+
+        mockMvc.perform(put(BASE_PATH + "/email")
+                        .param("email", "emailupdate@example.com")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "fullName": "Updated Name"
+                            }
+                            """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("emailupdate@example.com"));
+    }
+
+    // ========== BATCH CREATE PATIENT USERS ==========
+    @Test
+    void batchCreatePatientUsers_ShouldReturn201_WithList() throws Exception {
+        User user1 = new User();
+        user1.setEmail("patient1@example.com");
+        User user2 = new User();
+        user2.setEmail("patient2@example.com");
+
+        UserDTO dto1 = new UserDTO();
+        dto1.setEmail("patient1@example.com");
+        UserDTO dto2 = new UserDTO();
+        dto2.setEmail("patient2@example.com");
+
+        when(userService.batchCreatePatientUsers(anyList())).thenReturn(List.of(user1, user2));
+        when(userMapper.toDto(any(User.class))).thenReturn(dto1, dto2);
+
+        mockMvc.perform(post(BASE_PATH + "/batch/patients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            [
+                                {
+                                    "email": "patient1@example.com",
+                                    "fullName": "Patient One",
+                                    "roleCode": "ROLE_PATIENT"
+                                },
+                                {
+                                    "email": "patient2@example.com",
+                                    "fullName": "Patient Two",
+                                    "roleCode": "ROLE_PATIENT"
+                                }
+                            ]
+                            """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$[0].email").value("patient1@example.com"))
+                .andExpect(jsonPath("$[1].email").value("patient2@example.com"));
+    }
+
+    // ========== GET ROLES BY USERS ==========
+    @Test
+    void getAllRolesByUsers_ShouldReturn200_WithRoleCounts() throws Exception {
+        User admin = new User();
+        admin.setRoleCode("ROLE_ADMIN");
+        User patient = new User();
+        patient.setRoleCode("ROLE_PATIENT");
+
+        when(userService.getAllUsers()).thenReturn(List.of(admin, patient));
+
+        mockMvc.perform(get(BASE_PATH + "/roles"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"))
+                .andExpect(jsonPath("$.message").value("Fetched all roles in system"))
+                .andExpect(jsonPath("$.data.ADMIN").value(1))
+                .andExpect(jsonPath("$.data.PATIENT").value(1));
+    }
+
+    @Test
+    void getAllRolesByUsers_ShouldReturn404_WhenNoUsers() throws Exception {
+        when(userService.getAllUsers()).thenReturn(List.of());
+
+        mockMvc.perform(get(BASE_PATH + "/roles"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("Error"))
+                .andExpect(jsonPath("$.message").value("No user found"));
+    }
+
+    // ========== CREATE USER BY PATIENT SERVICE ==========
+    @Test
+    void createUserByPatientService_ShouldReturn201_WhenValidRequest() throws Exception {
+        User user = new User();
+        user.setEmail("patient@example.com");
+        UserDTO dto = new UserDTO();
+        dto.setEmail("patient@example.com");
+
+        when(userService.createUserByPatientService(any(User.class))).thenReturn(user);
+        when(userMapper.toDto(any(User.class))).thenReturn(dto);
+
+        mockMvc.perform(post(BASE_PATH + "/patients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "email": "patient@example.com",
+                                "fullName": "Test Patient",
+                                "roleCode": "ROLE_PATIENT"
+                            }
+                            """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.email").value("patient@example.com"));
     }
 }

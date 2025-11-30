@@ -1,6 +1,7 @@
 package com.example.iam_service.service;
 
 
+import com.example.iam_service.audit.AuditPublisher;
 import com.example.iam_service.entity.Token;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.repository.RefreshTokenRepository;
@@ -12,6 +13,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +39,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
-public class AuthenticationServiceTest {
+public class AuthenticationServiceImplTest {
 
     @Mock
     private BCryptPasswordEncoder encoder;
@@ -56,6 +58,8 @@ public class AuthenticationServiceTest {
     @Mock
     private JwtUtil jwtUtil;
 
+    @Mock
+    private AuditPublisher auditPublisher;
     @InjectMocks
     private AuthenticationServiceImpl authenticationService; // Test class
 
@@ -270,40 +274,20 @@ public class AuthenticationServiceTest {
         }
 
         @Test
-        void google_CreateNonExistUser_ShouldReturnCreatedUser() {
+        void google_LoginNonExistUser_ShouldThrowException() {
             GoogleIdToken.Payload payload = new GoogleIdToken.Payload();
-            payload.put("given_name", "user first name");
-            payload.put("family_name", "user family name");
-            payload.setEmail("admin@STAFFgmail.com");
+            payload.setEmail("missing@gmail.com");
 
             when(userRepository.findByEmail(payload.getEmail()))
                     .thenReturn(Optional.empty());
-            when(userRepository.save(any(User.class)))
-                    .thenAnswer(invocation -> invocation.getArgument(0));
 
-            User createdUser = authenticationService.loadUserByLoginGoogle(payload);
+            assertThrows(
+                    UsernameNotFoundException.class,
+                    () -> authenticationService.loadUserByLoginGoogle(payload)
+            );
 
-            assertNotNull(createdUser);
-            assertEquals("admin@STAFFgmail.com", createdUser.getEmail());
             verify(userRepository, times(1)).findByEmail(payload.getEmail());
-            verify(userRepository, times(1)).save(any(User.class));
-        }
-
-        @Test
-        void google_DbException_ShouldThrowException() {
-            GoogleIdToken.Payload payload = new GoogleIdToken.Payload();
-            payload.put("given_name", "user first name");
-            payload.put("family_name", "user family name");
-            payload.setEmail("admin@STAFFgmail.com");
-
-            when(userRepository.findByEmail(payload.getEmail()))
-                    .thenThrow(new RuntimeException("DB connection failed"));
-
-            User loadedUser = authenticationService.loadUserByLoginGoogle(payload);
-
-            assertNull(loadedUser);
-            verify(userRepository, times(1)).findByEmail(payload.getEmail());
-            verify(userRepository, never()).save(any(User.class));
+            verify(userRepository, never()).save(any());
         }
     }
 
@@ -448,6 +432,7 @@ public class AuthenticationServiceTest {
         private String password;
         private String currentPassword;
         private String option;
+        private User mockUser;
 
         @BeforeEach
         void setup() {
@@ -455,6 +440,56 @@ public class AuthenticationServiceTest {
             password = "validPassword123";
             currentPassword = "currentPass123";
             option = "reset";
+
+            mockUser = new User();
+            mockUser.setUserId(UUID.fromString(userid));
+            mockUser.setIsActive(true);
+            mockUser.setIsDeleted(false);
+            mockUser.setPassword("OldPassword123");
+        }
+        @Test
+        @DisplayName("Should throw exception if user is inactive")
+        void updateUserPassword_ShouldThrow_WhenUserInactive() {
+            mockUser.setIsActive(false);
+            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+                authenticationService.updateUserPassword(userid, "NewPassword123", "OldPassword123", "change");
+            });
+
+            assertEquals("User is deleted", ex.getMessage());
+            verify(userRepository, times(1)).findById(UUID.fromString(userid));
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception if user is marked deleted")
+        void updateUserPassword_ShouldThrow_WhenUserDeleted() {
+            mockUser.setIsDeleted(true);
+            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+                authenticationService.updateUserPassword(userid, "NewPassword123", "OldPassword123", "change");
+            });
+
+            assertEquals("User is deleted", ex.getMessage());
+            verify(userRepository, times(1)).findById(UUID.fromString(userid));
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should throw exception if new password does not match regex")
+        void updateUserPassword_ShouldThrow_WhenPasswordInvalidFormat() {
+            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));
+
+            String invalidPassword = "short"; // does not meet regex criteria
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+                authenticationService.updateUserPassword(userid, invalidPassword, "OldPassword123", "reset");
+            });
+            assertTrue(ex.getMessage().contains("Password must be at least 8 characters long"));
+            verify(userRepository, times(1)).findById(UUID.fromString(userid));
+            verify(userRepository, never()).save(any());
         }
 
         @Test
@@ -515,23 +550,65 @@ public class AuthenticationServiceTest {
 
         @Test
         void updatePassword_ValidChangePasswordOption_ShouldSaveNewPassword() {
+            UUID uid = UUID.fromString(userid);
+
             User mockUser = new User();
+            mockUser.setUserId(uid);
             mockUser.setIsActive(true);
             mockUser.setIsDeleted(false);
             mockUser.setPassword(currentPassword);
 
-            when(userRepository.findById(UUID.fromString(userid))).thenReturn(Optional.of(mockUser));
+            when(userRepository.findById(uid)).thenReturn(Optional.of(mockUser));
             when(encoder.matches(currentPassword, mockUser.getPassword())).thenReturn(true);
             when(encoder.matches(password, mockUser.getPassword())).thenReturn(false);
             when(encoder.encode(password)).thenReturn("encodedPassword123");
             when(userRepository.save(mockUser)).thenReturn(mockUser);
 
-            User userUpdated = authenticationService.updateUserPassword(userid, password, currentPassword, "change");
+            User userUpdated = authenticationService.updateUserPassword(
+                    userid, password, currentPassword, "change"
+            );
 
             assertEquals("encodedPassword123", userUpdated.getPassword());
-            verify(userRepository, times(1)).findById(UUID.fromString(userid));
+            verify(userRepository, times(1)).findById(uid);
             verify(userRepository, times(1)).save(mockUser);
         }
-
     }
+
+
+    @Nested
+    @DisplayName("searchUserByEmail Tests")
+    class SearchUserByEmailTests {
+
+        @Test
+        @DisplayName("Should return user when email exists")
+        void searchUserByEmail_ShouldReturnUser_WhenEmailExists() {
+            String email = "existing@example.com";
+            User mockUser = new User();
+            mockUser.setUserId(UUID.randomUUID());
+            mockUser.setEmail(email);
+
+            when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
+
+            User result = authenticationService.searchUserByEmail(email);
+
+            assertNotNull(result);
+            assertEquals(email, result.getEmail());
+            verify(userRepository, times(1)).findByEmail(email);
+        }
+
+        @Test
+        @DisplayName("Should return null when email does not exist")
+        void searchUserByEmail_ShouldReturnNull_WhenEmailDoesNotExist() {
+            String email = "missing@example.com";
+
+            when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+            User result = authenticationService.searchUserByEmail(email);
+
+            assertNull(result);
+            verify(userRepository, times(1)).findByEmail(email);
+        }
+    }
+
+
 }

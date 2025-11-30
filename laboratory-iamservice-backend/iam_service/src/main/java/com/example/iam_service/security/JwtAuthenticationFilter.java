@@ -67,7 +67,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     : authHeader.trim();
             String userId = jwtUtil.validate(jwt);
             User user = userRepository.findById(UUID.fromString(userId))
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
             List<GrantedAuthority> authorities = jwtUtil.getUserAuthorities(jwt);
 
