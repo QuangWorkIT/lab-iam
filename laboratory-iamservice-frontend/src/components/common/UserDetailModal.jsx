@@ -82,7 +82,7 @@ function LeftPanel({ user, statusColor, statusText }) {
                     textAlign: "center",
                 }}
             >
-                {user?.userName || user?.fullName || "N/A"}
+                {user?.userName || user?.fullName || user?.name || "N/A"}
             </h3>
 
             {/* User Role */}
