@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaHeartbeat, FaCog, FaUserCog, FaSignOutAlt, FaCheckCircle, FaExclamationCircle, FaRegDotCircle } from "react-icons/fa";
-import { logout } from "../../redux/features/userSlice";
+import { FaHeartbeat, FaSignOutAlt } from "react-icons/fa";
 import UserDetailModal from "../common/UserDetailModal";
-import { DoubleRightOutlined } from "@ant-design/icons"
 import { motion, AnimatePresence } from "motion/react"
 import NotificationComponent from "../common/NotificationComponent"
 import { Tooltip } from "antd";
@@ -12,6 +10,7 @@ import MobileSidebar from "../common/MobileSideBar";
 import MobileToggle from "../common/MobileToggle";
 import { useSidebarMenu } from "../../hooks/useSideBarMenu";
 import { ChevronsRight, Users, LogOut } from "lucide-react";
+import { fetchUserProfile } from "../../services/fetchUserProfile";
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
@@ -49,9 +48,8 @@ export default function Header({ pageTitle }) {
   };
 
   const confirmLogout = () => {
-    dispatch(logout());
     setShowConfirm(false);
-    nav("/login", { replace: true });
+    nav("/logout", { replace: true });
   };
 
   const closeConfirm = () => setShowConfirm(false);
@@ -61,26 +59,6 @@ export default function Header({ pageTitle }) {
     setIsDetailModalOpen(true);
   };
 
-
-  // Convert userInfo to the format expected by UserDetailModal
-  const getUserDetailData = () => {
-    if (!userInfo) return null;
-
-    return {
-      id: userInfo.id,
-      name: userInfo.userName || userInfo.name || "N/A",
-      role: userInfo.role || "N/A",
-      email: userInfo.email || "N/A",
-      identityNumber: userInfo.identityNumber || "N/A",
-      phoneNumber: userInfo.phoneNumber || userInfo.phone || "N/A",
-      gender: userInfo.gender || "N/A",
-      dateOfBirth: userInfo.dateOfBirth || userInfo.dob || null,
-      age: userInfo.age !== undefined ? userInfo.age : null,
-      address: userInfo.address || "N/A",
-      createdAt: userInfo.createdAt || userInfo.created_at || null,
-      isActive: userInfo.isActive || true,
-    };
-  };
 
   // Focus nút "Đăng xuất" và hỗ trợ phím Esc để đóng
   useEffect(() => {
@@ -185,17 +163,19 @@ export default function Header({ pageTitle }) {
                 }}
               />
               <span
-                style={{ color: "black", fontWeight: "bold", fontSize: "16px" }}
+                style={{ color: "black", fontWeight: "bold", fontSize: "16px", cursor: "default" }}
               >
                 Laboratory Management
               </span>
             </div>
             {pageTitle && (
               <>
-                <span style={{ margin: "0 10px", color: "#777777"}}>
-                  <ChevronsRight style={{fontSize: "24px"}}/>
+                <span style={{ margin: "0 10px", color: "#777777" }}>
+                  <ChevronsRight style={{ fontSize: "24px" }} />
                 </span>
-                <span style={{ color: "#FF5A5A", fontWeight: "bold" }}>{pageTitle}</span>
+                <span className="text-[#FF5A5A] font-bold cursor-default hover:!text-[#FF3A3A]">
+                  {pageTitle}
+                </span>
               </>
             )}
           </div>
@@ -297,10 +277,10 @@ export default function Header({ pageTitle }) {
               className="relative"
             >
               <UserDetailModal
-                user={getUserDetailData()}
+                user={userInfo}
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}
-                onRefresh={() => { }}
+                onRefresh={fetchUserProfile}
               />
             </motion.div>
           </motion.div>

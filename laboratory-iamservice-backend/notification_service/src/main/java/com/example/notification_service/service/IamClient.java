@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient("iam-service")
 public interface IamClient {
 
-    @GetMapping("internal/users/{email}")
+    @GetMapping("/api/internal/users/{email}")
     ResponseEntity<UserDTO> findUserByEmail(@PathVariable("email") String email);
 }

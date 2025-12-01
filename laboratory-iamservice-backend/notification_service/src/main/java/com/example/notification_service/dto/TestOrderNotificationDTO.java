@@ -22,7 +22,7 @@ public class TestOrderNotificationDTO {
 
         testDto.setTypeId(testOrderNotification.getTestOrderId());
         testDto.setText(testOrderNotification.getCommentText());
-        testDto.setSource(testOrderNotification.getCreatedFrom());
+        testDto.setSource("Test order service");
         testDto.setStatus(NotificationStatus.INFO);
         testDto.setCreatedAt(testOrderNotification.getCreatedAt());
         testDto.setEmail(testOrderNotification.getEmail());

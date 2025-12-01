@@ -25,4 +25,5 @@ public interface UserService {
     void restoreUser(UUID userId);
     User updateUserByEmail(String email, AdminUpdateUserDTO dto);
     List<User> batchCreatePatientUsers(List<User> users);
+    User createUserByPatientService(User user);
 }

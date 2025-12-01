@@ -20,10 +20,6 @@ public class ResetPasswordRateLimiterImpl implements ResetPasswordRateLimiterSer
         Instant lastAttempt;
         Instant banUntil;
 
-        public ResetPasswordBucket(int token) {
-            this.token = token;
-        }
-
         public ResetPasswordBucket(int token, Instant lastAttempt, Instant banUntil) {
             this.token = token;
             this.lastAttempt = lastAttempt;

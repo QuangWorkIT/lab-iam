@@ -281,7 +281,7 @@ export const updateOwnProfile = createAsyncThunk(
                 fullName: profileData.fullName,
                 phoneNumber: profileData.phoneNumber,
                 gender: profileData.gender,
-                dateOfBirth: profileData.birthdate,
+                birthdate: profileData.birthdate,
                 address: profileData.address
             });
             return mapUserDTOToUI(response.data);

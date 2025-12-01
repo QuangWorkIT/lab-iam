@@ -82,7 +82,7 @@ function LeftPanel({ user, statusColor, statusText }) {
                     textAlign: "center",
                 }}
             >
-                {user?.name || "N/A"}
+                {user?.userName || user?.fullName || user?.name || "N/A"}
             </h3>
 
             {/* User Role */}
@@ -106,6 +106,22 @@ function LeftPanel({ user, statusColor, statusText }) {
 function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpen, onOpenUpdate, onDeleteAccount }) {
     const { userInfo } = useSelector((state) => state.user)
     const canUpdate = userInfo.id === propUser.id;
+    const [localUser, setLocalUser] = useState(propUser)
+
+    useEffect(() => {
+        const fetchCurrentUserInfo = async () => {
+            if (!localUser.identityNumber || localUser.identityNumber === "N/A") {
+                const data = await fetchUserProfile(propUser.id)
+                if (data) {
+                    setLocalUser(prev => ({
+                        ...prev,
+                        identityNumber: data.identityNumber,
+                    }))
+                }
+            }
+        }
+        fetchCurrentUserInfo()
+    }, [propUser])
 
     // Check if user has PATIENT role (handle both "PATIENT" and "ROLE_PATIENT" formats)
     const isPatient = propUser?.role === "ROLE_PATIENT"
@@ -156,14 +172,13 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                                 color="#000000"
                             >
                                 <button
-                                    onClick={() => setIsResetPassWordOpen(true)}
                                     className="absolute top-[-14px] right-[-35px] p-3
                                     transition-all duration-300 ease-in-out
                                     !text-[#0f0f0f] hover:text-[#5170ff]
                                     rounded-full cursor-pointer hover:bg-[#e1e7ef]"
                                     aria-label="Edit password"
                                 >
-                                   <IoInformationCircleOutline className="text-[20px]"/>
+                                    <IoInformationCircleOutline className="text-[20px]" />
                                 </button>
                             </Tooltip>
                         }
@@ -218,7 +233,7 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
                 {/* Left Column */}
                 <div>
                     {renderField("Identity Number",
-                        (propUser?.identityNumber && propUser.identityNumber !== "N/A") ? propUser.identityNumber : "N/A"
+                        (localUser?.identityNumber !== null) ? localUser.identityNumber : "N/A"
                     )}
                     {renderField("Phone Number",
                         (propUser?.phoneNumber && propUser.phoneNumber !== "N/A") ? propUser.phoneNumber : "N/A"
@@ -334,9 +349,12 @@ function RightPanel({ propUser, formatDate, getGenderText, setIsResetPassWordOpe
 // Main Modal Component
 import UpdateSelfForm from "../modules/user/UpdateSelfForm.jsx";
 import { toast } from "react-toastify";
+import { updateUserInfo } from "../../redux/features/userSlice.js";
+import { fetchUserProfile } from "../../services/fetchUserProfile.js";
 
 export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
     const dispatch = useDispatch();
+    const userInfo = useSelector((state) => state.user.userInfo);
     const [isResetPassWordOpen, setIsResetPassWordOpen] = useState(false);
     const [isSelfUpdateOpen, setIsSelfUpdateOpen] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -502,7 +520,10 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
 
             // Refresh data if callback provided
             if (onRefresh) {
-                await onRefresh();
+                const updatedUser = await onRefresh(user.id);
+                if (userInfo.id === user.id) {
+                    dispatch(updateUserInfo(updatedUser))
+                }
             }
         } catch (error) {
             toast.error(error || "Failed to submit deletion request");
@@ -528,7 +549,11 @@ export default function UserDetailModal({ user, isOpen, onClose, onRefresh }) {
 
             // Refresh data if callback provided
             if (onRefresh) {
-                await onRefresh();
+                const updatedUser = await onRefresh(user.id);
+                if (userInfo.id === user.id) {
+                    console.log("udpated user: ", updatedUser)
+                    dispatch(updateUserInfo(updatedUser))
+                }
             }
 
             // Close modal completely

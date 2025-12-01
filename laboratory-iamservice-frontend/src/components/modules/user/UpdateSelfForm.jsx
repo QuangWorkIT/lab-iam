@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 
 export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
     const initial = useMemo(() => ({
-        fullName: user?.name || "",
+        fullName: user?.userName || "",
         phoneNumber: user?.phoneNumber || "",
         gender: user?.gender === "MALE" || user?.gender === "FEMALE" ? user.gender : "MALE",
         birthdate: user?.dateOfBirth || user?.birthdate || "",
@@ -27,15 +27,28 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
 
     const validate = () => {
         const newErrors = {};
-        if (!formData.fullName.trim()) newErrors.fullName = "Full name is required";
+        if (!formData.fullName.trim()) {
+            newErrors.fullName = "Full name is required";
+        } else if (!/^[A-Za-zÀ-ỹ\s]+$/.test(formData.fullName.trim())) {
+            newErrors.fullName = "Full name must contain only letters";
+        } else if (formData.fullName.trim().length < 5) {
+            newErrors.address = "Full name is too short";
+        }else if (formData.fullName.trim().length >= 200) {
+            newErrors.address = "Full name is too long";
+        }
+
         if (!formData.phoneNumber.trim()) {
             newErrors.phoneNumber = "Phone number is required";
         } else if (!/^\+?\d*$/.test(formData.phoneNumber)) {
             newErrors.phoneNumber = "Phone number must contain only digits";
+        } else if (formData.phoneNumber.length != 10) {
+            newErrors.phoneNumber = "Phone number must be 10 digits";
         }
+
         if (!["MALE", "FEMALE"].includes(formData.gender)) {
             newErrors.gender = "Invalid gender value";
         }
+
         if (!formData.birthdate) {
             newErrors.birthdate = "Birthdate is required";
         } else {
@@ -43,7 +56,15 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
             if (!d.isValid()) newErrors.birthdate = "Invalid birthdate";
             else if (d.isAfter(dayjs(), "day")) newErrors.birthdate = "Birthdate must be in the past";
         }
-        if (!formData.address.trim()) newErrors.address = "Address is required";
+
+        if (!formData.address.trim()) {
+            newErrors.address = "Address is required";
+        } else if (formData.address.trim().length < 5) {
+            newErrors.address = "Address is too short";
+        }else if (formData.address.trim().length >= 300) {
+            newErrors.address = "Address is too long";
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -87,7 +108,7 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px 25px" }}>
                 {/* LEFT COLUMN */}
                 <div>
-                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 600  }}>Full Name <span style={{ color: "#FF5A5A" }}>*</span></label>
+                    <label style={{ display: "block", marginBottom: "5px", fontSize: "14px", fontWeight: 600 }}>Full Name <span style={{ color: "#FF5A5A" }}>*</span></label>
                     <input
                         type="text"
                         name="fullName"
@@ -169,11 +190,13 @@ export default function UpdateSelfForm({ user, onCancel, onSubmit }) {
             {/* Actions */}
             <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 16 }}>
                 <button type="button" onClick={onCancel} style={{ padding: "10px 22px", border: "1px solid #CCC", borderRadius: 6, backgroundColor: "white", color: "#666", cursor: "pointer", fontSize: 14, fontWeight: 500 }}>Cancel</button>
-                <button 
-                type="submit" 
-                style={{ padding: "10px 22px", border: "none", 
-                borderRadius: 6, backgroundColor: "#ff5a5f", 
-                color: "white", cursor: "pointer", fontSize: 14, fontWeight: 500 }}
+                <button
+                    type="submit"
+                    style={{
+                        padding: "10px 22px", border: "none",
+                        borderRadius: 6, backgroundColor: "#ff5a5f",
+                        color: "white", cursor: "pointer", fontSize: 14, fontWeight: 500
+                    }}
                     onMouseEnter={e => e.currentTarget.style.backgroundColor = "#FF3A3A"}
                     onMouseLeave={e => e.currentTarget.style.backgroundColor = "#FF5A5F"}
                 >Update</button>

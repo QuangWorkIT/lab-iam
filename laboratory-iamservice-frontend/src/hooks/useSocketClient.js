@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import SockJS from 'sockjs-client'
 import { Client } from "@stomp/stompjs";
-import fetchNotifications from '../services/fetchNotifications';
+import { fetchReagentNotifications, fetchTestOrderNotifications } from '../services/fetchNotifications';
 import { useSelector } from 'react-redux';
 
-const websocket_host = import.meta.env.VITE_WEBSOCKET_HOST || "http://localhost:7070/ws"
+const websocket_host = import.meta.env.VITE_WEBSOCKET_HOST || "http://localhost:7070"
 
 function useSocketClient() {
-    const [notifications, setNotifications] = useState([])
+    const [testOrderNotification, setTestOrderNotification] = useState([])
+    const [reagentNotification, setReagentNotification] = useState([])
+
     const clientRef = useRef(null)
     const { userInfo } = useSelector(state => state.user)
 
@@ -16,8 +18,13 @@ function useSocketClient() {
         const init = async () => {
             if (!userInfo) return;
 
-            const data = await fetchNotifications(userInfo.email);
-            setNotifications(data.data);
+            const testOrderData = await fetchTestOrderNotifications(userInfo.email);
+            setTestOrderNotification(testOrderData?.data);
+
+            const reagentData = await fetchReagentNotifications();
+            if(userInfo.role === "ROLE_ADMIN" || userInfo.role === "ROLE_LAB_MANAGER") {
+                setReagentNotification(reagentData?.data);
+            }
 
             const socket = new SockJS(`${websocket_host}/ws`);
 
@@ -27,8 +34,15 @@ function useSocketClient() {
                     console.log("connected")
                     clientRef.current.subscribe(`/topic/notification/${userInfo.email}`, (msg) => {
                         const payload = JSON.parse(msg.body);
-                        setNotifications(prev => [payload, ...prev]);
+                        setTestOrderNotification(prev => [payload, ...prev]);
                     });
+
+                    if (userInfo.role === "ROLE_ADMIN" || userInfo.role === "ROLE_LAB_MANAGER") {
+                        clientRef.current.subscribe(`/topic/notification/reagent/alerts`, (msg) => {
+                            const payload = JSON.parse(msg.body);
+                            setReagentNotification(prev => [payload, ...prev]);
+                        });
+                    }
                 },
             });
 
@@ -43,7 +57,7 @@ function useSocketClient() {
     }, [userInfo]);
 
 
-    return notifications
+    return [testOrderNotification, reagentNotification]
 }
 
 export default useSocketClient

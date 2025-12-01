@@ -32,7 +32,7 @@ public class NotificationServiceTest {
     // --------------------------
     @Test
     void testGetAllNotifyByEmail_NullEmail_ReturnsEmptyList() {
-        List<TestOrderNotificationDTO> result = service.getAllNotifyByEmail(null);
+        List<TestOrderNotificationDTO> result = service.getAllTestOrderNotifyByEmail(null);
 
         assertTrue(result.isEmpty());
         verifyNoInteractions(repo);
@@ -43,7 +43,7 @@ public class NotificationServiceTest {
     // --------------------------
     @Test
     void testGetAllNotifyByEmail_BlankEmail_ReturnsEmptyList() {
-        List<TestOrderNotificationDTO> result = service.getAllNotifyByEmail("  ");
+        List<TestOrderNotificationDTO> result = service.getAllTestOrderNotifyByEmail("  ");
 
         assertTrue(result.isEmpty());
         verifyNoInteractions(repo);
@@ -68,7 +68,7 @@ public class NotificationServiceTest {
                 .thenReturn(List.of(e1));
 
         // Call service
-        List<TestOrderNotificationDTO> result = service.getAllNotifyByEmail(email);
+        List<TestOrderNotificationDTO> result = service.getAllTestOrderNotifyByEmail(email);
 
         // Assertions
         assertEquals(1, result.size());

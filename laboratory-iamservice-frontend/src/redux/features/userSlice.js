@@ -43,7 +43,12 @@ const userSlice = createSlice({
       localStorage.removeItem("token");
     },
     updateUserInfo: (state, action) => {
-      state.userInfo = { ...state.userInfo, ...action.payload };
+      state.userInfo = { 
+        ...state.userInfo, 
+        ...action.payload,
+        userName: action.payload.fullName,
+        dateOfBirth: action.payload.birthdate
+      };
     },
     addBannedElement: (state, action) => {
       state.bannedElements.push(action.payload);

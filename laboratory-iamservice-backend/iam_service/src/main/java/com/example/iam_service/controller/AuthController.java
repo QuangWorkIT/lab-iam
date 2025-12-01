@@ -8,7 +8,6 @@ import com.example.iam_service.entity.Token;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.mapper.UserMapper;
 import com.example.iam_service.service.EmailService;
-import com.example.iam_service.service.authen.ResetPasswordRateLimiterService;
 import com.example.iam_service.serviceImpl.AuthenticationServiceImpl;
 import com.example.iam_service.serviceImpl.LoginLimiterServiceImpl;
 import com.example.iam_service.serviceImpl.ResetPasswordRateLimiterImpl;
@@ -27,7 +26,7 @@ import java.util.Map;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     private final AuthenticationServiceImpl authService;
@@ -87,25 +86,52 @@ public class AuthController {
     }
 
     @PostMapping("/login-google")
-    public ResponseEntity<ApiResponse<TokenResponse>> googleLogin(
-            @Valid @RequestBody GoogleTokenRequest credential
+    public ResponseEntity<ApiResponse<?>> googleLogin(
+            @Valid @RequestBody GoogleTokenRequest credential,
+            @RequestHeader(value = "X-Forwarded-For", required = false) String clientIp,
+            HttpServletRequest servletRequest
     ) {
-        // verify google credentials
-        GoogleIdToken.Payload payload = authService.getPayload(credential.getGoogleCredential());
-        User user = authService.loadOrCreateUser(payload);
+        try {
+            String ip = clientIp != null ? clientIp : servletRequest.getRemoteAddr();
+            if (loginLimiterService.isBanned(ip)) {
+                return ResponseEntity
+                        .status(429)
+                        .body(new ApiResponse<>(
+                                "error",
+                                String.format("Too many attempts. Try after %s minutes",
+                                        loginLimiterService.getBanUntil(ip).toString()),
+                                loginLimiterService.getBanUntil(ip).toString()
+                        ));
+            }
 
-        // generate tokens
-        Map<String, String> tokens = authService.getTokens(user);
+            // verify google credentials
+            GoogleIdToken.Payload payload = authService.getPayload(credential.getGoogleCredential());
+            User user = authService.loadUserByLoginGoogle(payload);
 
-        ResponseCookie cookie = setCookieToken(tokens.get("refreshToken"));
+            // generate tokens
+            Map<String, String> tokens = authService.getTokens(user);
 
-        return ResponseEntity
-                .ok()
-                .header("Set-cookie", cookie.toString())
-                .body(new ApiResponse<>(
-                        "success",
-                        "login success",
-                        new TokenResponse(tokens.get("accessToken"), tokens.get("refreshToken"))));
+            ResponseCookie cookie = setCookieToken(tokens.get("refreshToken"));
+            loginLimiterService.resetAttempt(ip);
+
+            return ResponseEntity
+                    .ok()
+                    .header("Set-cookie", cookie.toString())
+                    .body(new ApiResponse<>(
+                            "success",
+                            "login success",
+                            new TokenResponse(tokens.get("accessToken"), tokens.get("refreshToken"))));
+        } catch (UsernameNotFoundException e) {
+            System.out.println("Error login google " + e.getMessage());
+            loginLimiterService.recordFailedAttempt(
+                    clientIp != null
+                            ? clientIp
+                            : servletRequest.getRemoteAddr()
+            );
+            return ResponseEntity
+                    .status(400)
+                    .body(new ApiResponse<>("error", e.getMessage()));
+        }
     }
 
     @PostMapping("/refresh")
@@ -146,16 +172,16 @@ public class AuthController {
             @CookieValue(value = "refreshToken", required = false) String refreshToken
     ) {
         try {
-            if (!refreshToken.trim().isEmpty()) {
+            if (refreshToken != null && !refreshToken.trim().isEmpty()) {
                 authService.deleteToken(refreshToken);
             }
 
             ResponseCookie clearCookie = ResponseCookie.from("refreshToken", "")
                     .maxAge(0)
-                    .secure(false)
+                    .secure(true)
                     .httpOnly(true)
                     .path("/")
-                    .sameSite("Lax")
+                    .sameSite("None")
                     .build();
 
             return ResponseEntity
@@ -177,17 +203,17 @@ public class AuthController {
     private ResponseCookie setCookieToken(String refreshToken) {
         return ResponseCookie.from("refreshToken", refreshToken)
                 .maxAge(7 * 24 * 60 * 60)
-                .secure(false) // change to true in production
+                .secure(true)
                 .httpOnly(true)
                 .path("/")
-                .sameSite("Lax") // change to None in production
+                .sameSite("None")
                 .build();
     }
 
     @PostMapping("/user-lookup")
     public ResponseEntity<ApiResponse<UserDTO>> findUserByOptions(
             @Valid @RequestBody ResetPassOptionRequest request) {
-        User user = authService.findUserByEmailOrPhone(request.getOption(), request.getData());
+        User user = authService.searchUserByEmail(request.getData());
         if (user == null) {
             return ResponseEntity
                     .status(404)

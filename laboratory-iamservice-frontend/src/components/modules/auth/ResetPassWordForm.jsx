@@ -98,7 +98,23 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
 
                 <Form.Item
                     name="password"
-                    rules={[{ required: true, message: "Please enter new password" }]}
+                    rules={[{ required: true, message: "Please enter new password" },
+                    ({ getFieldValue }) => ({
+                        validator(_, value) {
+                            if (!value) return Promise.resolve()
+
+                            const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+                            if (!regex.test(value)) {
+                                return Promise.reject(
+                                    "Password must contain at least 8 characters, including uppercase, lowercase, and a number"
+                                )
+                            }
+
+                            return Promise.resolve()
+                        }
+                    })]}
+                    style={{ marginTop: "30px" }}
                 >
                     <Input.Password
                         visibilityToggle={true}
@@ -113,6 +129,7 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                     name="confirm"
                     dependencies={["password"]}
                     validateTrigger="onBlur"
+                    style={{ marginTop: "30px" }}
                     rules={[
                         { required: true, message: "Please confirm your password" },
                         ({ getFieldValue }) => ({
@@ -152,47 +169,49 @@ const ResetPassWord = ({ setIsResetPassWord, userId, updateOption = "reset" }) =
                                 />
                             </span>)
                         }
-                        <Button
-                            style={{
-                                backgroundColor: "#FF5A5A", // primary color
-                                color: "white",
-                                border: "none",
-                                borderRadius: "6px",
-                                width: resetPassWordState === "success" ? "200px" : "120px", // same as w-50 / w-30
-                                cursor: "pointer",
-                                transition: "all 0.3s ease",
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FF3A3A"} // hover
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#FF5A5A"}
-                            htmlType="submit"
-                            disabled={bannedElements.some(e => e.type === "resetPasswdBanned")}
-                            loading={resetPassWordState === "reseting"}
-                        >
-                            <AnimatePresence mode="wait">
-                                {resetPassWordState === "success" ? (
-                                    <motion.div
-                                        key="success"
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                                        className="flex items-center justify-center gap-1"
-                                    >
-                                        <CheckOutlined /> Password changed
-                                    </motion.div>
-                                ) : (
-                                    <motion.span
-                                        key="reset"
-                                        initial={{ opacity: 0 }} q
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        {updateOption === "reset" ? "Reset" : "Save"}
-                                    </motion.span>
-                                )}
-                            </AnimatePresence>
-                        </Button>
+                        {!bannedElements.some(e => e.type === "resetPasswdBanned") && (
+                            <Button
+                                style={{
+                                    backgroundColor: "#FF5A5A", // primary color
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    width: resetPassWordState === "success" ? "200px" : "120px", // same as w-50 / w-30
+                                    cursor: "pointer",
+                                    transition: "all 0.3s ease",
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FF3A3A"} // hover
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#FF5A5A"}
+                                htmlType="submit"
+                                disabled={bannedElements.some(e => e.type === "resetPasswdBanned")}
+                                loading={resetPassWordState === "reseting"}
+                            >
+                                <AnimatePresence mode="wait">
+                                    {resetPassWordState === "success" ? (
+                                        <motion.div
+                                            key="success"
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                                            className="flex items-center justify-center gap-1"
+                                        >
+                                            <CheckOutlined /> Password changed
+                                        </motion.div>
+                                    ) : (
+                                        <motion.span
+                                            key="reset"
+                                            initial={{ opacity: 0 }} q
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            {updateOption === "reset" ? "Reset" : "Save"}
+                                        </motion.span>
+                                    )}
+                                </AnimatePresence>
+                            </Button>
+                        )}
                     </div>
                 </Form.Item>
             </Form>

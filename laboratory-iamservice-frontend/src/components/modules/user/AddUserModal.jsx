@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaInfoCircle, FaCalendarAlt, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaInfoCircle, FaEye, FaEyeSlash } from "react-icons/fa";
 import { fetchRolesForUser } from "../../../redux/features/userManagementSlice";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
-import Calendar from "react-calendar";
+import { DatePicker } from 'antd';
+import { Select } from 'antd';
 
 // helper to reset all form-related states
 function initialFormState() {
@@ -26,9 +27,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const dispatch = useDispatch();
     const { roles, rolesLoading } = useSelector((state) => state.users);
     const { userInfo } = useSelector((state) => state.user); // Get current logged-in user
-    const [isHovering, setIsHovering] = useState(false);
-    const calendarWrapperRef = useRef(null);
-
 
 
     // Check if current user is ADMIN
@@ -55,10 +53,8 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const [showPassword, setShowPassword] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [showCalendar, setShowCalendar] = useState(false);
-    const calendarRef = useRef(null);
-    const [birthdateInput, setBirthdateInput] = useState("");
 
+    const dateFormat = 'DD/MM/YYYY';
     const resetForm = () => {
         setCurrentStep(1);
         setFormData(initialFormState());
@@ -67,8 +63,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         setShowPassword(false);
         setPasswordStrength({});
         setIsSubmitting(false);
-        setShowCalendar(false);
-        setBirthdateInput("");
     };
 
     const steps = [
@@ -76,29 +70,13 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         { id: 2, title: "Password & Role", label: "Password & Role" },
     ];
 
+
     // Fetch roles when modal opens
     useEffect(() => {
         if (isOpen) {
             dispatch(fetchRolesForUser());
         }
     }, [isOpen, dispatch]);
-
-    // Handle click outside calendar to close it
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (calendarRef.current && !calendarRef.current.contains(event.target)) {
-                setShowCalendar(false);
-            }
-        };
-
-        if (showCalendar) {
-            document.addEventListener("mousedown", handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [showCalendar]);
 
     // Handle PATIENT role - backend will auto-generate password and send via email
     useEffect(() => {
@@ -124,18 +102,6 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formData.roleCode]);
-
-    // Sync input string when birthdate changes
-    useEffect(() => {
-        if (formData.birthdate) {
-            const formatted = dayjs(formData.birthdate, "YYYY-MM-DD").isValid()
-                ? dayjs(formData.birthdate, "YYYY-MM-DD").format("DD/MM/YYYY")
-                : "";
-            setBirthdateInput(formatted);
-        } else {
-            setBirthdateInput("");
-        }
-    }, [formData.birthdate]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -170,10 +136,10 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
 
         // Real-time identity number validation - only numbers
         if (name === "identityNumber" && value.trim()) {
-            if (!/^\d+$/.test(value)) {
+            if (!/^\d+$/.test(value) || value.length !== 12) {
                 setErrors(prev => ({
                     ...prev,
-                    [name]: "Identity Number must contain only numbers (0-9)"
+                    [name]: "Identity number is invalid"
                 }));
             } else {
                 setErrors(prev => ({
@@ -185,10 +151,10 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
 
         // Real-time phone number validation - only numbers
         if (name === "phoneNumber" && value.trim()) {
-            if (!/^\d+$/.test(value)) {
+            if (!/^\d+$/.test(value) || value.length !== 10) {
                 setErrors(prev => ({
                     ...prev,
-                    [name]: "Phone Number must contain only numbers (0-9)"
+                    [name]: "Phone number is invalid"
                 }));
             } else {
                 setErrors(prev => ({
@@ -212,30 +178,39 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
     const validateStep1 = () => {
         const newErrors = {};
 
-        if (!formData.fullName.trim()) newErrors.fullName = "Full Name is required";
-
-        if (!formData.identityNumber.trim()) {
-            newErrors.identityNumber = "Identity Number is required";
-        } else if (!/^\d+$/.test(formData.identityNumber)) {
-            newErrors.identityNumber = "Identity Number must contain only numbers (0-9)";
+        if (!formData.fullName.trim()
+            || formData.fullName.trim().length >= 100
+            || formData.fullName.trim().length <= 5
+        ) {
+            newErrors.fullName = "Full Name is invalid";
         }
 
-        if (!formData.phoneNumber.trim()) {
-            newErrors.phoneNumber = "Phone Number is required";
+        if (!formData.identityNumber.trim() || formData.identityNumber.trim().length != 12) {
+            newErrors.identityNumber = "Identity number is invalid";
+        } else if (!/^\d+$/.test(formData.identityNumber)) {
+            newErrors.identityNumber = "Identity number must contain only numbers (0-9)";
+        }
+
+        if (!formData.phoneNumber.trim() || formData.phoneNumber.trim().length != 10) {
+            newErrors.phoneNumber = "Phone number is invalid";
         } else if (!/^\d+$/.test(formData.phoneNumber)) {
-            newErrors.phoneNumber = "Phone Number must contain only numbers (0-9)";
+            newErrors.phoneNumber = "Phone number must contain only numbers (0-9)";
         }
 
         if (!formData.email.trim()) {
             newErrors.email = "Email is required";
         } else {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(formData.email)) {
+            if (!emailRegex.test(formData.email) || formData.email.trim().length >= 100) {
                 newErrors.email = "Please enter a valid email address (e.g., user@example.com)";
             }
         }
         if (!formData.birthdate) newErrors.birthdate = "Birthdate is required";
-        if (!formData.address.trim()) newErrors.address = "Address is required";
+        if (!formData.address.trim()
+            || formData.address.trim().length <= 5
+            || formData.address.trim().length >= 300) {
+            newErrors.address = "Address is invalid";
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -289,14 +264,14 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
             // - ADMIN creates users as Active (true)
             // - MANAGER (LAB_MANAGER) creates users as Inactive (false)
             const userData = {
-                fullName: formData.fullName,
-                email: formData.email,
+                fullName: formData.fullName.trim(),
+                email: formData.email.trim(),
                 roleCode: formData.roleCode,
                 isActive: isAdmin ? true : false,     // ADMIN -> Active, MANAGER -> Inactive
                 phoneNumber: formData.phoneNumber,
                 identityNumber: formData.identityNumber,
-                birthdate: formData.birthdate,
-                address: formData.address,
+                birthdate: dayjs(formData.birthdate).format("YYYY-MM-DD"),
+                address: formData.address.trim(),
                 gender: formData.gender,
             };
 
@@ -310,12 +285,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                 await onSave(userData);
                 // clear form for next creation
                 resetForm();
-                // Success toast will be shown in handleSaveNewUser (UserList.jsx)
             } catch (error) {
-                // Handle backend errors
-
-                // Try multiple possible error fields from backend response
-                // Backend can return: {error: "..."} or {message: "..."}
                 const errorMessage =
                     error ||
                     error?.response?.data?.error ||
@@ -507,7 +477,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         name="fullName"
                                         value={formData.fullName}
                                         onChange={handleInputChange}
-                                        className="placeholder:text-[#777777]"
+                                        className="placeholder:text-[#777777] hover:!border-[#ff5a5f]"
                                         style={{
                                             width: "100%",
                                             padding: "12px",
@@ -553,7 +523,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         name="identityNumber"
                                         value={formData.identityNumber}
                                         onChange={handleInputChange}
-                                        className="placeholder:text-[#777777]"
+                                        className="placeholder:text-[#777777] hover:!border-[#ff5a5f]"
                                         style={{
                                             width: "100%",
                                             padding: "12px",
@@ -600,7 +570,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         name="phoneNumber"
                                         value={formData.phoneNumber}
                                         onChange={handleInputChange}
-                                        className="placeholder:text-[#777777]"
+                                        className="placeholder:text-[#777777] hover:!border-[#ff5a5f]"
                                         style={{
                                             width: "100%",
                                             padding: "12px",
@@ -648,7 +618,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         name="email"
                                         value={formData.email}
                                         onChange={handleInputChange}
-                                        className="placeholder:text-[#777777]"
+                                        className="placeholder:text-[#777777] hover:!border-[#ff5a5f]"
                                         style={{
                                             width: "100%",
                                             padding: "12px",
@@ -692,231 +662,21 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                     >
                                         Birthdate <span style={{ color: "#ff5a5f" }}>*</span>
                                     </label>
-                                    <div style={{ position: "relative" }} ref={calendarRef}>
-                                        <style>{`
-                                            .birthdate-input::placeholder { font-size: 14px; }
-                                        `}</style>
-                                        <div
-                                            ref={calendarWrapperRef}
-                                            style={{
-                                                position: "relative",
-                                                border: `1px solid ${errors.birthdate ? "#FF0000" : "#CCC"}`,
-                                                borderLeft: "3px solid #ff5a5f",
-                                                borderRadius: "4px",
-                                            }}>
-                                            <input
-                                                type="text"
-                                                value={birthdateInput}
-                                                onClick={() => setShowCalendar(!showCalendar)}
-                                                onChange={(e) => {
-                                                    const raw = e.target.value;
-                                                    setBirthdateInput(raw);
-
-                                                    // Try to parse DD/MM/YYYY when full length reached
-                                                    const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-                                                    const m = raw.match(ddmmyyyy);
-                                                    if (m) {
-                                                        const [_, dd, mm, yyyy] = m;
-                                                        const iso = `${yyyy}-${mm}-${dd}`;
-                                                        const parsed = dayjs(iso, "YYYY-MM-DD", true);
-                                                        if (parsed.isValid()) {
-                                                            handleInputChange({
-                                                                target: { name: 'birthdate', value: iso }
-                                                            });
-                                                            if (errors.birthdate) {
-                                                                setErrors(prev => ({ ...prev, birthdate: "" }));
-                                                            }
-                                                        }
-                                                    }
-                                                }}
-                                                placeholder="dd/mm/yyyy"
-                                                style={{
-                                                    width: "100%",
-                                                    padding: "12px 40px 12px 12px",
-                                                    border: "none",
-                                                    borderRadius: "4px",
-                                                    fontSize: "14px",
-                                                    boxSizing: "border-box",
-                                                    backgroundColor: "white",
-                                                    outline: "none",
-                                                }}
-                                                className="birthdate-input placeholder:text-[#777777]"
-                                                onFocus={() => {
-                                                    calendarWrapperRef.current.style.border = `1px solid ${errors.birthdate ? "#FF0000" : "#FF5A5A"}`;
-                                                    calendarWrapperRef.current.style.borderLeft = "3px solid #ff5a5f";
-                                                }}
-                                                onBlur={() => {
-                                                    calendarWrapperRef.current.style.border = `1px solid ${errors.birthdate ? "#FF0000" : "#CCC"}`;
-                                                    calendarWrapperRef.current.style.borderLeft = "3px solid #ff5a5f";
-                                                    // Validate date is valid and within range (1900 to today)
-                                                    if (formData.birthdate) {
-                                                        const selectedDate = dayjs(formData.birthdate, "YYYY-MM-DD");
-
-                                                        // Check if date is valid
-                                                        if (!selectedDate.isValid()) {
-                                                            setErrors(prev => ({
-                                                                ...prev,
-                                                                birthdate: "Invalid date"
-                                                            }));
-                                                            return;
-                                                        }
-
-                                                        // Check if date is after today
-                                                        if (selectedDate.isAfter(dayjs(), 'day')) {
-                                                            setErrors(prev => ({
-                                                                ...prev,
-                                                                birthdate: "Birthdate cannot be in the future"
-                                                            }));
-                                                            return;
-                                                        }
-
-                                                        // Check if date is before 1900
-                                                        if (selectedDate.isBefore(dayjs('1900-01-01'), 'day')) {
-                                                            setErrors(prev => ({
-                                                                ...prev,
-                                                                birthdate: "Year must be from 1900 onwards"
-                                                            }));
-                                                            return;
-                                                        }
-
-                                                        // Clear error if validation passes
-                                                        if (errors.birthdate) {
-                                                            setErrors(prev => ({
-                                                                ...prev,
-                                                                birthdate: ""
-                                                            }));
-                                                        }
-                                                    }
-                                                }}
-                                            />
-                                            <FaCalendarAlt
-                                                style={{
-                                                    position: "absolute",
-                                                    right: "12px",
-                                                    top: "50%",
-                                                    transform: "translateY(-50%)",
-                                                    color: "#666",
-                                                    cursor: "pointer",
-                                                    pointerEvents: "none"
-                                                }}
-                                            />
-                                        </div>
-                                        {showCalendar && (
-                                            <>
-                                                <style>{`
-                                                    .react-calendar {
-                                                        border: none !important;
-                                                        font-family: inherit;
-                                                        width: 200px !important; /* smaller calendar width */
-                                                    }
-                                                    .react-calendar__navigation {
-                                                        height: 30px;
-                                                    }
-                                                    .react-calendar__navigation button {
-                                                        min-width: 26px;
-                                                        font-size: 12px;
-                                                        padding: 2px 4px;
-                                                    }
-                                                    .react-calendar__month-view__weekdays {
-                                                        text-transform: none !important;
-                                                        font-weight: 500;
-                                                        font-size: 11px; /* smaller weekdays */
-                                                    }
-                                                    .react-calendar__month-view__weekdays__weekday {
-                                                        text-decoration: none !important;
-                                                        padding: 0.25em; /* tighter */
-                                                    }
-                                                    .react-calendar__month-view__weekdays__weekday abbr {
-                                                        text-decoration: none !important;
-                                                        cursor: default;
-                                                    }
-                                                    .react-calendar__tile {
-                                                        border-radius: 4px;
-                                                        padding: 0.4em 0.3em; /* smaller tiles */
-                                                        font-size: 11px; /* smaller numbers */
-                                                    }
-                                                    .react-calendar__tile:enabled:hover {
-                                                        background: #f0f0f0;
-                                                    }
-                                                    .react-calendar__tile--active {
-                                                        background: #87CEEB !important; /* light blue */
-                                                        color: white !important;
-                                                        border-radius: 4px;
-                                                    }
-                                                    .react-calendar__tile--active:enabled:hover,
-                                                    .react-calendar__tile--active:enabled:focus {
-                                                        background: #6BB6D6 !important;
-                                                    }
-                                                    .react-calendar__tile--now {
-                                                        background: transparent !important; /* remove yellow */
-                                                        color: #000000 !important;
-                                                    }
-                                                    .react-calendar__tile--now:enabled:hover,
-                                                    .react-calendar__tile--now:enabled:focus {
-                                                        background: #f0f0f0 !important;
-                                                    }
-                                                `}</style>
-                                                <div style={{
-                                                    position: "absolute",
-                                                    top: "100%",
-                                                    right: 0,
-                                                    zIndex: 1000,
-                                                    marginTop: "4px",
-                                                    backgroundColor: "white",
-                                                    borderRadius: "8px",
-                                                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-                                                    border: "1px solid #ddd",
-                                                    width: "200px"
-                                                }}>
-                                                    <Calendar
-                                                        onChange={(date) => {
-                                                            if (date) {
-                                                                const dateString = dayjs(date).format("YYYY-MM-DD");
-                                                                handleInputChange({
-                                                                    target: {
-                                                                        name: 'birthdate',
-                                                                        value: dateString
-                                                                    }
-                                                                });
-
-                                                                // Clear error when user selects a valid date
-                                                                if (errors.birthdate) {
-                                                                    setErrors(prev => ({
-                                                                        ...prev,
-                                                                        birthdate: ""
-                                                                    }));
-                                                                }
-
-                                                                // Set input display
-                                                                setBirthdateInput(dayjs(dateString, "YYYY-MM-DD").format("DD/MM/YYYY"));
-                                                                setShowCalendar(false);
-                                                            }
-                                                        }}
-                                                        value={formData.birthdate
-                                                            ? new Date(formData.birthdate)
-                                                            : null}
-                                                        maxDate={new Date()}
-                                                        minDate={new Date("1900-01-01")}
-                                                        formatShortWeekday={(locale, date) => {
-                                                            const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-                                                            return weekdays[date.getDay()];
-                                                        }}
-                                                        tileDisabled={({ date }) => {
-                                                            // Disable dates after today
-                                                            if (date > new Date()) {
-                                                                return true;
-                                                            }
-                                                            // Disable dates before 1900
-                                                            if (date < new Date("1900-01-01")) {
-                                                                return true;
-                                                            }
-                                                            return false;
-                                                        }}
-                                                        locale="en-US"
-                                                    />
-                                                </div>
-                                            </>
-                                        )}
+                                    <div className="relative flex justify-end h-[43px]">
+                                        <DatePicker
+                                            name="birthdate"
+                                            value={formData.birthdate ? dayjs(formData.birthdate, dateFormat) : null}
+                                            onChange={(date) => {
+                                                handleInputChange({
+                                                    target: { name: "birthdate", value: date ? date.format(dateFormat) : "" }
+                                                });
+                                            }}
+                                            className={`w-full !rounded-[4px] !border-l-3 !border-l-[#ff5a5f]
+                                                ${errors.birthdate && "!border-[#FF0000]"}`}
+                                            minDate={dayjs('01/01/1960', dateFormat)}
+                                            maxDate={dayjs('01/01/2015', dateFormat)}
+                                            format={{format: dateFormat, type: "mask"}}
+                                        />
                                     </div>
                                     {errors.birthdate && (
                                         <span style={{ color: "#FF0000", fontSize: "12px", display: "block", marginTop: "4px" }}>
@@ -942,7 +702,7 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                         name="address"
                                         value={formData.address}
                                         onChange={handleInputChange}
-                                        className="placeholder:text-[#777777]"
+                                        className="placeholder:text-[#777777] hover:!border-[#ff5a5f]"
                                         style={{
                                             width: "100%",
                                             padding: "12px",
@@ -1043,11 +803,10 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                 gap: "20px",
                             }}
                         >
-                            <div style={{ marginBottom: "20px" }}>
+                            <div style={{ marginBottom: "20px", display: "flex", flexDirection: "column", gap: "15px" }}>
                                 <label
                                     style={{
                                         display: "block",
-                                        marginBottom: "8px",
                                         fontSize: "14px",
                                         fontWeight: "600",
                                         color: "#ff5a5f",
@@ -1055,47 +814,33 @@ export default function AddUserModal({ isOpen, onClose, onSave }) {
                                 >
                                     Role <span style={{ color: "#ff5a5f" }}>*</span>
                                 </label>
-                                <select
+                                <Select
                                     name="roleCode"
-                                    value={formData.roleCode}
-                                    onChange={handleInputChange}
-                                    disabled={rolesLoading}
-                                    style={{
-                                        width: "100%",
-                                        padding: "12px",
-                                        border: `1px solid ${errors.roleCode ? "#FF0000" : "#CCC"}`,
-                                        borderRadius: "4px",
-                                        fontSize: "14px",
-                                        boxSizing: "border-box",
-                                        backgroundColor: "white",
-                                        borderLeft: "3px solid #ff5a5f",
-                                        color: "#777777",
-                                        cursor: rolesLoading ? "not-allowed" : "pointer",
-                                        opacity: rolesLoading ? 0.6 : 1,
-                                        outline: "none",
+                                    value={formData.roleCode || undefined}
+                                    onChange={(value) => {
+                                        handleInputChange({ target: { name: "roleCode", value } });
                                     }}
+                                    disabled={rolesLoading}
+                                    placeholder={rolesLoading ? "Loading roles..." : "Select a role"}
+                                    className={`w-full ${rolesLoading ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                                     onFocus={(e) => {
-                                        e.target.style.borderColor = errors.roleCode ? "#FF0000" : "#ff5a5f";
-                                        e.target.style.borderLeft = "3px solid #ff5a5f";
-                                        e.target.style.outline = "none";
-                                        e.target.style.boxShadow = "none";
+                                        const sel = e.target.closest(".ant-select-selector");
+                                        sel.style.borderColor = errors.roleCode ? "#FF0000" : "#ff5a5f";
                                     }}
                                     onBlur={(e) => {
-                                        e.target.style.borderColor = errors.roleCode ? "#FF0000" : "#CCC";
-                                        e.target.style.borderLeft = "3px solid #ff5a5f";
-                                        e.target.style.outline = "none";
-                                        e.target.style.boxShadow = "none";
+                                        const sel = e.target.closest(".ant-select-selector");
+                                        sel.style.borderColor = errors.roleCode ? "#FF0000" : "#CCC";
                                     }}
                                 >
-                                    <option value="">
-                                        {rolesLoading ? "Loading roles..." : "Select a role"}
-                                    </option>
                                     {roles.map((role) => (
-                                        <option key={role.code} value={role.code}>
-                                            {role.name || role.code}
-                                        </option>
+                                        role.name != "DEFAULT" && (
+                                            <Select.Option key={role.code} value={role.code}>
+                                                {role.name || role.code}
+                                            </Select.Option>
+                                        )
                                     ))}
-                                </select>
+                                </Select>
+
                                 {errors.roleCode && (
                                     <span style={{ color: "#FF0000", fontSize: "12px" }}>
                                         {errors.roleCode}
