@@ -32,7 +32,7 @@ public class NotifyConsumer {
 
     @KafkaListener(
             topics = "comment-events-topic",
-            groupId = "notification-service-local"
+            groupId = "notification-service"
     )
     public void consumeTestOrderEvent(String message) {
         try {
@@ -66,7 +66,7 @@ public class NotifyConsumer {
 
     @KafkaListener(
             topics = "warehouse-reagent-alert",
-            groupId = "notification-service-local"
+            groupId = "notification-service"
     )
     public void consumeReagentEvent(String message) {
         try {
