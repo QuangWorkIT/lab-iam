@@ -72,6 +72,6 @@ FALSE, '2025-10-21 00:22:20.341173'),
 'ACTIVATE_DEACTIVATE_INSTRUMENT,ADD_COMMENT,ADD_INSTRUMENT,ADD_REAGENTS,CREATE_TEST_ORDER,DELETE_COMMENT,DELETE_REAGENTS,DELETE_TEST_ORDER,EXECUTE_BLOOD_TESTING,MODIFY_COMMENT,MODIFY_REAGENTS,MODIFY_TEST_ORDER,REVIEW_TEST_ORDER,VIEW_EVENT_LOGS,VIEW_INSTRUMENT,PATIENT_UPDATE,PATIENT_VIEW,PATIENT_EXPORT,READ_ONLY',
 FALSE, '2025-10-21 00:38:54.346730'),
 
-('ROLE_PATIENT', '2025-10-21 00:45:55.924656', 'Represents a patient user who can view their own records, results, and limited system information but cannot modify or manage any data.', TRUE, 'patient', 'READ_ONLY,PATIENT_VIEW', FALSE, '2025-10-21 00:45:55.924707'),
-
 ('ROLE_DEFAULT', '2025-10-21 00:40:22.384022', 'This is a default or placeholder role. When a user''s role is deleted or removed, this role will replace the previous role until further action by the admin.', TRUE, 'DEFAULT', 'READ_ONLY', FALSE, '2025-10-21 00:40:22.384034');
+
+('ROLE_PATIENT', '2025-10-21 00:45:55.924656', 'Represents a patient user who can view their own records, results, and limited system information but cannot modify or manage any data.', TRUE, 'patient', 'READ_ONLY,PATIENT_VIEW_OWN', FALSE, '2025-10-21 00:45:55.924707'),
