@@ -49,6 +49,17 @@ const AVAILABLE_PRIVILEGES = [
 
   // Blood Testing
   "EXECUTE_BLOOD_TESTING",
+
+  //Patient Management
+  "PATIENT_VIEW",
+  "PATIENT_CREATE",
+  "PATIENT_UPDATE",
+  "PATIENT_EXPORT",
+  "PATIENT_IMPORT",
+  "PATIENT_RESTORE",
+  "PATIENT_SOFT_DELETE",
+  "PATIENT_DELETE",
+  "PATIENT_VIEW_OWN",
 ];
 
 export default function RoleModal({
@@ -59,27 +70,27 @@ export default function RoleModal({
   mode = "create",
 }) {
 
-const userInfo = useSelector((state) => state.user.userInfo);
+  const userInfo = useSelector((state) => state.user.userInfo);
 
-const isAdmin = (() => {
-  if (!userInfo) return false;
+  const isAdmin = (() => {
+    if (!userInfo) return false;
 
-  // Handle object or string role
-  const roleCode =
-    typeof userInfo.role === "string"
-      ? userInfo.role
-      : userInfo.role?.code || "";
+    // Handle object or string role
+    const roleCode =
+      typeof userInfo.role === "string"
+        ? userInfo.role
+        : userInfo.role?.code || "";
 
-  // Handle privileges (string or array)
-  const privileges =
-    typeof userInfo.privileges === "string"
-      ? userInfo.privileges.split(",").map((p) => p.trim())
-      : Array.isArray(userInfo.privileges)
-        ? userInfo.privileges
-        : [];
+    // Handle privileges (string or array)
+    const privileges =
+      typeof userInfo.privileges === "string"
+        ? userInfo.privileges.split(",").map((p) => p.trim())
+        : Array.isArray(userInfo.privileges)
+          ? userInfo.privileges
+          : [];
 
-  return roleCode === "ROLE_ADMIN";
-})();
+    return roleCode === "ROLE_ADMIN";
+  })();
 
   const [formData, setFormData] = useState({
     code: "",
@@ -356,7 +367,7 @@ const isAdmin = (() => {
                     value={role.lastUpdatedAt || "—"}
                   />
 
-                  {isAdmin && mode === "edit"  && (
+                  {isAdmin && mode === "edit" && (
                     <Item
                       label="Deletable"
                       value={role.deletable ? "Yes" : "No"}
@@ -415,10 +426,10 @@ const isAdmin = (() => {
                     (e.currentTarget.style.border = "1px solid #FF5A5A")
                   }
                   onBlur={(e) => {
-                  (e.currentTarget.style.boxShadow = errors.name
-                    ? "0 0 0 3px rgba(239,68,68,0.15)"
-                    : "none");
-                     (e.currentTarget.style.border = "1px solid #CCC")
+                    (e.currentTarget.style.boxShadow = errors.name
+                      ? "0 0 0 3px rgba(239,68,68,0.15)"
+                      : "none");
+                    (e.currentTarget.style.border = "1px solid #CCC")
                   }
                   }
                 />
@@ -446,10 +457,10 @@ const isAdmin = (() => {
                     (e.currentTarget.style.border = "1px solid #FF5A5A")
                   }
                   onBlur={(e) => {
-                  (e.currentTarget.style.boxShadow = errors.name
-                    ? "0 0 0 3px rgba(239,68,68,0.15)"
-                    : "none");
-                     (e.currentTarget.style.border = "1px solid #CCC")
+                    (e.currentTarget.style.boxShadow = errors.name
+                      ? "0 0 0 3px rgba(239,68,68,0.15)"
+                      : "none");
+                    (e.currentTarget.style.border = "1px solid #CCC")
                   }
                   }
                 />
@@ -530,6 +541,20 @@ const isAdmin = (() => {
                       category: "Blood Testing",
                       items: ["EXECUTE_BLOOD_TESTING"],
                     },
+                    {
+                      category: "Patient Management",
+                      items: ["PATIENT_VIEW",
+                        "PATIENT_CREATE",
+                        "PATIENT_UPDATE",
+                        "PATIENT_EXPORT",
+                        "PATIENT_IMPORT",
+                        "PATIENT_RESTORE",
+                        "PATIENT_SOFT_DELETE",
+                        "PATIENT_DELETE",
+                         "PATIENT_VIEW_OWN",
+                      
+                      ],
+                    },
                   ].map((group) => (
                     <div
                       key={group.category}
@@ -588,29 +613,29 @@ const isAdmin = (() => {
                 </div>
               </Field>
 
-            {isAdmin && mode === "edit" &&(
-              <div style={{ marginTop: 6 }}>
-                <label
-                  style={{ display: "flex", alignItems: "center", gap: 10 }}
-                >
-                  <input
-                    type="checkbox"
-                    name="deletable"
-                    checked={formData.deletable}
-                    onChange={handleChange}
-                    style={{ width: 16, height: 16 }}
-                  />
-                  <span
-                    style={{ color: "#000000", fontSize: 14, fontWeight: 600 }}
+              {isAdmin && mode === "edit" && (
+                <div style={{ marginTop: 6 }}>
+                  <label
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
                   >
-                    Allow Role Deletion (Advanced Setting)
-                  </span>
-                </label>
-                <div style={{ marginLeft: 26, marginTop: 4, color: "#777777", fontSize: 14 }}>
-                  Enable to allow role deletion. When disabled, the role cannot be deleted even if no users are assigned.
+                    <input
+                      type="checkbox"
+                      name="deletable"
+                      checked={formData.deletable}
+                      onChange={handleChange}
+                      style={{ width: 16, height: 16 }}
+                    />
+                    <span
+                      style={{ color: "#000000", fontSize: 14, fontWeight: 600 }}
+                    >
+                      Allow Role Deletion (Advanced Setting)
+                    </span>
+                  </label>
+                  <div style={{ marginLeft: 26, marginTop: 4, color: "#777777", fontSize: 14 }}>
+                    Enable to allow role deletion. When disabled, the role cannot be deleted even if no users are assigned.
+                  </div>
                 </div>
-              </div>
-            )} 
+              )}
 
               <div style={{ marginTop: 6 }}>
                 <label
@@ -879,6 +904,7 @@ const PRIVILEGE_GROUP_RULES = [
   { key: "REAGENT", label: "Reagent Management" },
   { key: "INSTRUMENT", label: "Instrument Management" },
   { key: "BLOOD_TESTING", label: "Blood Testing" },
+  { key: "PATIENT_MANAGEMENT", label: "Patient Management" },
 ];
 
 function groupPrivileges(codes) {
