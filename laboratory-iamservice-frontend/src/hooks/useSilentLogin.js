@@ -1,4 +1,4 @@
-import {  isTokenExpired, parseClaims } from '../utils/jwtUtil'
+import { isTokenExpired, parseClaims } from '../utils/jwtUtil'
 import publicApi from '../configs/publicAxios'
 import { login, setLoading, removeLocalUser } from '../redux/features/userSlice'
 import { useDispatch } from 'react-redux'
@@ -16,10 +16,14 @@ function useSilentLogin() {
 
             try {
                 dispatch(setLoading(true))
-                if (isTokenExpired(accessToken)) {
-                    const refreshResponse = await publicApi.post("/api/auth/refresh")
-                    const data = refreshResponse.data?.data
-                    const payload = parseClaims(data.accessToken)
+                const refreshResponse = await publicApi.post("/api/auth/refresh")
+                const data = refreshResponse.data?.data
+                const payload = parseClaims(data?.accessToken)
+
+                localStorage.setItem("token", data?.accessToken)
+                const privileges = await fetchUserPrivileges(payload?.role)
+
+                if (payload && data) {
                     dispatch(login({
                         token: data.accessToken,
                         userInfo: {
@@ -27,7 +31,7 @@ function useSilentLogin() {
                             userName: payload.userName,
                             email: payload.email,
                             role: payload.role,
-                            privileges: payload.privileges,
+                            privileges: privileges,
                             identityNumber: payload.identityNumber,
                             phoneNumber: payload.phone,
                             gender: payload.gender,
@@ -35,6 +39,8 @@ function useSilentLogin() {
                             age: payload.age,
                             address: payload.address,
                             isActive: payload.isActive === "true",
+                            deletedAt: payload.deletedAt,
+                            isDeleted: payload.isDeleted === "true"
                         }
                     }))
                     console.log("silent login success")
