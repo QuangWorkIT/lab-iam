@@ -904,7 +904,7 @@ const PRIVILEGE_GROUP_RULES = [
   { key: "REAGENT", label: "Reagent Management" },
   { key: "INSTRUMENT", label: "Instrument Management" },
   { key: "BLOOD_TESTING", label: "Blood Testing" },
-  { key: "PATIENT_MANAGEMENT", label: "Patient Management" },
+  { key: "PATIENT", label: "Patient Management" },
 ];
 
 function groupPrivileges(codes) {
