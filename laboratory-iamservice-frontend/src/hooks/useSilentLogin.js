@@ -15,35 +15,37 @@ function useSilentLogin() {
             }
 
             try {
-                dispatch(setLoading(true))
-                const refreshResponse = await publicApi.post("/api/auth/refresh")
-                const data = refreshResponse.data?.data
-                const payload = parseClaims(data?.accessToken)
+                if (isTokenExpired(accessToken)) {
+                    dispatch(setLoading(true))
+                    const refreshResponse = await publicApi.post("/api/auth/refresh")
+                    const data = refreshResponse.data?.data
+                    const payload = parseClaims(data?.accessToken)
 
-                localStorage.setItem("token", data?.accessToken)
-                const privileges = await fetchUserPrivileges(payload?.role)
+                    localStorage.setItem("token", data?.accessToken)
+                    const privileges = await fetchUserPrivileges(payload?.role)
 
-                if (payload && data) {
-                    dispatch(login({
-                        token: data.accessToken,
-                        userInfo: {
-                            id: payload.sub,
-                            userName: payload.userName,
-                            email: payload.email,
-                            role: payload.role,
-                            privileges: privileges,
-                            identityNumber: payload.identityNumber,
-                            phoneNumber: payload.phone,
-                            gender: payload.gender,
-                            dateOfBirth: payload.dob,
-                            age: payload.age,
-                            address: payload.address,
-                            isActive: payload.isActive === "true",
-                            deletedAt: payload.deletedAt,
-                            isDeleted: payload.isDeleted === "true"
-                        }
-                    }))
-                    console.log("silent login success")
+                    if (payload && data) {
+                        dispatch(login({
+                            token: data.accessToken,
+                            userInfo: {
+                                id: payload.sub,
+                                userName: payload.userName,
+                                email: payload.email,
+                                role: payload.role,
+                                privileges: privileges,
+                                identityNumber: payload.identityNumber,
+                                phoneNumber: payload.phone,
+                                gender: payload.gender,
+                                dateOfBirth: payload.dob,
+                                age: payload.age,
+                                address: payload.address,
+                                isActive: payload.isActive === "true",
+                                deletedAt: payload.deletedAt,
+                                isDeleted: payload.isDeleted === "true"
+                            }
+                        }))
+                        console.log("silent login success")
+                    }
                 }
             } catch (error) {
                 console.log("error refresh user ", error)
