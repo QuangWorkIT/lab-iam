@@ -25,4 +25,5 @@ public interface RoleService {
     public RoleDTO createRole(Role role);
     public RoleDTO updateRole(RoleUpdateRequestDto dto, String roleCode);
     public void DeleteRole( String roleCode);
+    public Role getUserRole(String code);
 }

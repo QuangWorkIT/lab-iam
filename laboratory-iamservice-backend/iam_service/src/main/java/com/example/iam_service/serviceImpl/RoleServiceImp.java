@@ -28,6 +28,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.swing.text.html.Option;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -246,8 +248,11 @@ public class RoleServiceImp implements RoleService {
                 .build());
     }
 
-
-
+    @Override
+    @PrivilegesRequired(values = Privileges.VIEW_OWN_ROLE, requireAll = true)
+    public Role getUserRole(String code) {
+        return roleRepository.findPrivilegesByCode(code);
+    }
 
     private boolean isRoleDeletable(String roleCode)
     {

@@ -20,6 +20,7 @@ public class ReagentAlertNotification {
     private double quantity;
     private String alertText;
     private String createdFrom;
+    private String url;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;

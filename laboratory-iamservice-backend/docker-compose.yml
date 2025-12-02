@@ -80,6 +80,18 @@ services:
       iam-net:
         ipv4_address: 172.25.0.11
 
+  mongo:
+    image: mongo:7.0
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    networks:
+      iam-net:
+        ipv4_address: 172.25.0.17
+    volumes:
+      - mongo-data:/data/db
+
   notification-service:
     build:
       context: ./notification_service
@@ -93,6 +105,8 @@ services:
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     networks:
       iam-net:
         ipv4_address: 172.25.0.12
@@ -124,3 +138,4 @@ networks:
 
 volumes:
   postgres-data:
+  mongo-data:

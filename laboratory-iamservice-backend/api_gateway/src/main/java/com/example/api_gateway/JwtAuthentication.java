@@ -8,6 +8,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -39,11 +41,9 @@ public class JwtAuthentication implements WebFilter {
 
             String userId = claim.getSubject();
             String role = claim.get("role", String.class);
-            List<String> privileges = claim.get("privileges", List.class);
 
-            var authorities = privileges.stream()
-                    .map(SimpleGrantedAuthority::new)
-                    .toList();
+            List<GrantedAuthority> authorities = new ArrayList<>();
+            authorities.add(new SimpleGrantedAuthority(role));
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userId, null , authorities);
@@ -53,7 +53,6 @@ public class JwtAuthentication implements WebFilter {
                     .request(r -> r.headers(h -> {
                         h.add("X-User-Id", userId);
                         h.add("X-User-Role", role);
-                        h.add("X-User-Privileges", String.join(",", privileges));
                         h.add("X-Auth-Token", token);
                     }))
                     .build();

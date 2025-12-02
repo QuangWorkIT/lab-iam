@@ -33,6 +33,7 @@ public enum Privileges {
 
     // Role Management (Laboratory Management)
     VIEW_ROLE("Have right to view all role"),
+    VIEW_OWN_ROLE("Have right to view user own role"),
     CREATE_ROLE("Have right to create a new custom role"),
     UPDATE_ROLE("Have right to modify privileges of custom role"),
     DELETE_ROLE("Have right to delete a custom role"),
@@ -54,15 +55,15 @@ public enum Privileges {
     EXECUTE_BLOOD_TESTING("Have right to execute a blood testing"),
 
     //Patient Management
-    PATIENT_VIEW("Have right to view patient"),
+    PATIENT_VIEW("Have right to view patient list"),
     PATIENT_CREATE("Have right to create patient"),
     PATIENT_UPDATE("Have right to update patient"),
     PATIENT_EXPORT("Have right to export patient list"),
     PATIENT_IMPORT("Have right to import patients"),
     PATIENT_RESTORE("Have right to restore deleted patient"),
     PATIENT_SOFT_DELETE("Have right to soft delete patient"),
-    PATIENT_DELETE("Have right to hard delete patient");
-
+    PATIENT_DELETE("Have right to hard delete patient"),
+    PATIENT_VIEW_OWN("Have right to view own patient profile");
     private final String description;
 
 
