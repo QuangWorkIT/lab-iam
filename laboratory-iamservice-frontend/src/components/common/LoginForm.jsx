@@ -11,6 +11,7 @@ import { parseClaims } from '../../utils/jwtUtil.js';
 import GoogleButton from './GoogleButton.jsx';
 import { formatBannedDate } from '../../utils/formatter.js';
 import CountDownTimer from "../common/CountDownTimer.jsx"
+import { fetchUserPrivileges } from '../../services/fetchUserPrivileges.js';
 
 // custom input theme 
 export const theme = {
@@ -63,6 +64,8 @@ function LoginForm({ setIsResetPassWord }) {
             const data = response.data?.data
 
             const payload = parseClaims(data.accessToken)
+            localStorage.setItem("token", data.accessToken)
+            const privileges = await fetchUserPrivileges(payload.role)
             dispatch(login({
                 token: data.accessToken,
                 userInfo: {
@@ -70,7 +73,7 @@ function LoginForm({ setIsResetPassWord }) {
                     userName: payload.userName,
                     email: payload.email,
                     role: payload.role,
-                    privileges: payload.privileges,
+                    privileges: privileges,
                     identityNumber: payload.identityNumber,
                     phoneNumber: payload.phone,
                     gender: payload.gender,
@@ -96,7 +99,7 @@ function LoginForm({ setIsResetPassWord }) {
                     errMess.split(".")[0] === "Too many attempts"
                 ) {
                     toast.error("Too many attempts!", {
-                       className: "!text-[#FF0000] font-bold text-[14px]"
+                        className: "!text-[#FF0000] font-bold text-[14px]"
                     })
                     dispatch(addBannedElement(
                         {
@@ -111,11 +114,11 @@ function LoginForm({ setIsResetPassWord }) {
                     })
                 }
                 else toast.error(errMess, {
-                   className: "!text-[#FF0000] font-bold text-[14px]"
+                    className: "!text-[#FF0000] font-bold text-[14px]"
                 })
             }
             else toast.error("Login failed!", {
-               className: "!text-[#FF0000] font-bold text-[14px]"
+                className: "!text-[#FF0000] font-bold text-[14px]"
             })
             console.log(error)
         } finally {

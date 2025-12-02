@@ -57,7 +57,8 @@ const privilegesBaseService = {
             "PATIENT_IMPORT",
             "PATIENT_RESTORE",
             "PATIENT_DELETE",
-            "PATIENT_SOFT_DELETE"
+            "PATIENT_SOFT_DELETE",
+            "PATIENT_VIEW_OWN"
         ]
     }
 }
