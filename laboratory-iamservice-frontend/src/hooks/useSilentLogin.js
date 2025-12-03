@@ -3,6 +3,7 @@ import publicApi from '../configs/publicAxios'
 import { login, setLoading, removeLocalUser } from '../redux/features/userSlice'
 import { useDispatch } from 'react-redux'
 import { useEffect } from 'react';
+import { fetchUserPrivileges } from '../services/fetchUserPrivileges'; 
 
 function useSilentLogin() {
     const dispatch = useDispatch()
