@@ -140,20 +140,7 @@ export default function DeletedAccountsTable({
                     }}
                 >
                     <thead>
-                        <tr style={{ backgroundColor: "#fe535b" }}>
-                            <th
-                                style={{
-                                    padding: "12px 15px",
-                                    textAlign: "left",
-                                    color: "white",
-                                    fontWeight: "600",
-                                    fontSize: "14px",
-                                    minWidth: "80px",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
-                                ID
-                            </th>
+                        <tr style={{ backgroundColor: "#FF5A5A" }}>
                             <th
                                 style={{
                                     padding: "12px 15px",
@@ -329,17 +316,7 @@ export default function DeletedAccountsTable({
                                         <td
                                             style={{
                                                 padding: "12px 15px",
-                                                fontWeight: "500",
-                                                color: "#000",
-                                            }}
-                                            title={account.id}
-                                        >
-                                            {truncateId(account.id)}
-                                        </td>
-                                        <td
-                                            style={{
-                                                padding: "12px 15px",
-                                                fontWeight: "500",
+                                                fontWeight: "600",
                                                 color: "#000",
                                             }}
                                         >
@@ -390,7 +367,7 @@ export default function DeletedAccountsTable({
                                                 onClick={() => onView && onView(account)}
                                                 style={{
                                                     backgroundColor: "transparent",
-                                                    color: "#fe535b",
+                                                    color: "#FF5A5A",
                                                     border: "none",
                                                     padding: "5px",
                                                     cursor: "pointer",
@@ -408,14 +385,14 @@ export default function DeletedAccountsTable({
                                                 }}
                                                 title="View Details"
                                             >
-                                                <FiEye size={18} />
+                                                <FiEye size={24} />
                                             </button>
 
                                             {/* Restore button */}
                                             <button
                                                 onClick={() => onRestore && onRestore(account)}
                                                 style={{
-                                                    backgroundColor: "#48bb78",
+                                                    backgroundColor: "#FF5A5A",
                                                     color: "white",
                                                     border: "none",
                                                     borderRadius: "6px",
@@ -431,10 +408,10 @@ export default function DeletedAccountsTable({
                                                     fontWeight: "500",
                                                 }}
                                                 onMouseEnter={(e) => {
-                                                    e.currentTarget.style.backgroundColor = "#38a169";
+                                                    e.currentTarget.style.backgroundColor = "#FF3A3A";
                                                 }}
                                                 onMouseLeave={(e) => {
-                                                    e.currentTarget.style.backgroundColor = "#48bb78";
+                                                    e.currentTarget.style.backgroundColor = "#FF5A5A";
                                                 }}
                                                 title="Restore Account"
                                             >

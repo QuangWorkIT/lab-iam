@@ -37,21 +37,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NotNull FilterChain filterChain) throws ServletException, IOException {
         try {
             // filter ignores public request
-            String path = request.getServletPath();
-            String jwt = request.getHeader("X-Auth-Token");
+            String path = request.getRequestURI();
+            System.out.println("request: " + path);
+            String authHeader = request.getHeader("X-Auth-Token") != null
+                    ? request.getHeader("X-Auth-Token")
+                    : request.getHeader("Authorization");
 
-            if (path.startsWith("/api/auth") || jwt == null ) {
+            if (path.startsWith("/auth") || path.startsWith("/api/auth")
+                    || path.startsWith("/iam/api/auth")
+                    || path.startsWith("/v3/api-docs")
+                    || path.startsWith("/swagger-ui")
+                    || path.equals("/swagger-ui.html")
+                    || path.startsWith("/actuator/")
+                    || path.startsWith("/internal/")
+            ) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-
-            String userId = request.getHeader("X-User-Id");
+            // filter ignore auth endpoints
+            if(authHeader == null) {
+                filterChain.doFilter(request,response);
+                return;
+            }
+    
+            // extract token from headers
+            String jwt = authHeader.startsWith("Bearer ")
+                    ? authHeader.substring(7).trim()
+                    : authHeader.trim();
+            String userId = jwtUtil.validate(jwt);
             User user = userRepository.findById(UUID.fromString(userId))
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-            List<GrantedAuthority> authorities = jwtUtil.getUserAuthorities(jwt);
+//            List<GrantedAuthority> authorities = jwtUtil.getUserAuthorities(jwt);
 
+            List<GrantedAuthority> authorities = jwtUtil.getUserAuthoritiesV2(user);
             // create authentication object
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     user, null, authorities
@@ -69,7 +89,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setContentType("application/json");
             response.getWriter().write("""
                     {
-                      "message": "Unauthorized request",
+                      "message": "Unauthorized request IAM Service",
                       "error": "JWT invalid or expired"
                     }
                     """);

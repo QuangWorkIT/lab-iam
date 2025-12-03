@@ -17,12 +17,12 @@ function LoginPage() {
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
-                        className="flex absolute left-25 -translate-y-20 w-[38rem] h-[42rem] bg-[#FE535B] flex-col justify-center text-white px-10">
+                        className="flex absolute left-25 -translate-y-20 w-[38rem] h-[42rem] bg-[#FF5A5A] flex-col justify-center text-white px-10">
                         <div className="absolute p-4 top-1/2 -translate-y-1/2 right-[-10px] h-25 w-25 rounded-full bg-white">
                             <div className={`w-full h-full rounded-full flex justify-center items-center 
                                             hover:cursor-pointer
                                             transition-all duration-300 ease-in-out
-                                            ${isResetPassWord ? "bg-white hover:bg-[#e1e7ef]" : "bg-[#FE535B] hover:bg-[#fca9ad] shadow-[0_4px_15px_rgba(254,83,91,0.4)]"}`}>
+                                            ${isResetPassWord ? "bg-white hover:bg-[#e1e7ef]" : "bg-[#FF5A5A] hover:bg-[#fca9ad] shadow-[0_4px_15px_rgba(254,83,91,0.4)]"}`}>
                                 <motion.div
                                     initial={{ opacity: 0, rotate: 540 }}
                                     animate={{ rotate: isResetPassWord ? 540 : 0, opacity: 1 }}

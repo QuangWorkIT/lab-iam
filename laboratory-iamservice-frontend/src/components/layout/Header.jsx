@@ -1,32 +1,28 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FaHeartbeat, FaCog, FaUserCog, FaSignOutAlt, FaCheckCircle, FaExclamationCircle, FaRegDotCircle } from "react-icons/fa";
-import { logout } from "../../redux/features/userSlice";
+import { FaHeartbeat, FaSignOutAlt } from "react-icons/fa";
 import UserDetailModal from "../common/UserDetailModal";
-import { DoubleRightOutlined } from "@ant-design/icons"
 import { motion, AnimatePresence } from "motion/react"
 import NotificationComponent from "../common/NotificationComponent"
 import { Tooltip } from "antd";
 import { useNavigate } from "react-router";
+import MobileSidebar from "../common/MobileSideBar";
+import MobileToggle from "../common/MobileToggle";
+import { useSidebarMenu } from "../../hooks/useSideBarMenu";
+import { ChevronsRight, Users, LogOut } from "lucide-react";
+import { fetchUserProfile } from "../../services/fetchUserProfile";
 
 export default function Header({ pageTitle }) {
   const dispatch = useDispatch();
   const nav = useNavigate()
   const { userInfo } = useSelector((state) => state.user);
-  const notifyItems = [
-    {
-      text: 'Success 1',
-      icon: <FaCheckCircle color="#52c41a" />
-    },
-    {
-      text: 'Warning 2',
-      icon: <FaExclamationCircle color="#ffcc00" />
-    },
-    {
-      text: 'Processing 3',
-      icon: <FaRegDotCircle color="#40a6ce" />
-    },
-  ]
+  const [isOpen, setIsOpen] = useState(false);
+  const displayItems = useSidebarMenu()
+
+  const toggleSideBar = () => {
+    setIsOpen(!isOpen);
+  };
+
   // Confirm modal state
   const [showConfirm, setShowConfirm] = useState(false);
   const confirmBtnRef = useRef(null);
@@ -42,21 +38,18 @@ export default function Header({ pageTitle }) {
       document.body.style.overflow = "auto";
     }
 
-    // Cleanup to restore scroll when component unmounts
     return () => {
       document.body.style.overflow = "auto";
     };
   }, [isDetailModalOpen]);
 
   const handleLogout = () => {
-    // Mở popup confirm thay vì window.confirm
     setShowConfirm(true);
   };
 
   const confirmLogout = () => {
-    dispatch(logout());
     setShowConfirm(false);
-    nav("/login", { replace: true });
+    nav("/logout", { replace: true });
   };
 
   const closeConfirm = () => setShowConfirm(false);
@@ -66,31 +59,6 @@ export default function Header({ pageTitle }) {
     setIsDetailModalOpen(true);
   };
 
-  // Handler for refresh user detail
-  const handleRefreshUser = () => {
-    // Can add refresh logic here if needed
-    // For now, just refresh the page or fetch user info again
-  };
-
-  // Convert userInfo to the format expected by UserDetailModal
-  const getUserDetailData = () => {
-    if (!userInfo) return null;
-
-    return {
-      id: userInfo.id,
-      name: userInfo.userName || userInfo.name || "N/A",
-      role: userInfo.role || "N/A",
-      email: userInfo.email || "N/A",
-      identityNumber: userInfo.identityNumber || "N/A",
-      phoneNumber: userInfo.phoneNumber || userInfo.phone || "N/A",
-      gender: userInfo.gender || "N/A",
-      dateOfBirth: userInfo.dateOfBirth || userInfo.dob || null,
-      age: userInfo.age !== undefined ? userInfo.age : null,
-      address: userInfo.address || "N/A",
-      createdAt: userInfo.createdAt || userInfo.created_at || null,
-      isActive: userInfo.isActive || true,
-    };
-  };
 
   // Focus nút "Đăng xuất" và hỗ trợ phím Esc để đóng
   useEffect(() => {
@@ -125,7 +93,7 @@ export default function Header({ pageTitle }) {
       boxShadow:
         "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)",
       padding: "18px 20px",
-      borderTop: "5px solid #fe535b",
+      borderTop: "5px solid #FF5A5A",
     },
     titleRow: {
       display: "flex",
@@ -150,7 +118,7 @@ export default function Header({ pageTitle }) {
       color: "#374151",
     },
     btnDanger: {
-      backgroundColor: "#fe535b",
+      backgroundColor: "#FF5A5A",
       color: "#ffffff",
     },
     closeX: {
@@ -159,7 +127,7 @@ export default function Header({ pageTitle }) {
       right: "10px",
       background: "transparent",
       border: "none",
-      fontSize: "22px",
+      fontSize: "24px",
       color: "#9ca3af",
       cursor: "pointer",
       lineHeight: 1,
@@ -176,60 +144,66 @@ export default function Header({ pageTitle }) {
           justifyContent: "space-between",
           alignItems: "center",
           backgroundColor: "white",
+          height: "60px"
         }}
       >
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <FaHeartbeat
-              style={{
-                color: "#fe535b",
-                fontSize: "24px",
-                marginRight: "10px",
-              }}
-            />
-            <span
-              style={{ color: "black", fontWeight: "bold", fontSize: "18px" }}
-            >
-              Laboratory Management
-            </span>
+
+        <div className="flex">
+          <div className="lg:hidden">
+            <MobileToggle isOpen={isOpen} onToggle={toggleSideBar} />
+            <MobileSidebar isOpen={isOpen} menuItems={displayItems} toggleSideBar={toggleSideBar} />
           </div>
-          {pageTitle && (
-            <>
-              <span style={{ margin: "0 10px", color: "lightgray" }}>
-                <DoubleRightOutlined />
+          <div className=" items-center hidden md:flex">
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <FaHeartbeat
+                style={{
+                  color: "#FF5A5A",
+                  fontSize: "24px",
+                  marginRight: "10px",
+                }}
+              />
+              <span
+                style={{ color: "black", fontWeight: "bold", fontSize: "16px", cursor: "default" }}
+              >
+                Laboratory Management
               </span>
-              <span style={{ color: "#fe535b", fontWeight: "bold" }}>{pageTitle}</span>
-            </>
-          )}
+            </div>
+            {pageTitle && (
+              <>
+                <span style={{ margin: "0 10px", color: "#777777" }}>
+                  <ChevronsRight style={{ fontSize: "24px" }} />
+                </span>
+                <span className="text-[#FF5A5A] font-bold cursor-default hover:!text-[#FF3A3A]">
+                  {pageTitle}
+                </span>
+              </>
+            )}
+          </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center" }}>
           <div
-            style={{
-              marginRight: "15px",
-              display: "flex",
-              alignItems: "center",
-            }}
+            className="md:flex items-center mr-[15px] hidden"
           >
-            <span style={{ marginRight: "5px", color: "#888", cursor: "default" }}>Welcome, </span>
-            <span style={{ fontWeight: "bold", color: "#fe535b", cursor: "default" }}>
-              [{userInfo?.userName || "User"}]
+            <span style={{ marginTop: "3px", marginRight: "10px", color: "#777777", cursor: "default", fontSize: "14px" }}>Welcome: </span>
+            <span style={{ fontWeight: "bold", color: "black", cursor: "default" }}>
+              {userInfo?.userName || "User"}
             </span>
           </div>
           <div style={{ display: "flex", gap: "25px", alignItems: "center" }}>
-            <NotificationComponent items={notifyItems} />
+            <NotificationComponent />
             <Tooltip title={"User details"}>
-              <FaUserCog
-                style={{ color: "#888", fontSize: "19px", cursor: "pointer" }}
+              <Users
+                style={{ color: "#777", fontSize: "24px", cursor: "pointer" }}
                 onClick={handleViewUserDetail}
-                className="hover:scale-120 transition-all duration-300 ease-in-out"
+                className="hover:scale-108 transition-all duration-300 ease-in-out"
               />
             </Tooltip>
             <Tooltip title={"Logout"} placement="bottomLeft">
-              <FaSignOutAlt
-                style={{ color: "#888", fontSize: "18px", cursor: "pointer" }}
+              <LogOut
+                style={{ color: "#777", fontSize: "24px", cursor: "pointer" }}
                 onClick={handleLogout}
-                className="hover:scale-120 transition-all duration-300 ease-in-out"
+                className="hover:scale-108 transition-all duration-300 ease-in-out"
               />
             </Tooltip>
           </div>
@@ -254,7 +228,7 @@ export default function Header({ pageTitle }) {
             </button>
 
             <div style={styles.titleRow}>
-              <FaSignOutAlt style={{ color: "#fe535b", fontSize: "20px" }} />
+              <FaSignOutAlt style={{ color: "#FF5A5A", fontSize: "24px" }} />
               <h3 id="logout-title" style={styles.title}>
                 Confirm Logout
               </h3>
@@ -272,6 +246,8 @@ export default function Header({ pageTitle }) {
               <button
                 ref={confirmBtnRef}
                 style={{ ...styles.btnBase, ...styles.btnDanger }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = "#FF3A3A"}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                 onClick={confirmLogout}
               >
                 Logout
@@ -290,7 +266,7 @@ export default function Header({ pageTitle }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000]"
+            className="fixed inset-0 bg-black/80 flex md:items-center justify-center z-[1000]"
           >
             <motion.div
               key="modal"
@@ -301,10 +277,10 @@ export default function Header({ pageTitle }) {
               className="relative"
             >
               <UserDetailModal
-                user={getUserDetailData()}
+                user={userInfo}
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}
-                onRefresh={() => { }}
+                onRefresh={fetchUserProfile}
               />
             </motion.div>
           </motion.div>

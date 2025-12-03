@@ -12,7 +12,7 @@ export default function ActionButtons({
   canUpdateRole = true,
   canDeleteRole = true,
 }) {
-  const iconColor = "#fe535b";
+  const iconColor = "#FF5A5A";
 
   const btnStyle = {
     background: "transparent",
@@ -41,7 +41,7 @@ export default function ActionButtons({
         aria-label="View"
         onClick={() => onView(item)}
       >
-        <FiEye size={18} />
+        <FiEye size={24} />
       </button>)}
 
       {canUpdateRole&&(<button
@@ -51,7 +51,7 @@ export default function ActionButtons({
         aria-label="Edit"
         onClick={() => onEdit(item)}
       >
-        <FiEdit size={18} />
+        <FiEdit size={24} />
       </button>)}
 
 
@@ -63,7 +63,7 @@ export default function ActionButtons({
         onClick={() => !isSystemRole && onDelete(item)}
         disabled={isSystemRole}
       >
-        <FiTrash2 size={18} />
+        <FiTrash2 size={24} />
       </button>)}
     </div>
   );

@@ -16,15 +16,6 @@ public class LogAuditPublisher implements AuditPublisher {
     private final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JavaTimeModule());
 
-//    @Override
-//    public void publish(AuditEvent event) {
-//        try {
-//            String json = mapper.writeValueAsString(event);
-//            log.info("AUDIT_EVENT: {}", json);
-//        } catch (Exception e) {
-//            log.error("Failed to serialize AuditEvent", e);
-//        }
-//    }
 
     @Override
     public void publish(AuditEvent event) {

@@ -1,10 +1,42 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { IoIosNotifications } from "react-icons/io";
+import { Bell } from "lucide-react";
+import useSocketClient from "../../hooks/useSocketClient";
+import { Tag } from 'antd';
+import {
+    InfoCircleOutlined,
+    WarningOutlined,
+    ClockCircleOutlined,
+    ExclamationCircleOutlined
+} from '@ant-design/icons';
+import { BsBoxSeam } from "react-icons/bs";
+import { Link } from "react-router-dom";
 
-const NotificationDropdown = ({ items = [] }) => {
+
+const NotificationDropdown = () => {
     const [isNotifyTriggered, setIsNotifyTriggered] = useState(false);
     const dropdownRef = useRef(null);
+    const [testOrderNotification, reagentNotification] = useSocketClient()
+    const token = localStorage.getItem("token") || ""
+
+    const statusIcon = {
+        ALERT: <ExclamationCircleOutlined className="!text-[#FF5A5A] text-[16px] p-3 bg-[#ebebeb] rounded-full" />,
+        WARNING: <WarningOutlined className="!text-[#f59f0a] text-[16px] p-3 bg-[#ebebeb] rounded-full" />,
+        INFO: <InfoCircleOutlined className="!text-[#0da2e7] text-[16px] p-3 bg-[#ebebeb] rounded-full" />,
+    }
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'ALERT':
+                return '#FF5A5A';
+            case 'WARNING':
+                return '#F59F0A';
+            case 'INFO':
+                return "#0DA2E7"
+            default:
+                return '#ebebeb';
+        }
+    };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -19,11 +51,11 @@ const NotificationDropdown = ({ items = [] }) => {
     return (
         <div ref={dropdownRef} className="relative flex flex-col items-end">
             {/* Notification Bell Icon */}
-            <IoIosNotifications
+            <Bell
                 onClick={() => setIsNotifyTriggered((prev) => !prev)}
-                className="hover:cursor-pointer hover:scale-120 transition-transform duration-300 ease-in-out"
-                color="#888"
-                style={{ fontSize: "21px" }}
+                className="hover:cursor-pointer hover:scale-110 transition-transform duration-300 ease-in-out"
+                color="#777"
+                style={{ fontSize: "24px" }}
             />
 
             {/* Dropdown */}
@@ -34,43 +66,128 @@ const NotificationDropdown = ({ items = [] }) => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2, ease: "easeInOut" }}
-                        className="absolute top-8 right-0 bg-white rounded-[10px] shadow-lg z-50"
+                        className="absolute top-8 right-0 bg-white max-h-[400px] overflow-y-auto overflow-x-hidden rounded-[10px] shadow-lg z-50 
+                        p-5 border-2 border-gray-200 scroll-smooth thin-scrollbar"
                     >
-                        <ul className="flex flex-col min-w-[200px] w-max" style={{ margin: 0 }}>
-                            {items?.length > 0 ? (
-                                items.map((item, index) => (
-                                    <li
-                                        key={index}
-                                        className={`w-full flex gap-2  justify-start px-4 py-5 text-sm text-gray-700 group bg-white hover:bg-[#f5f5f5] cursor-pointer
-                                    ${index === 0 && "rounded-t-[8px] border-t-4 border-[#888]"}
-                                    ${index === items.length - 1 && "rounded-b-[8px] border-b-4 border-[#888]"}`}
-                                    >
-                                        {/* Icon */}
-                                        {item.icon && (
-                                            <span className="inline-block transform transition-transform duration-300 mt-1">
-                                                {item.icon}
-                                            </span>
-                                        )}
-                                        {/* Text */}
-                                        <span className="inline-block transform transition-transform duration-300 group-hover:scale-105">
-                                            {item.text}
-                                        </span>
-                                    </li>
-                                ))
+                        <ul className="flex flex-col min-w-[350px] w-max " style={{ margin: 0 }}>
+                            {reagentNotification?.length > 0 || testOrderNotification.length > 0 ? (
+                                <div>
+                                    <p className="text-2xl font-bold !mb-2">Notifications</p>
+                                    {reagentNotification?.map((item, index) => (
+                                        <Link to = {item.url} key={index + item.typeId}>
+                                            <li
+                                                className={`w-full flex gap-5 justify-start p-3 text-sm text-gray-700 group bg-white hover:bg-[#f5f5f5] cursor-pointer`}
+                                            >
+                                                {/* Icon */}
+                                                <div className="flex-shrink-0">
+                                                    <div className="relative">
+                                                        <div className="absolute right-0 w-2 h-2 rounded-full"
+                                                            style={{ backgroundColor: getStatusColor(item.status) }} />
+                                                        {statusIcon[item.status]}
+                                                    </div>
+                                                </div>
+
+                                                {/* main content */}
+                                                <div className="flex flex-col gap-3">
+                                                    {/* Source*/}
+                                                    <div className="flex items-center gap-2">
+                                                        <Tag
+                                                            color="green"
+                                                            style={{ borderRadius: "10px", padding: "0 15px", fontSize: "12px" }}
+                                                        >
+                                                            {item.source}
+                                                        </Tag>
+                                                    </div>
+
+                                                    {/* Text */}
+                                                    <p className="text-[14px] !mb-1 font-semibold max-w-[300px]">
+                                                        {item.text}
+                                                    </p>
+
+                                                    <div className="flex justify-between">
+                                                         {/* quantity */}
+                                                        <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                                                            <BsBoxSeam className="text-[12px]" />
+                                                            <span className="font-bold">{item.quantity}</span>
+                                                        </div>
+
+                                                        {/* Create at */}
+                                                        <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                                                            <ClockCircleOutlined className="text-[12px]" />
+                                                            <span>{item.createdAt}</span>
+                                                        </div>                                                       
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            {index !== reagentNotification.length - 1 && (
+                                                <div className="w-full h-[1px] bg-gray-200 my-2"></div>
+                                            )}
+                                            {index === reagentNotification.length - 1 && testOrderNotification.length > 0 && (
+                                                <div className="w-full h-[1px] bg-gray-200 my-2"></div>
+                                            )}
+                                        </Link>
+                                    ))}
+                                    {testOrderNotification?.map((item, index) => (
+                                        <Link to={"http://18.141.34.176:5173/test-orders/detail/"+item.typeId+"?code="+token} 
+                                        key={index + item.typeId}>
+                                            <li
+                                                className={`w-full flex gap-5 justify-start p-3 text-sm text-gray-700 group bg-white hover:bg-[#f5f5f5] cursor-pointer`}
+                                            >
+                                                {/* Icon */}
+                                                <div className="flex-shrink-0">
+                                                    <div className="relative">
+                                                        <div className="absolute right-0 w-2 h-2 rounded-full"
+                                                            style={{ backgroundColor: getStatusColor(item.status) }} />
+                                                        {statusIcon[item.status]}
+                                                    </div>
+                                                </div>
+
+                                                {/* main content */}
+                                                <div className="flex flex-col gap-3">
+                                                    {/* Source*/}
+                                                    <div className="flex items-center gap-2">
+                                                        <Tag
+                                                            color="magenta"
+                                                            style={{
+                                                                borderRadius: "10px", padding: "0 15px", fontSize: "12px"
+                                                            }}
+                                                        >
+                                                            {item.source}
+                                                        </Tag>
+                                                    </div>
+
+                                                    {/* Text */}
+                                                    <p className="text-[14px] !mb-1 font-semibold max-w-[300px]">
+                                                        {item.text}
+                                                    </p>
+
+                                                    {/* Create at */}
+                                                    <div className="flex items-center gap-1 text-muted-foreground text-xs">
+                                                        <ClockCircleOutlined className="text-[12px]" />
+                                                        <span>{item.createdAt}</span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            {index !== testOrderNotification.length - 1 && (
+                                                <div className="w-full h-[1px] bg-gray-200 my-2"></div>
+                                            )}
+                                        </Link>
+                                    ))}
+                                </div>
                             ) : (
                                 <li>
-                                    <div className="relative group flex justify-center rounded-[8px] bg-white  cursor-pointer p-3">
+                                    <div className="relative group flex justify-center rounded-[5px] bg-white cursor-pointer p-3 overflow-hidden">
                                         <svg
                                             className="group-hover:scale-110 group-hover:-translate-y-4 transition-all duration-300 ease-in-out"
                                             width="250" height="200" viewBox="0 0 250 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <rect width="250" height="200" fill="white" />
-                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M63 134H154C154.515 134 155.017 133.944 155.5 133.839C155.983 133.944 156.485 134 157 134H209C212.866 134 216 130.866 216 127C216 123.134 212.866 120 209 120H203C199.134 120 196 116.866 196 113C196 109.134 199.134 106 203 106H222C225.866 106 229 102.866 229 99C229 95.134 225.866 92 222 92H200C203.866 92 207 88.866 207 85C207 81.134 203.866 78 200 78H136C139.866 78 143 74.866 143 71C143 67.134 139.866 64 136 64H79C75.134 64 72 67.134 72 71C72 74.866 75.134 78 79 78H39C35.134 78 32 81.134 32 85C32 88.866 35.134 92 39 92H64C67.866 92 71 95.134 71 99C71 102.866 67.866 106 64 106H24C20.134 106 17 109.134 17 113C17 116.866 20.134 120 24 120H63C59.134 120 56 123.134 56 127C56 130.866 59.134 134 63 134ZM226 134C229.866 134 233 130.866 233 127C233 123.134 229.866 120 226 120C222.134 120 219 123.134 219 127C219 130.866 222.134 134 226 134Z" fill="#F3F7FF" />
-                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M113.119 112.307C113.04 112.86 113 113.425 113 114C113 120.627 118.373 126 125 126C131.627 126 137 120.627 137 114C137 113.425 136.96 112.86 136.881 112.307H166V139C166 140.657 164.657 142 163 142H87C85.3431 142 84 140.657 84 139V112.307H113.119Z" fill="white" />
-                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M138 112C138 119.18 132.18 125 125 125C117.82 125 112 119.18 112 112C112 111.767 112.006 111.536 112.018 111.307H84L93.5604 83.0389C93.9726 81.8202 95.1159 81 96.4023 81H153.598C154.884 81 156.027 81.8202 156.44 83.0389L166 111.307H137.982C137.994 111.536 138 111.767 138 112Z" fill="white" />
-                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M136.098 112.955C136.098 118.502 131.129 124 125 124C118.871 124 113.902 118.502 113.902 112.955C113.902 112.775 113.908 111.596 113.918 111.419H93L101.161 91.5755C101.513 90.6338 102.489 90 103.587 90H146.413C147.511 90 148.487 90.6338 148.839 91.5755L157 111.419H136.082C136.092 111.596 136.098 112.775 136.098 112.955Z" fill="#E8F0FE" />
-                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M85.25 111.512V138C85.25 138.966 86.0335 139.75 87 139.75H163C163.966 139.75 164.75 138.966 164.75 138V111.512L155.255 83.4393C155.015 82.7285 154.348 82.25 153.598 82.25H96.4023C95.6519 82.25 94.985 82.7285 94.7446 83.4393L85.25 111.512Z" stroke="#1F64E7" stroke-width="2.5" />
-                                            <path d="M98 111C101.937 111 106.185 111 110.745 111C112.621 111 112.621 112.319 112.621 113C112.621 119.627 118.117 125 124.897 125C131.677 125 137.173 119.627 137.173 113C137.173 112.319 137.173 111 139.05 111H164M90.5737 111H93H90.5737Z" stroke="#1F64E7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-                                            <path d="M150.1 58.3027L139 70.7559M124.1 54V70.7559V54ZM98 58.3027L109.1 70.7559L98 58.3027Z" stroke="#75A4FE" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                                            <path fillRule="evenodd" clipRule="evenodd" d="M63 134H154C154.515 134 155.017 133.944 155.5 133.839C155.983 133.944 156.485 134 157 134H209C212.866 134 216 130.866 216 127C216 123.134 212.866 120 209 120H203C199.134 120 196 116.866 196 113C196 109.134 199.134 106 203 106H222C225.866 106 229 102.866 229 99C229 95.134 225.866 92 222 92H200C203.866 92 207 88.866 207 85C207 81.134 203.866 78 200 78H136C139.866 78 143 74.866 143 71C143 67.134 139.866 64 136 64H79C75.134 64 72 67.134 72 71C72 74.866 75.134 78 79 78H39C35.134 78 32 81.134 32 85C32 88.866 35.134 92 39 92H64C67.866 92 71 95.134 71 99C71 102.866 67.866 106 64 106H24C20.134 106 17 109.134 17 113C17 116.866 20.134 120 24 120H63C59.134 120 56 123.134 56 127C56 130.866 59.134 134 63 134ZM226 134C229.866 134 233 130.866 233 127C233 123.134 229.866 120 226 120C222.134 120 219 123.134 219 127C219 130.866 222.134 134 226 134Z" fill="#F3F7FF" />
+                                            <path fillRule="evenodd" clipRule="evenodd" d="M113.119 112.307C113.04 112.86 113 113.425 113 114C113 120.627 118.373 126 125 126C131.627 126 137 120.627 137 114C137 113.425 136.96 112.86 136.881 112.307H166V139C166 140.657 164.657 142 163 142H87C85.3431 142 84 140.657 84 139V112.307H113.119Z" fill="white" />
+                                            <path fillRule="evenodd" clipRule="evenodd" d="M138 112C138 119.18 132.18 125 125 125C117.82 125 112 119.18 112 112C112 111.767 112.006 111.536 112.018 111.307H84L93.5604 83.0389C93.9726 81.8202 95.1159 81 96.4023 81H153.598C154.884 81 156.027 81.8202 156.44 83.0389L166 111.307H137.982C137.994 111.536 138 111.767 138 112Z" fill="white" />
+                                            <path fillRule="evenodd" clipRule="evenodd" d="M136.098 112.955C136.098 118.502 131.129 124 125 124C118.871 124 113.902 118.502 113.902 112.955C113.902 112.775 113.908 111.596 113.918 111.419H93L101.161 91.5755C101.513 90.6338 102.489 90 103.587 90H146.413C147.511 90 148.487 90.6338 148.839 91.5755L157 111.419H136.082C136.092 111.596 136.098 112.775 136.098 112.955Z" fill="#E8F0FE" />
+                                            <path fillRule="evenodd" clipRule="evenodd" d="M85.25 111.512V138C85.25 138.966 86.0335 139.75 87 139.75H163C163.966 139.75 164.75 138.966 164.75 138V111.512L155.255 83.4393C155.015 82.7285 154.348 82.25 153.598 82.25H96.4023C95.6519 82.25 94.985 82.7285 94.7446 83.4393L85.25 111.512Z" stroke="#1F64E7" strokeWidth="2.5" />
+                                            <path d="M98 111C101.937 111 106.185 111 110.745 111C112.621 111 112.621 112.319 112.621 113C112.621 119.627 118.117 125 124.897 125C131.677 125 137.173 119.627 137.173 113C137.173 112.319 137.173 111 139.05 111H164M90.5737 111H93H90.5737Z" stroke="#1F64E7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M150.1 58.3027L139 70.7559M124.1 54V70.7559V54ZM98 58.3027L109.1 70.7559L98 58.3027Z" stroke="#75A4FE" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                         <span className="absolute group-hover:scale-105 pl-3 bottom-7 font-bold text-[15px] transition-all duration-300 ease-in-out">No incoming notification</span>
                                     </div>

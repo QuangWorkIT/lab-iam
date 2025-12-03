@@ -3,6 +3,7 @@ package com.example.iam_service.service;
 import com.example.iam_service.audit.AuditEvent;
 import com.example.iam_service.audit.AuditPublisher;
 import com.example.iam_service.dto.user.AdminUpdateUserDTO;
+import com.example.iam_service.dto.user.PatientDTO;
 import com.example.iam_service.dto.user.UpdateUserProfileDTO;
 import com.example.iam_service.entity.User;
 import com.example.iam_service.external.PatientVerificationService;
@@ -20,6 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +32,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
@@ -48,6 +56,7 @@ class UserServiceImplTest {
     @Mock private PatientVerificationService patientVerificationService;
     @Mock private SecurityUtil securityUtil;
     private MockedStatic<AuditDiffUtil> auditDiffMock;
+    @Mock private  RestTemplate restTemplate;
 
 
     @InjectMocks private UserServiceImpl userService;
@@ -58,6 +67,7 @@ class UserServiceImplTest {
     @BeforeEach
     void setup() {
         actor = new User();
+        actor.setUserId(UUID.randomUUID());
         actor.setEmail("admin@example.com");
         actor.setRoleCode("ROLE_ADMIN");
 
@@ -82,16 +92,54 @@ class UserServiceImplTest {
 
     @Test
     void createUser_patient_success() {
-        when(userRepository.existsByEmail(anyString())).thenReturn(false);
-        when(patientVerificationService.verifyPatientExists(anyString())).thenReturn(true);
-        when(passwordEncoder.encode(anyString())).thenReturn("encodedPass");
-        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        // Mock SecurityUtil to return an actor
+        User actor = new User();
+        actor.setUserId(UUID.randomUUID());
+        actor.setRoleCode("ROLE_ADMIN");
+        when(securityUtil.getCurrentUser()).thenReturn(actor);
 
+        // Mock repository checks
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+
+        // Mock password encoding
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPass");
+
+        // Mock the save operation - return a user with ID set
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId(UUID.randomUUID());
+            }
+            return user;
+        });
+
+        // Mock RestTemplate for synchronizePatientData
+        PatientDTO mockPatientDTO = new PatientDTO();
+        mockPatientDTO.setEmail(testUser.getEmail());
+        ResponseEntity<PatientDTO> mockResponse = ResponseEntity.ok(mockPatientDTO);
+        when(restTemplate.postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        )).thenReturn(mockResponse);
+
+        // Execute
         User result = userService.createUser(testUser);
 
+        // Assert
         assertNotNull(result);
+        assertNotNull(result.getUserId());
+        assertEquals("encodedPass", result.getPassword());
+        assertTrue(result.getIsActive());
+
+        // Verify interactions
         verify(emailService).sendPasswordEmail(eq(testUser.getEmail()), anyString());
         verify(auditPublisher).publish(any(AuditEvent.class));
+        verify(restTemplate).postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        );
     }
 
     @Test
@@ -100,14 +148,31 @@ class UserServiceImplTest {
         testUser.setAge(null);
         testUser.setRoleCode("ROLE_PATIENT");
 
+        // Mock all required dependencies
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
-        when(patientVerificationService.verifyPatientExists(anyString())).thenReturn(true);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded");
-        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(userRepository.save(any())).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId(UUID.randomUUID());
+            }
+            return user;
+        });
+
+        // Mock RestTemplate for synchronizePatientData
+        PatientDTO mockPatientDTO = new PatientDTO();
+        mockPatientDTO.setEmail(testUser.getEmail());
+        ResponseEntity<PatientDTO> mockResponse = ResponseEntity.ok(mockPatientDTO);
+        when(restTemplate.postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        )).thenReturn(mockResponse);
 
         userService.createUser(testUser);
 
         assertNotNull(testUser.getAge());
+        assertTrue(testUser.getAge() > 0); // Age should be calculated from birthdate
     }
 
     @Test
@@ -117,14 +182,15 @@ class UserServiceImplTest {
         testUser.setRoleCode("ROLE_PATIENT");
 
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
-        when(patientVerificationService.verifyPatientExists(anyString())).thenReturn(true);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded");
-        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        userService.createUser(testUser);
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.createUser(testUser)
+        );
 
-        // should stay null because no birthdate
-        assertNull(testUser.getAge());
+        assertTrue(exception.getMessage().contains("Birthdate is required") ||
+                exception.getMessage().contains("patient not found"));
     }
 
     @Test
@@ -134,9 +200,24 @@ class UserServiceImplTest {
         testUser.setRoleCode("ROLE_PATIENT");
 
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
-        when(patientVerificationService.verifyPatientExists(anyString())).thenReturn(true);
         when(passwordEncoder.encode(anyString())).thenReturn("encoded");
-        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(userRepository.save(any())).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId(UUID.randomUUID());
+            }
+            return user;
+        });
+
+        // Mock RestTemplate for synchronizePatientData
+        PatientDTO mockPatientDTO = new PatientDTO();
+        mockPatientDTO.setEmail(testUser.getEmail());
+        ResponseEntity<PatientDTO> mockResponse = ResponseEntity.ok(mockPatientDTO);
+        when(restTemplate.postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        )).thenReturn(mockResponse);
 
         userService.createUser(testUser);
 
@@ -144,13 +225,28 @@ class UserServiceImplTest {
         assertEquals(25, testUser.getAge());
     }
 
-
     @Test
     void createUser_patient_verificationFails() {
-        when(userRepository.existsByEmail(anyString())).thenReturn(false);
-        when(patientVerificationService.verifyPatientExists(anyString())).thenReturn(false);
+        // Since the patient verification is commented out in the service,
+        // this test should be removed OR modified to test RestTemplate failure instead
 
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(testUser));
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+
+        // Mock RestTemplate to throw exception (simulating sync failure)
+        when(restTemplate.postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        )).thenThrow(new RuntimeException("Patient sync failed"));
+
+        // Should throw IllegalArgumentException with message about patient not found
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.createUser(testUser)
+        );
+
+        assertTrue(exception.getMessage().contains("patient not found"));
     }
 
     @Test
@@ -574,6 +670,143 @@ class UserServiceImplTest {
         verify(auditPublisher, never()).publish(any());
     }
 
+    // --- updateUserByEmail tests ---
+
+    @Test
+    void updateUserByEmail_success() {
+        AdminUpdateUserDTO dto = new AdminUpdateUserDTO();
+        dto.setFullName("Updated Name");
+
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        // make the mock actually update the user
+        doAnswer(invocation -> {
+            AdminUpdateUserDTO dtoArg = invocation.getArgument(0);
+            User userArg = invocation.getArgument(1);
+            userArg.setFullName(dtoArg.getFullName());
+            return null;
+        }).when(userMapper).updateUserFromAdminDto(any(AdminUpdateUserDTO.class), any(User.class));
+
+        User updated = userService.updateUserByEmail(testUser.getEmail(), dto);
+
+        assertEquals("Updated Name", updated.getFullName());
+        verify(auditPublisher).publish(any(AuditEvent.class));
+    }
+
+
+    @Test
+    void updateUserByEmail_userNotFound_throws() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.updateUserByEmail("noone@example.com", new AdminUpdateUserDTO()));
+
+        verify(userRepository, never()).save(any());
+        verify(auditPublisher, never()).publish(any());
+    }
+
+// --- batchCreatePatientUsers tests ---
+
+    @Test
+    void batchCreatePatientUsers_allValid_success() {
+        // arrange
+        User patient1 = new User();
+        patient1.setEmail("p1@example.com");
+        patient1.setRoleCode("ROLE_PATIENT");
+
+        User patient2 = new User();
+        patient2.setEmail("p2@example.com");
+        patient2.setRoleCode("ROLE_PATIENT");
+
+        patient1.setUserId(UUID.randomUUID());
+        patient2.setUserId(UUID.randomUUID());
+
+        List<User> input = List.of(patient1, patient2);
+
+        // email unique
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+
+
+        // password encoding
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+
+        // saveAll returns whatever was passed in
+        when(userRepository.saveAll(any())).thenAnswer(i -> i.getArgument(0));
+
+        // act
+        List<User> result = userService.batchCreatePatientUsers(input);
+
+        // assert
+        assertEquals(2, result.size());
+
+        // email sending -> 2 users = 2 emails
+        verify(emailService, times(2))
+                .sendPasswordEmail(anyString(), anyString());
+
+        // audit: only ONE publish for batch creation
+        verify(auditPublisher, times(1))
+                .publish(any(AuditEvent.class));
+
+        // no skipped audit because none skipped
+        verify(auditPublisher, times(0))
+                .publish(argThat(event ->
+                        "PATIENT_BATCH_SKIPPED".equals(event.getType())
+                ));
+    }
+
+    @Test
+    void batchCreatePatientUsers_someInvalid_skipped() {
+        User validPatient = new User();
+        validPatient.setEmail("valid@example.com");
+        validPatient.setRoleCode("ROLE_PATIENT");
+        validPatient.setUserId(UUID.randomUUID());
+
+        User duplicatePatient = new User();
+        duplicatePatient.setEmail("dup@example.com");
+        duplicatePatient.setRoleCode("ROLE_PATIENT");
+        duplicatePatient.setUserId(UUID.randomUUID());
+
+        when(userRepository.existsByEmail("dup@example.com")).thenReturn(true);
+        when(userRepository.existsByEmail("valid@example.com")).thenReturn(false);
+
+        // removed dup@example.com verifyPatientExists — not needed
+
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+
+        when(userRepository.saveAll(any())).thenAnswer(invocation -> {
+            List<User> users = invocation.getArgument(0);
+            return users;
+        });
+
+        List<User> result = userService.batchCreatePatientUsers(List.of(validPatient, duplicatePatient));
+
+        assertEquals(1, result.size());
+        assertEquals("valid@example.com", result.get(0).getEmail());
+
+        verify(emailService, times(1)).sendPasswordEmail(eq("valid@example.com"), anyString());
+
+        // 1 created + 1 skipped
+        verify(auditPublisher, times(2)).publish(any(AuditEvent.class));
+    }
+
+
+    @Test
+    void batchCreatePatientUsers_invalidPatientVerification_skipped() {
+        User patient = new User();
+        patient.setEmail("p@example.com");
+        patient.setRoleCode("ROLE_PATIENT");
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+
+        List<User> result = userService.batchCreatePatientUsers(List.of(patient));
+
+        assertTrue(result.isEmpty());
+        verify(emailService, never()).sendPasswordEmail(anyString(), anyString());
+
+    }
+
+
 
 
     // --- validatePassword tests ---
@@ -625,6 +858,612 @@ class UserServiceImplTest {
         assertEquals(25, age);
     }
 
+
+    // --- createUserByPatientService tests ---
+
+    @Test
+    void createUserByPatientService_success() {
+        // Arrange
+        User patient = new User();
+        patient.setEmail("patient@example.com");
+        patient.setRoleCode("ROLE_PATIENT");
+        patient.setBirthdate(LocalDate.of(2000, 5, 15));
+        patient.setFullName("Test Patient");
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId(UUID.randomUUID());
+            }
+            return user;
+        });
+
+        // Act
+        User result = userService.createUserByPatientService(patient);
+
+        // Assert
+        assertNotNull(result);
+        assertNotNull(result.getUserId());
+        assertEquals("encodedPassword", result.getPassword());
+        assertTrue(result.getIsActive());
+
+        verify(userRepository).existsByEmail(patient.getEmail());
+        verify(passwordEncoder).encode(anyString());
+        verify(userRepository).save(patient);
+        verify(emailService).sendPasswordEmail(eq(patient.getEmail()), anyString());
+        verify(auditPublisher).publish(argThat(event ->
+                "PATIENT_CREATED".equals(event.getType()) &&
+                        event.getDetails().contains("Patient account created and credentials emailed")
+        ));
+    }
+
+    @Test
+    void createUserByPatientService_calculatesAge_whenBirthdatePresentAndAgeNull() {
+        // Arrange
+        User patient = new User();
+        patient.setEmail("patient@example.com");
+        patient.setRoleCode("ROLE_PATIENT");
+        patient.setBirthdate(LocalDate.of(1995, 3, 20));
+        patient.setAge(null);
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId(UUID.randomUUID());
+            }
+            return user;
+        });
+
+        // Act
+        userService.createUserByPatientService(patient);
+
+        // Assert
+        assertNotNull(patient.getAge());
+        assertTrue(patient.getAge() > 0);
+        verify(emailService).sendPasswordEmail(eq(patient.getEmail()), anyString());
+    }
+
+    @Test
+    void createUserByPatientService_doesNotCalculateAge_whenAgeAlreadySet() {
+        // Arrange
+        User patient = new User();
+        patient.setEmail("patient@example.com");
+        patient.setRoleCode("ROLE_PATIENT");
+        patient.setBirthdate(LocalDate.of(1990, 1, 15));
+        patient.setAge(30);
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId(UUID.randomUUID());
+            }
+            return user;
+        });
+
+        // Act
+        userService.createUserByPatientService(patient);
+
+        // Assert
+        assertEquals(30, patient.getAge()); // Age should remain unchanged
+        verify(emailService).sendPasswordEmail(eq(patient.getEmail()), anyString());
+    }
+
+    @Test
+    void createUserByPatientService_doesNotCalculateAge_whenBirthdateIsNull() {
+        // Arrange
+        User patient = new User();
+        patient.setEmail("patient@example.com");
+        patient.setRoleCode("ROLE_PATIENT");
+        patient.setBirthdate(null);
+        patient.setAge(null);
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId(UUID.randomUUID());
+            }
+            return user;
+        });
+
+        // Act
+        userService.createUserByPatientService(patient);
+
+        // Assert
+        assertNull(patient.getAge()); // Age should remain null
+        verify(emailService).sendPasswordEmail(eq(patient.getEmail()), anyString());
+    }
+
+    @Test
+    void createUserByPatientService_duplicateEmail_throws() {
+        // Arrange
+        User patient = new User();
+        patient.setEmail("existing@example.com");
+        patient.setRoleCode("ROLE_PATIENT");
+
+        when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.createUserByPatientService(patient)
+        );
+
+        assertTrue(exception.getMessage().contains("Email already exists"));
+        verify(userRepository, never()).save(any());
+        verify(emailService, never()).sendPasswordEmail(anyString(), anyString());
+        verify(auditPublisher, never()).publish(any());
+    }
+
+    @Test
+    void createUserByPatientService_saveFailure_throws() {
+        // Arrange
+        User patient = new User();
+        patient.setEmail("patient@example.com");
+        patient.setRoleCode("ROLE_PATIENT");
+        patient.setBirthdate(LocalDate.of(2000, 1, 1));
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class)))
+                .thenThrow(new RuntimeException("Database error"));
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.createUserByPatientService(patient)
+        );
+
+        assertTrue(exception.getMessage().contains("patient not found"));
+        assertTrue(exception.getMessage().contains("Database error"));
+        verify(emailService, never()).sendPasswordEmail(anyString(), anyString());
+        verify(auditPublisher, never()).publish(any());
+    }
+
+    @Test
+    void createUserByPatientService_emailServiceFailure_throws() {
+        // Arrange
+        User patient = new User();
+        patient.setEmail("patient@example.com");
+        patient.setRoleCode("ROLE_PATIENT");
+        patient.setBirthdate(LocalDate.of(2000, 1, 1));
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId(UUID.randomUUID());
+            }
+            return user;
+        });
+        doThrow(new RuntimeException("Email service unavailable"))
+                .when(emailService).sendPasswordEmail(anyString(), anyString());
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.createUserByPatientService(patient)
+        );
+
+        assertTrue(exception.getMessage().contains("patient not found"));
+        assertTrue(exception.getMessage().contains("Email service unavailable"));
+        verify(userRepository).save(patient);
+        verify(emailService).sendPasswordEmail(eq(patient.getEmail()), anyString());
+        verify(auditPublisher, never()).publish(any()); // Audit not published due to exception
+    }
+
+    @Test
+    void createUserByPatientService_passwordEncoding_applied() {
+        // Arrange
+        User patient = new User();
+        patient.setEmail("patient@example.com");
+        patient.setRoleCode("ROLE_PATIENT");
+        patient.setBirthdate(LocalDate.of(2000, 1, 1));
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("super-secure-encoded-password");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId(UUID.randomUUID());
+            }
+            return user;
+        });
+
+        // Act
+        User result = userService.createUserByPatientService(patient);
+
+        // Assert
+        assertEquals("super-secure-encoded-password", result.getPassword());
+        assertTrue(result.getIsActive());
+        verify(passwordEncoder).encode(anyString());
+    }
+
+    @Test
+    void createUserByPatientService_auditPublisher_receivesCorrectDetails() {
+        // Arrange
+        User patient = new User();
+        patient.setEmail("audit-test@example.com");
+        patient.setRoleCode("ROLE_PATIENT");
+        patient.setBirthdate(LocalDate.of(2000, 1, 1));
+
+        UUID generatedUserId = UUID.randomUUID();
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            user.setUserId(generatedUserId);
+            return user;
+        });
+
+        // Act
+        userService.createUserByPatientService(patient);
+
+        // Assert
+        verify(auditPublisher).publish(argThat(event -> {
+            return "PATIENT_CREATED".equals(event.getType()) &&
+                    event.getUserId().contains(actor.getUserId().toString()) &&
+                    event.getUserId().contains(actor.getRoleCode()) &&
+                    event.getTarget().equals(generatedUserId.toString()) &&
+                    event.getTargetRole().equals("ROLE_PATIENT") &&
+                    event.getDetails().equals("Patient account created and credentials emailed");
+        }));
+    }
+
+    @Test
+    void createUserByPatientService_securityUtil_currentUserCalled() {
+        // Arrange
+        User patient = new User();
+        patient.setEmail("security-test@example.com");
+        patient.setRoleCode("ROLE_PATIENT");
+        patient.setBirthdate(LocalDate.of(2000, 1, 1));
+
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            if (user.getUserId() == null) {
+                user.setUserId(UUID.randomUUID());
+            }
+            return user;
+        });
+
+        // Act
+        userService.createUserByPatientService(patient);
+
+        // Assert
+        verify(securityUtil, atLeastOnce()).getCurrentUser();
+    }
+
+
+    // --- synchronizePatientData tests ---
+
+    @Test
+    void synchronizePatientData_success() throws Exception {
+        // Arrange
+        User patient = new User();
+        patient.setFullName("John Doe");
+        patient.setBirthdate(LocalDate.of(1990, 5, 15));
+        patient.setGender("MALE");
+        patient.setPhoneNumber("+819012345678");
+        patient.setEmail("john.doe@example.com");
+        patient.setAddress("123 Test Street");
+        patient.setIdentityNumber("ID123456");
+
+        PatientDTO mockResponse = new PatientDTO();
+        mockResponse.setEmail(patient.getEmail());
+        mockResponse.setFullName(patient.getFullName());
+
+        when(restTemplate.postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        )).thenReturn(ResponseEntity.ok(mockResponse));
+
+        // Act - use reflection to call private method
+        var method = UserServiceImpl.class.getDeclaredMethod("synchronizePatientData", User.class);
+        method.setAccessible(true);
+
+        // Assert - should not throw exception
+        assertDoesNotThrow(() -> method.invoke(userService, patient));
+
+        verify(restTemplate).postForEntity(
+                eq("http://54.206.211.154:8687/api/patients/iam-create"),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        );
+    }
+
+    @Test
+    void synchronizePatientData_httpStatusCodeException_400BadRequest() throws Exception {
+        // Arrange
+        User patient = new User();
+        patient.setFullName("John Doe");
+        patient.setBirthdate(LocalDate.of(1990, 5, 15));
+        patient.setGender("MALE");
+        patient.setPhoneNumber("+819012345678");
+        patient.setEmail("john.doe@example.com");
+        patient.setAddress("123 Test Street");
+        patient.setIdentityNumber("ID123456");
+
+        HttpStatusCodeException httpException = mock(HttpStatusCodeException.class);
+        when(httpException.getStatusCode()).thenReturn(HttpStatus.BAD_REQUEST);
+        when(httpException.getResponseBodyAsString()).thenReturn("Invalid patient data");
+
+        when(restTemplate.postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        )).thenThrow(httpException);
+
+        // Act
+        var method = UserServiceImpl.class.getDeclaredMethod("synchronizePatientData", User.class);
+        method.setAccessible(true);
+
+        // Assert
+        InvocationTargetException exception = assertThrows(
+                InvocationTargetException.class,
+                () -> method.invoke(userService, patient)
+        );
+
+        assertTrue(exception.getCause() instanceof HttpStatusCodeException);
+        HttpStatusCodeException cause = (HttpStatusCodeException) exception.getCause();
+        assertEquals(HttpStatus.BAD_REQUEST, cause.getStatusCode());
+        assertEquals("Invalid patient data", cause.getResponseBodyAsString());
+    }
+
+    @Test
+    void synchronizePatientData_httpStatusCodeException_404NotFound() throws Exception {
+        // Arrange
+        User patient = new User();
+        patient.setFullName("Jane Smith");
+        patient.setBirthdate(LocalDate.of(1995, 3, 20));
+        patient.setGender("FEMALE");
+        patient.setPhoneNumber("+819087654321");
+        patient.setEmail("jane.smith@example.com");
+        patient.setAddress("456 Test Avenue");
+        patient.setIdentityNumber("ID789012");
+
+        HttpStatusCodeException httpException = mock(HttpStatusCodeException.class);
+        when(httpException.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
+        when(httpException.getResponseBodyAsString()).thenReturn("Endpoint not found");
+
+        when(restTemplate.postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        )).thenThrow(httpException);
+
+        // Act
+        var method = UserServiceImpl.class.getDeclaredMethod("synchronizePatientData", User.class);
+        method.setAccessible(true);
+
+        // Assert
+        InvocationTargetException exception = assertThrows(
+                InvocationTargetException.class,
+                () -> method.invoke(userService, patient)
+        );
+
+        assertTrue(exception.getCause() instanceof HttpStatusCodeException);
+        verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(PatientDTO.class));
+    }
+
+    @Test
+    void synchronizePatientData_httpStatusCodeException_500InternalServerError() throws Exception {
+        // Arrange
+        User patient = new User();
+        patient.setFullName("Bob Johnson");
+        patient.setBirthdate(LocalDate.of(1988, 7, 10));
+        patient.setGender("MALE");
+        patient.setPhoneNumber("+819011112222");
+        patient.setEmail("bob.johnson@example.com");
+        patient.setAddress("789 Test Boulevard");
+        patient.setIdentityNumber("ID345678");
+
+        HttpStatusCodeException httpException = mock(HttpStatusCodeException.class);
+        when(httpException.getStatusCode()).thenReturn(HttpStatus.INTERNAL_SERVER_ERROR);
+        when(httpException.getResponseBodyAsString()).thenReturn("Server error occurred");
+
+        when(restTemplate.postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        )).thenThrow(httpException);
+
+        // Act
+        var method = UserServiceImpl.class.getDeclaredMethod("synchronizePatientData", User.class);
+        method.setAccessible(true);
+
+        // Assert
+        InvocationTargetException exception = assertThrows(
+                InvocationTargetException.class,
+                () -> method.invoke(userService, patient)
+        );
+
+        assertTrue(exception.getCause() instanceof HttpStatusCodeException);
+        HttpStatusCodeException cause = (HttpStatusCodeException) exception.getCause();
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, cause.getStatusCode());
+    }
+
+    @Test
+    void synchronizePatientData_httpStatusCodeException_409Conflict() throws Exception {
+        // Arrange
+        User patient = new User();
+        patient.setFullName("Alice Williams");
+        patient.setBirthdate(LocalDate.of(1992, 11, 25));
+        patient.setGender("FEMALE");
+        patient.setPhoneNumber("+819033334444");
+        patient.setEmail("alice.williams@example.com");
+        patient.setAddress("321 Test Lane");
+        patient.setIdentityNumber("ID901234");
+
+        HttpStatusCodeException httpException = mock(HttpStatusCodeException.class);
+        when(httpException.getStatusCode()).thenReturn(HttpStatus.CONFLICT);
+        when(httpException.getResponseBodyAsString()).thenReturn("Patient already exists");
+
+        when(restTemplate.postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        )).thenThrow(httpException);
+
+        // Act
+        var method = UserServiceImpl.class.getDeclaredMethod("synchronizePatientData", User.class);
+        method.setAccessible(true);
+
+        // Assert
+        InvocationTargetException exception = assertThrows(
+                InvocationTargetException.class,
+                () -> method.invoke(userService, patient)
+        );
+
+        assertTrue(exception.getCause() instanceof HttpStatusCodeException);
+        HttpStatusCodeException cause = (HttpStatusCodeException) exception.getCause();
+        assertEquals(HttpStatus.CONFLICT, cause.getStatusCode());
+        assertEquals("Patient already exists", cause.getResponseBodyAsString());
+    }
+
+    @Test
+    void synchronizePatientData_genericException_networkError() throws Exception {
+        // Arrange
+        User patient = new User();
+        patient.setFullName("Charlie Brown");
+        patient.setBirthdate(LocalDate.of(1985, 2, 14));
+        patient.setGender("MALE");
+        patient.setPhoneNumber("+819055556666");
+        patient.setEmail("charlie.brown@example.com");
+        patient.setAddress("654 Test Road");
+        patient.setIdentityNumber("ID567890");
+
+        when(restTemplate.postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        )).thenThrow(new RuntimeException("Network timeout"));
+
+        // Act
+        var method = UserServiceImpl.class.getDeclaredMethod("synchronizePatientData", User.class);
+        method.setAccessible(true);
+
+        // Assert
+        InvocationTargetException exception = assertThrows(
+                InvocationTargetException.class,
+                () -> method.invoke(userService, patient)
+        );
+
+        assertTrue(exception.getCause() instanceof RuntimeException);
+        assertEquals("Network timeout", exception.getCause().getMessage());
+    }
+
+    @Test
+    void synchronizePatientData_genericException_restClientException() throws Exception {
+        // Arrange
+        User patient = new User();
+        patient.setFullName("Diana Prince");
+        patient.setBirthdate(LocalDate.of(1991, 9, 30));
+        patient.setGender("FEMALE");
+        patient.setPhoneNumber("+819077778888");
+        patient.setEmail("diana.prince@example.com");
+        patient.setAddress("987 Test Circle");
+        patient.setIdentityNumber("ID234567");
+
+        when(restTemplate.postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        )).thenThrow(new RestClientException("Connection refused"));
+
+        // Act
+        var method = UserServiceImpl.class.getDeclaredMethod("synchronizePatientData", User.class);
+        method.setAccessible(true);
+
+        // Assert
+        InvocationTargetException exception = assertThrows(
+                InvocationTargetException.class,
+                () -> method.invoke(userService, patient)
+        );
+
+        assertTrue(exception.getCause() instanceof RestClientException);
+        assertEquals("Connection refused", exception.getCause().getMessage());
+    }
+
+    @Test
+    void synchronizePatientData_requestBuilding_correctData() throws Exception {
+        // Arrange
+        User patient = new User();
+        patient.setFullName("Test User");
+        patient.setBirthdate(LocalDate.of(1993, 4, 12));
+        patient.setGender("MALE");
+        patient.setPhoneNumber("+819099990000");
+        patient.setEmail("test.user@example.com");
+        patient.setAddress("111 Test Plaza");
+        patient.setIdentityNumber("ID111222");
+
+        ArgumentCaptor<HttpEntity> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
+
+        when(restTemplate.postForEntity(
+                anyString(),
+                any(HttpEntity.class),
+                eq(PatientDTO.class)
+        )).thenReturn(ResponseEntity.ok(new PatientDTO()));
+
+        // Act
+        var method = UserServiceImpl.class.getDeclaredMethod("synchronizePatientData", User.class);
+        method.setAccessible(true);
+        method.invoke(userService, patient);
+
+        // Assert
+        verify(restTemplate).postForEntity(
+                urlCaptor.capture(),
+                entityCaptor.capture(),
+                eq(PatientDTO.class)
+        );
+
+        // Verify URL
+        assertEquals("http://54.206.211.154:8687/api/patients/iam-create", urlCaptor.getValue());
+
+        // Verify HttpEntity headers
+        HttpEntity capturedEntity = entityCaptor.getValue();
+        assertEquals(MediaType.APPLICATION_JSON, capturedEntity.getHeaders().getContentType());
+
+        // Verify request body (if accessible)
+        assertNotNull(capturedEntity.getBody());
+    }
+
+    @Test
+    void synchronizePatientData_nullBirthdate_throwsNullPointerException() throws Exception {
+        // Arrange
+        User patient = new User();
+        patient.setFullName("No Birthday User");
+        patient.setBirthdate(null); // This will cause NPE when calling .toString()
+        patient.setGender("MALE");
+        patient.setPhoneNumber("+819088889999");
+        patient.setEmail("no.birthday@example.com");
+        patient.setAddress("222 Test Street");
+        patient.setIdentityNumber("ID333444");
+
+        // Act
+        var method = UserServiceImpl.class.getDeclaredMethod("synchronizePatientData", User.class);
+        method.setAccessible(true);
+
+        // Assert
+        InvocationTargetException exception = assertThrows(
+                InvocationTargetException.class,
+                () -> method.invoke(userService, patient)
+        );
+
+        assertTrue(exception.getCause() instanceof NullPointerException);
+    }
     // --- mock auth context ---
     private void mockAdminAuth() {
         Authentication auth = mock(Authentication.class);

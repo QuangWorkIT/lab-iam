@@ -14,7 +14,8 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./postgres-init:/docker-entrypoint-initdb.d:ro
     networks:
-      - iam-net
+      iam-net:
+        ipv4_address: 172.25.0.15
 
   service-registry:
     build:
@@ -23,7 +24,8 @@ services:
     ports:
       - "8761:8761"
     networks:
-      - iam-net
+      iam-net:
+        ipv4_address: 172.25.0.14
 
   api-gateway:
     build:
@@ -31,10 +33,15 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      JWT_SECRET: ${JWT_SECRET}
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN}
     depends_on:
       - service-registry
     networks:
-      - iam-net
+      iam-net:
+        ipv4_address: 172.25.0.13
 
   iam-service:
     build:
@@ -46,51 +53,73 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       JWT_SECRET: ${JWT_SECRET}
       ALLOWED_ORIGIN: ${ALLOWED_ORIGIN}
-      ALLOWED_PORT: ${ALLOWED_PORT}
-      SERVICE_IP: ${SERVICE_IP}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
+      ALLOWED_IPS: ${ALLOWED_IPS}
     depends_on:
       - postgres
       - service-registry
     networks:
-      - iam-net
+      iam-net:
+        ipv4_address: 172.25.0.10
+
+  frontend:
+    image: quangf1/iam-fe-dep:lastest
+    ports:
+      - "5173:5173"
+    depends_on:
+      - iam-service
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_GOOGLE_CLIENT: ${VITE_GOOGLE_CLIENT}
+    networks:
+      iam-net:
+        ipv4_address: 172.25.0.11
+
+  mongo:
+    image: mongo:7.0
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    networks:
+      iam-net:
+        ipv4_address: 172.25.0.17
+    volumes:
+      - mongo-data:/data/db
 
   notification-service:
     build:
       context: ./notification_service
       dockerfile: Dockerfile
     ports:
-      - "9090:9090"
+      - "7070:7070"
     environment:
       SPRING_PROFILES_ACTIVE: prod
       ALLOWED_ORIGIN: ${ALLOWED_ORIGIN}
       ALLOWED_PORT: ${ALLOWED_PORT}
-      SERVICE_IP: ${SERVICE_IP}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
-    depends_on:
-      - postgres
-      - service-registry
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     networks:
-      - iam-net
+      iam-net:
+        ipv4_address: 172.25.0.12
 
   redis:
     image: redis:7
     container_name: redis
-    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
     ports:
       - "6379:6379"
     networks:
-      - iam-net
+      iam-net:
+        ipv4_address: 172.25.0.16
     volumes:
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
       - ./redis/data:/data  # persist data
@@ -103,6 +132,10 @@ services:
 networks:
   iam-net:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
 
 volumes:
   postgres-data:
+  mongo-data:

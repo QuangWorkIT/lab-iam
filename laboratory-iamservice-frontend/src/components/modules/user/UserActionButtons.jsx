@@ -1,5 +1,6 @@
 import React from "react";
 import { FiEye, FiEdit, FiTrash2 } from "react-icons/fi";
+import { useSelector } from "react-redux";
 
 export default function UserActionButtons({
   onView,
@@ -10,13 +11,14 @@ export default function UserActionButtons({
   canModifyUser = true,
   canDeleteUser = true,
 }) {
+  const userInfo = useSelector(state => state.user.userInfo)
   return (
     <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
       {canViewUser && (
         <button
           style={{
             backgroundColor: "transparent",
-            color: "#fe535b",
+            color: "#FF5A5A",
             border: "none",
             padding: "5px",
             cursor: "pointer",
@@ -26,14 +28,14 @@ export default function UserActionButtons({
           title="View"
           onClick={() => onView(user)}
         >
-          <FiEye size={18} />
+          <FiEye size={24} />
         </button>
       )}
-      {canModifyUser && (
+      {canModifyUser && userInfo.id !== user.id && user.roleCode !== "ROLE_ADMIN" && (
         <button
           style={{
             backgroundColor: "transparent",
-            color: "#fe535b",
+            color: "#FF5A5A",
             border: "none",
             padding: "5px",
             cursor: "pointer",
@@ -43,14 +45,14 @@ export default function UserActionButtons({
           title="Edit"
           onClick={() => onEdit(user)}
         >
-          <FiEdit size={18} />
+          <FiEdit size={24} />
         </button>
       )}
-      {canDeleteUser && (
+      {canDeleteUser && userInfo.id !== user.id  && user.roleCode !== "ROLE_ADMIN" && (
         <button
           style={{
             backgroundColor: "transparent",
-            color: "#fe535b",
+            color: "#FF5A5A",
             border: "none",
             padding: "5px",
             cursor: "pointer",
@@ -60,7 +62,7 @@ export default function UserActionButtons({
           title="Delete"
           onClick={() => onDelete(user.id)}
         >
-          <FiTrash2 size={18} />
+          <FiTrash2 size={24} />
         </button>
       )}
     </div>

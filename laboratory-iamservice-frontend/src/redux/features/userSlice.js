@@ -37,8 +37,18 @@ const userSlice = createSlice({
       state.userInfo = userInfo;
       localStorage.setItem("token", token);
     },
+    removeLocalUser: (state) => {
+      state.token = null;
+      state.userInfo = null;
+      localStorage.removeItem("token");
+    },
     updateUserInfo: (state, action) => {
-      state.userInfo = { ...state.userInfo, ...action.payload };
+      state.userInfo = { 
+        ...state.userInfo, 
+        ...action.payload,
+        userName: action.payload.fullName,
+        dateOfBirth: action.payload.birthdate
+      };
     },
     addBannedElement: (state, action) => {
       state.bannedElements.push(action.payload);
@@ -87,5 +97,5 @@ const userSlice = createSlice({
   }
 });
 
-export const { login, updateUserInfo, addBannedElement, removerBannedElement, setLoading } = userSlice.actions;
+export const { login, removeLocalUser, updateUserInfo, addBannedElement, removerBannedElement, setLoading } = userSlice.actions;
 export default userSlice.reducer;

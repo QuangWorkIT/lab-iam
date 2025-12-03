@@ -10,9 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class ResetPassOptionRequest {
-    @NotBlank(message = "option is required")
-    private String option;
-
-    @NotBlank(message = "data is required")
+    @NotBlank(message = "email is required")
     private String data;
 }

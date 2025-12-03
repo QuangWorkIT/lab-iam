@@ -1,9 +1,12 @@
 package com.example.iam_service.serviceImpl;
 
+import com.example.iam_service.audit.AuditEvent;
+import com.example.iam_service.audit.AuditPublisher;
 import com.example.iam_service.dto.RoleDTO;
 import com.example.iam_service.dto.request.RoleUpdateRequestDto;
 import com.example.iam_service.entity.Enum.Privileges;
 import com.example.iam_service.entity.Role;
+import com.example.iam_service.entity.User;
 import com.example.iam_service.exception.DuplicateRoleException;
 import com.example.iam_service.exception.RoleDeletionException;
 import com.example.iam_service.exception.RoleIsFixedException;
@@ -13,8 +16,10 @@ import com.example.iam_service.repository.RoleRepository;
 import com.example.iam_service.repository.UserRepository;
 import com.example.iam_service.security.PrivilegesRequired;
 import com.example.iam_service.service.RoleService;
+import com.example.iam_service.util.SecurityUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Predicate;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,26 +28,39 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.swing.text.html.Option;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
+
 public class RoleServiceImp implements RoleService {
-    @Autowired
-    private RoleRepository roleRepository;
+    private final AuditPublisher auditPublisher;
+    private final SecurityUtil securityUtil;
+    private final RoleRepository roleRepository;
+    private final RoleMapper mapper;
+    private final UserRepository userRepository;
+    private final EntityManager entityManager;
 
-    @Autowired
-    private RoleMapper mapper;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private EntityManager entityManager;
+//    @Autowired
+//    private RoleRepository roleRepository;
+//
+//    @Autowired
+//    private RoleMapper mapper;
+//
+//    @Autowired
+//    private UserRepository userRepository;
+//
+//    @Autowired
+//    private EntityManager entityManager;
     @Transactional(readOnly = true)
     @Override
     public List<Role> getAllRoles() {
@@ -133,6 +151,8 @@ public class RoleServiceImp implements RoleService {
     @PrivilegesRequired(values = Privileges.CREATE_ROLE, requireAll = true)
     public RoleDTO createRole(Role role) {
 
+        User actor = securityUtil.getCurrentUser();
+
         log.info("Role create called on role: {} at {}", role.getName(), LocalDateTime.now());
         String cleanName = role.getName()
                 .trim()
@@ -147,7 +167,19 @@ public class RoleServiceImp implements RoleService {
         {
             role.addPrivileges(Privileges.READ_ONLY);
         }
-        log.info("Role creation successful on role: {} at {}", role.getName(), LocalDateTime.now());
+
+        auditPublisher.publish(AuditEvent.builder()
+                .type("ROLE_CREATED")
+                .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                .target(role.getCode())
+                .targetRole("none")
+                .timestamp(OffsetDateTime.now())
+                .details("Role '" + role.getName() + "' created with privileges: "
+                        + role.getPrivileges().stream()
+                        .map(Enum::name)
+                        .collect(Collectors.joining(", ")))
+                .build());
+
         return  mapper.toDto(roleRepository.save(role));
     }
 
@@ -155,6 +187,8 @@ public class RoleServiceImp implements RoleService {
     @Override
     @PrivilegesRequired(values = Privileges.UPDATE_ROLE, requireAll = true)
     public RoleDTO updateRole(RoleUpdateRequestDto dto, String roleCode) {
+        User actor = securityUtil.getCurrentUser();
+
         log.info("Role update called on role: {} at {}", dto.getName(), LocalDateTime.now());
         if(!isRoleCodeExists(roleCode))
         {
@@ -162,15 +196,28 @@ public class RoleServiceImp implements RoleService {
         }
         //Use mapper class for all update mapping with RoleRequestUpdateDto
         //Privileges is also mapped in mapper
-   Role result = mapper.updateEntityFromDto(dto,this.returnByCode(roleCode));
-        log.info("Role update successful on role: {} at {}", dto.getName(), LocalDateTime.now());
-    return mapper.toDto(roleRepository.save(result));
+        Role result = mapper.updateEntityFromDto(dto,this.returnByCode(roleCode));
+        Role saved = roleRepository.save(result);
+
+        auditPublisher.publish(AuditEvent.builder()
+                .type("ROLE_UPDATED")
+                .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                .target(roleCode)
+                .targetRole("none")
+                .timestamp(OffsetDateTime.now())
+                .details(roleCode + " updated with privileges: "
+                        + result.getPrivileges().stream()
+                        .map(Enum::name)
+                        .collect(Collectors.joining(", ")))
+                .build());
+    return mapper.toDto(saved);
     }
 
     @Transactional
     @Override
     @PrivilegesRequired(values = Privileges.DELETE_ROLE, requireAll = true)
     public void DeleteRole(String roleCode) {
+        User actor = securityUtil.getCurrentUser();
         log.info("Starting role deletion for {}", roleCode);
         if(!isRoleCodeExists(roleCode))
         {
@@ -189,10 +236,23 @@ public class RoleServiceImp implements RoleService {
         entityManager.flush();
         entityManager.clear();
         roleRepository.delete(returnByCode(roleCode));
+
+        auditPublisher.publish(AuditEvent.builder()
+                .type("ROLE_DELETED")
+                .userId(actor.getUserId() + " (" + actor.getRoleCode() + ")")
+                .target(roleCode)
+                .targetRole("none")
+                .timestamp(OffsetDateTime.now())
+                .details("Role '" + roleCode + "' deleted. " +
+                        updatedCount + " users reassigned to ROLE_DEFAULT.")
+                .build());
     }
 
-
-
+    @Override
+    @PrivilegesRequired(values = Privileges.VIEW_OWN_ROLE, requireAll = true)
+    public Role getUserRole(String code) {
+        return roleRepository.findPrivilegesByCode(code);
+    }
 
     private boolean isRoleDeletable(String roleCode)
     {

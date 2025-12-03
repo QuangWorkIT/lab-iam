@@ -78,7 +78,7 @@ api.interceptors.response.use(
 
         // execute waiting requests
         onRefreshed(data.accessToken)
-
+        console.log("refresh")
         originRequest.headers.Authorization = `Bearer ${data.accessToken}`
         return api(originRequest)
       } catch (error) {

@@ -8,42 +8,44 @@ import publicApi from "../../../configs/publicAxios.js";
 import { toast } from "react-toastify";
 import VerifyOpt from "./VerifyOtpForm.jsx";
 import ResetPassWord from "./ResetPassWordForm.jsx";
-import { LuMail, LuPhone } from "react-icons/lu";
+import { LuMail } from "react-icons/lu";
 import { ArrowLeftOutlined } from '@ant-design/icons';
 
 function ForgetPassForm({ setIsResetPassWord }) {
     const [form] = Form.useForm();
-    const [option, setOption] = useState("email");
     const [isOptOpen, setIsOptOpen] = useState(false)
     const [isResetPassWordOpen, setIsResetPassWordOpen] = useState(false)
-    const [verifyingEmailOrPhone, setVerifyingEmailOrPhone] = useState(null)
+    const [verifyingEmail, setverifyingEmail] = useState(null)
     const [currentUser, setCurrentUser] = useState(null)
 
-    const verifyEmailOrPhone = async (values) => {
+    const verifyEmail = async (values) => {
         try {
-            setVerifyingEmailOrPhone("isVerifying")
+            setverifyingEmail("isVerifying")
             const response = await publicApi.post("/api/auth/user-lookup", {
-                option: option,
-                data: values[option]
+                data: values["email"]
             })
             setCurrentUser(response.data.data)
 
             await publicApi.post("/api/auth/otp-send", { email: response.data.data.email })
-            setVerifyingEmailOrPhone("success")
+            setverifyingEmail("success")
             setTimeout(() => {
                 setIsOptOpen(true)
             }, 700);
-            form.resetFields([option])
+            form.resetFields(["email"])
         } catch (error) {
 
-            console.error("Error verify email or phone", error)
-            setVerifyingEmailOrPhone(null)
+            console.error("Error verify email", error)
+            setverifyingEmail(null)
 
             const errMess = error.response?.data?.message
             if (errMess && errMess === "User not found")
-                toast.error(option === "email" ? "Email not found!" : "Phone not found!")
+                toast.error( "Email not found!", {
+                    className: "!text-[#FF0000] font-bold text-[14px]"
+                })
             else
-                toast.error("Error verify email or phone")
+                toast.error("Error verify email", {
+                    className: "!text-[#FF0000] font-bold text-[14px]"
+                })
         }
     };
 
@@ -55,7 +57,7 @@ function ForgetPassForm({ setIsResetPassWord }) {
                 onClick={() => {
                     setIsResetPassWord(false)
                 }}
-             className="!absolute top-10 left-10 lg:!hidden">
+                className="!absolute top-10 left-10 lg:!hidden">
                 <ArrowLeftOutlined />
             </Button>
             <AnimatePresence>
@@ -94,93 +96,56 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                     className="flex flex-col gap-5 items-center justify-center h-full min-w-[300px]">
                                     <div className="text-center">
                                         <p className="text-2xl md:text-[27px] font-semibold ml-2" style={{ marginBottom: "15px" }}>Forget your password?</p>
-                                        <p className="text-sm md:text-[16px]" style={{margin: 0}}>Please enter your email or phone</p>
+                                        <p className="text-sm md:text-[16px]" style={{ margin: 0 }}>Please enter your email</p>
                                     </div >
 
-                                    <div>
-                                        <Segmented
-                                            value={option}
-                                            onChange={(value) => setOption(value)}
-                                            options={[
-                                                { label: "Phone", value: "phone" },
-                                                { label: "Email", value: "email" },
-                                            ]}
-                                            className="
-                                        border-none shadow-none !bg-transparent
-                                        [&_.ant-segmented-item]:!rounded-full
-                                        [&_.ant-segmented-item]:!transition-all
-                                        [&_.ant-segmented-item]:!duration-200
-                                        [&_.ant-segmented-item]:!bg-white
-                                        [&_.ant-segmented-item]:!text-black
-                                        [&_.ant-segmented-item]:!font-medium
-                                        [&_.ant-segmented-item]:!px-5
-                                        [&_.ant-segmented-item]:!py-1.5
-                                        [&_.ant-segmented-item-selected]:!bg-[#ff5c5c]
-                                        [&_.ant-segmented-item-selected]:!text-white
-                                        [&_.ant-segmented-item-selected]:!font-semibold
-                                        [&_.ant-segmented-item-selected]:!shadow-md
-                                        "
-                                        />
-                                    </div>
 
                                     <Form
                                         form={form}
-                                        name="verifyEmailOrPhone"
+                                        name="verifyEmail"
                                         initialValues={{ remember: true }}
-                                        onFinish={verifyEmailOrPhone}
+                                        onFinish={verifyEmail}
                                         autoComplete="off"
                                     >
                                         <AnimatePresence mode="wait">
-                                            {option === "email" ? (
-                                                <motion.div
-                                                    key="email"
-                                                    initial={{ opacity: 0, y: 20 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -20 }}
-                                                    transition={{ duration: 0.25, ease: "easeOut" }}
-                                                >
-                                                    <ConfigProvider theme={theme}>
-                                                        <Form.Item
-                                                            name="email"
-                                                            rules={[
-                                                                { required: true, message: "Please input an email!" },
-                                                                { max: 300, message: "Please enter a valid email!" }
-                                                            ]}
-                                                        >
-                                                            <Input
-                                                                prefix={<LuMail />}
-                                                                type="email"
-                                                                placeholder="Enter your email"
-                                                                className="!w-[250px] md:!w-[320px]"
-                                                            />
-                                                        </Form.Item>
-                                                    </ConfigProvider>
-                                                </motion.div>
-                                            ) : (
-                                                <motion.div
-                                                    key="phone"
-                                                    initial={{ opacity: 0, y: 20 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -20 }}
-                                                    transition={{ duration: 0.25, ease: "easeOut" }}
-                                                >
-                                                    <ConfigProvider theme={theme}>
-                                                        <Form.Item
-                                                            name="phone"
-                                                            rules={[
-                                                                { required: true, message: "Please input phone number!" },
-                                                                { pattern: /^(?:\+84|0)(3|5|7|8|9)[0-9]{8}$/, message: "Invalid phone number!" }
-                                                            ]}
-                                                        >
-                                                            <Input
-                                                                prefix={<LuPhone />}
-                                                                placeholder="Enter phone number"
-                                                                style={{ width: "320px", marginLeft: "20px" }}
-                                                            />
-                                                        </Form.Item>
-                                                    </ConfigProvider>
-                                                </motion.div>
-                                            )}
+                                            (<motion.div
+                                                key="email"
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -20 }}
+                                                transition={{ duration: 0.25, ease: "easeOut" }}
+                                            >
+                                                <ConfigProvider theme={theme}>
+                                                    <Form.Item
+                                                        name="email"
+                                                        rules={[
+                                                            { required: true, message: "Please input an email!" },
+                                                            { max: 300, message: "Please enter a valid email!" }
+                                                        ]}
+                                                    >
+                                                        <Input
+                                                            prefix={<LuMail />}
+                                                            type="email"
+                                                            placeholder="Enter your email"
+                                                            className="!w-[250px] md:!w-[320px]"
+                                                            onFocus={(e) => {
+                                                                const wrapper = e.target.closest(".ant-input-affix-wrapper");
+                                                                if (wrapper) {
+                                                                    wrapper.style.border = "1px solid #FF5A5A";
+                                                                    wrapper.style.boxShadow = "none";
+                                                                }
+                                                            }}
+                                                            onBlur={(e) => {
+                                                                const wrapper = e.target.closest(".ant-input-affix-wrapper");
+                                                                if (wrapper) {
+                                                                    wrapper.style.border = "1px solid #CCC";
+                                                                    wrapper.style.boxShadow = "none";
+                                                                }
+                                                            }}
+                                                        />
+                                                    </Form.Item>
+                                                </ConfigProvider>
+                                            </motion.div>)
                                         </AnimatePresence>
 
                                         <Form.Item
@@ -189,14 +154,15 @@ function ForgetPassForm({ setIsResetPassWord }) {
                                             style={{ marginTop: "50px" }}
                                         >
                                             <Button
-                                                className={`hover:bg-[#fca9ad] transition-all duration-300 ease-in-out 
-                                                    ${verifyingEmailOrPhone === "success" ? "w-40 !bg-[#52c41a]" : "w-30"}`}
-                                                color="danger"
-                                                variant="solid"
+                                                className={`transition-all duration-300 ease-in-out 
+                                                    ${verifyingEmail === "success" ? "w-40" : "w-30"}`}
+                                                style={{ backgroundColor: "#FF5A5A", color: "white" }} // primary color
+                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FF3A3A"} // hover
+                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                                                 htmlType="submit"
-                                                loading={verifyingEmailOrPhone === "isVerifying"}
+                                                loading={verifyingEmail === "isVerifying"}
                                             >
-                                                {verifyingEmailOrPhone === "success" ? (
+                                                {verifyingEmail === "success" ? (
                                                     <motion.div
                                                         initial={{ opacity: 0 }}
                                                         animate={{ opacity: 1 }}

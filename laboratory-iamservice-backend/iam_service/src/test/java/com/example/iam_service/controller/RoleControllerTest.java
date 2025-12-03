@@ -29,8 +29,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -61,6 +60,9 @@ class RoleControllerTest {
     private Role testRole;
     private RoleDTO testRoleDTO;
 
+    // Base path with /api prefix
+    private static final String BASE_PATH = "/roles";
+
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(roleController).build();
@@ -85,7 +87,7 @@ class RoleControllerTest {
     // ==================== GET ALL ROLES TESTS ====================
 
     @Nested
-    @DisplayName("GET /api/roles Tests")
+    @DisplayName("GET /roles Tests")
     class GetAllRolesTests {
 
         @Test
@@ -94,7 +96,7 @@ class RoleControllerTest {
             when(roleService.getAllRoles()).thenReturn(Arrays.asList(testRole));
             when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
 
-            mockMvc.perform(get("/api/roles"))
+            mockMvc.perform(get(BASE_PATH))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].code").value(testRole.getCode()))
                     .andExpect(jsonPath("$[0].name").value(testRole.getName()))
@@ -108,7 +110,7 @@ class RoleControllerTest {
         void getAllRoles_EmptyList() throws Exception {
             when(roleService.getAllRoles()).thenReturn(Collections.emptyList());
 
-            mockMvc.perform(get("/api/roles"))
+            mockMvc.perform(get(BASE_PATH))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
         }
@@ -123,7 +125,7 @@ class RoleControllerTest {
             when(roleService.getAllRoles()).thenReturn(Arrays.asList(testRole, role2));
             when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
 
-            mockMvc.perform(get("/api/roles"))
+            mockMvc.perform(get(BASE_PATH))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(2)));
         }
@@ -132,7 +134,7 @@ class RoleControllerTest {
     // ==================== GET PAGED ROLES TESTS ====================
 
     @Nested
-    @DisplayName("GET /api/roles/paged Tests")
+    @DisplayName("GET /roles/paged Tests")
     class GetPagedRolesTests {
 
         @Test
@@ -142,7 +144,7 @@ class RoleControllerTest {
             when(roleService.getRolesPaged(any(Pageable.class))).thenReturn(rolePage);
             when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
 
-            mockMvc.perform(get("/api/roles/paged")
+            mockMvc.perform(get(BASE_PATH + "/paged")
                             .param("page", "0")
                             .param("size", "10"))
                     .andExpect(status().isOk())
@@ -157,7 +159,7 @@ class RoleControllerTest {
             when(roleService.getRolesPaged(any(Pageable.class))).thenReturn(rolePage);
             when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
 
-            mockMvc.perform(get("/api/roles/paged")
+            mockMvc.perform(get(BASE_PATH + "/paged")
                             .param("direction", "desc"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.roles", hasSize(1)));
@@ -170,7 +172,7 @@ class RoleControllerTest {
             when(roleService.getRolesPaged(any(Pageable.class))).thenReturn(rolePage);
             when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
 
-            mockMvc.perform(get("/api/roles/paged"))
+            mockMvc.perform(get(BASE_PATH + "/paged"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.currentPage").exists());
         }
@@ -181,7 +183,7 @@ class RoleControllerTest {
             Page<Role> emptyPage = new PageImpl<>(Collections.emptyList());
             when(roleService.getRolesPaged(any(Pageable.class))).thenReturn(emptyPage);
 
-            mockMvc.perform(get("/api/roles/paged"))
+            mockMvc.perform(get(BASE_PATH + "/paged"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.roles", hasSize(0)));
         }
@@ -190,7 +192,7 @@ class RoleControllerTest {
     // ==================== GET ROLE BY CODE TESTS ====================
 
     @Nested
-    @DisplayName("GET /api/roles/{code} Tests")
+    @DisplayName("GET /roles/{code} Tests")
     class GetRoleByCodeTests {
 
         @Test
@@ -199,7 +201,7 @@ class RoleControllerTest {
             when(roleService.getRoleByCode("ROLE_TEST")).thenReturn(Optional.of(testRole));
             when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
 
-            mockMvc.perform(get("/api/roles/{code}", "ROLE_TEST"))
+            mockMvc.perform(get(BASE_PATH + "/{code}", "ROLE_TEST"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(testRole.getCode()));
         }
@@ -209,7 +211,7 @@ class RoleControllerTest {
         void getRoleByCode_NotFound() throws Exception {
             when(roleService.getRoleByCode("NON_EXISTENT")).thenReturn(Optional.empty());
 
-            mockMvc.perform(get("/api/roles/{code}", "NON_EXISTENT"))
+            mockMvc.perform(get(BASE_PATH + "/{code}", "NON_EXISTENT"))
                     .andExpect(status().isNotFound());
         }
     }
@@ -217,7 +219,7 @@ class RoleControllerTest {
     // ==================== GET ACTIVE ROLES TESTS ====================
 
     @Nested
-    @DisplayName("GET /api/roles/active Tests")
+    @DisplayName("GET /roles/active Tests")
     class GetActiveRolesTests {
 
         @Test
@@ -226,7 +228,7 @@ class RoleControllerTest {
             when(roleService.getActiveRoles()).thenReturn(Arrays.asList(testRole));
             when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
 
-            mockMvc.perform(get("/api/roles/active"))
+            mockMvc.perform(get(BASE_PATH + "/active"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].code").value(testRole.getCode()));
         }
@@ -236,16 +238,187 @@ class RoleControllerTest {
         void getActiveRoles_EmptyList() throws Exception {
             when(roleService.getActiveRoles()).thenReturn(Collections.emptyList());
 
-            mockMvc.perform(get("/api/roles/active"))
+            mockMvc.perform(get(BASE_PATH + "/active"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
+        }
+    }
+
+    // ==================== SEARCH ROLES TESTS ====================
+
+    @Nested
+    @DisplayName("GET /roles/search Tests")
+    class SearchRolesTests {
+
+        @Test
+        @DisplayName("Should search roles by keyword successfully")
+        void searchRoles_WithKeyword() throws Exception {
+            // The controller passes: keyword="test", fromDate=null, toDate=null, sortBy=null, direction=ASC (default)
+            when(roleService.searchRoles(
+                    eq("test"),
+                    eq(null),
+                    eq(null),
+                    eq(null),
+                    eq(Sort.Direction.ASC)))
+                    .thenReturn(Arrays.asList(testRole));
+            when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
+
+            mockMvc.perform(get(BASE_PATH + "/search")
+                            .param("q", "test"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(1)))
+                    .andExpect(jsonPath("$[0].code").value(testRole.getCode()));
+        }
+
+        @Test
+        @DisplayName("Should search roles with date range")
+        void searchRoles_WithDateRange() throws Exception {
+            LocalDate fromDate = LocalDate.of(2024, 1, 1);
+            LocalDate toDate = LocalDate.of(2024, 12, 31);
+
+            // keyword=null, fromDate and toDate set, sortBy=null, direction=ASC
+            when(roleService.searchRoles(
+                    eq(null),
+                    eq(fromDate),
+                    eq(toDate),
+                    eq(null),
+                    eq(Sort.Direction.ASC)))
+                    .thenReturn(Arrays.asList(testRole));
+            when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
+
+            mockMvc.perform(get(BASE_PATH + "/search")
+                            .param("fromDate", "2024-01-01")
+                            .param("toDate", "2024-12-31"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(1)));
+        }
+
+        @Test
+        @DisplayName("Should support legacy name parameter")
+        void searchRoles_WithNameParameter() throws Exception {
+            // When 'name' param is provided (not 'q'), it becomes the keyword
+            when(roleService.searchRoles(
+                    eq("test"),
+                    eq(null),
+                    eq(null),
+                    eq(null),
+                    eq(Sort.Direction.ASC)))
+                    .thenReturn(Arrays.asList(testRole));
+            when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
+
+            mockMvc.perform(get(BASE_PATH + "/search")
+                            .param("name", "test"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(1)));
+        }
+
+        @Test
+        @DisplayName("Should search with sorting parameters")
+        void searchRoles_WithSorting() throws Exception {
+            // sortBy="name", direction="desc"
+            when(roleService.searchRoles(
+                    eq(null),
+                    eq(null),
+                    eq(null),
+                    eq("name"),
+                    eq(Sort.Direction.DESC)))
+                    .thenReturn(Arrays.asList(testRole));
+            when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
+
+            mockMvc.perform(get(BASE_PATH + "/search")
+                            .param("sortBy", "name")
+                            .param("direction", "desc"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(1)));
+        }
+
+        @Test
+        @DisplayName("Should search with all parameters")
+        void searchRoles_WithAllParameters() throws Exception {
+            LocalDate fromDate = LocalDate.of(2024, 1, 1);
+            LocalDate toDate = LocalDate.of(2024, 12, 31);
+
+            when(roleService.searchRoles(
+                    eq("admin"),
+                    eq(fromDate),
+                    eq(toDate),
+                    eq("code"),
+                    eq(Sort.Direction.DESC)))
+                    .thenReturn(Arrays.asList(testRole));
+            when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
+
+            mockMvc.perform(get(BASE_PATH + "/search")
+                            .param("q", "admin")
+                            .param("fromDate", "2024-01-01")
+                            .param("toDate", "2024-12-31")
+                            .param("sortBy", "code")
+                            .param("direction", "desc"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(1)))
+                    .andExpect(jsonPath("$[0].code").value(testRole.getCode()));
+        }
+
+        @Test
+        @DisplayName("Should return empty list when no roles match search criteria")
+        void searchRoles_NoResults() throws Exception {
+            when(roleService.searchRoles(
+                    eq("nonexistent"),
+                    eq(null),
+                    eq(null),
+                    eq(null),
+                    eq(Sort.Direction.ASC)))
+                    .thenReturn(Collections.emptyList());
+
+            mockMvc.perform(get(BASE_PATH + "/search")
+                            .param("q", "nonexistent"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(0)));
+        }
+
+        @Test
+        @DisplayName("Should handle ascending sort direction explicitly")
+        void searchRoles_AscendingSort() throws Exception {
+            when(roleService.searchRoles(
+                    eq(null),
+                    eq(null),
+                    eq(null),
+                    eq("name"),
+                    eq(Sort.Direction.ASC)))
+                    .thenReturn(Arrays.asList(testRole));
+            when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
+
+            mockMvc.perform(get(BASE_PATH + "/search")
+                            .param("sortBy", "name")
+                            .param("direction", "asc"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(1)));
+        }
+
+        @Test
+        @DisplayName("Should prioritize 'q' parameter over 'name' parameter")
+        void searchRoles_PrioritizeQParameter() throws Exception {
+            // When both 'q' and 'name' are provided, 'q' takes precedence
+            when(roleService.searchRoles(
+                    eq("priority"),
+                    eq(null),
+                    eq(null),
+                    eq(null),
+                    eq(Sort.Direction.ASC)))
+                    .thenReturn(Arrays.asList(testRole));
+            when(roleMapper.toDto(any(Role.class))).thenReturn(testRoleDTO);
+
+            mockMvc.perform(get(BASE_PATH + "/search")
+                            .param("q", "priority")
+                            .param("name", "ignored"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(1)));
         }
     }
 
     // ==================== POST ROLE TESTS ====================
 
     @Nested
-    @DisplayName("POST /api/roles Tests")
+    @DisplayName("POST /roles Tests")
     class CreateRoleTests {
 
         @Test
@@ -254,7 +427,7 @@ class RoleControllerTest {
             when(roleMapper.toEntity(any(RoleDTO.class))).thenReturn(testRole);
             when(roleService.createRole(any(Role.class))).thenReturn(testRoleDTO);
 
-            mockMvc.perform(post("/api/roles")
+            mockMvc.perform(post(BASE_PATH)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testRoleDTO)))
                     .andExpect(status().isCreated())
@@ -270,19 +443,17 @@ class RoleControllerTest {
             when(roleService.createRole(any(Role.class)))
                     .thenThrow(new DuplicateRoleException("Role already exists"));
 
-            mockMvc.perform(post("/api/roles")
+            mockMvc.perform(post(BASE_PATH)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testRoleDTO)))
                     .andExpect(status().isConflict());
         }
-
-
     }
 
     // ==================== PUT ROLE TESTS ====================
 
     @Nested
-    @DisplayName("PUT /api/roles/update/{roleCode} Tests")
+    @DisplayName("PUT /roles/update/{roleCode} Tests")
     class UpdateRoleTests {
 
         @Test
@@ -294,7 +465,7 @@ class RoleControllerTest {
             when(roleService.updateRole(any(RoleUpdateRequestDto.class), anyString()))
                     .thenReturn(testRoleDTO);
 
-            mockMvc.perform(put("/api/roles/update/{roleCode}", "ROLE_TEST")
+            mockMvc.perform(put(BASE_PATH + "/update/{roleCode}", "ROLE_TEST")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(updateDto)))
                     .andExpect(status().isAccepted())
@@ -312,7 +483,7 @@ class RoleControllerTest {
             when(roleService.updateRole(any(RoleUpdateRequestDto.class), anyString()))
                     .thenThrow(new RoleNotFoundException("Role not found"));
 
-            mockMvc.perform(put("/api/roles/update/{roleCode}", "NON_EXISTENT")
+            mockMvc.perform(put(BASE_PATH + "/update/{roleCode}", "NON_EXISTENT")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(updateDto)))
                     .andExpect(status().isNotFound());
@@ -323,19 +494,17 @@ class RoleControllerTest {
         void updateRole_EmptyRoleCode() throws Exception {
             RoleUpdateRequestDto updateDto = new RoleUpdateRequestDto();
 
-            mockMvc.perform(put("/api/roles/update/{roleCode}", "   ")
+            mockMvc.perform(put(BASE_PATH + "/update/{roleCode}", "   ")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(updateDto)))
                     .andExpect(status().isBadRequest());
         }
-
-
     }
 
     // ==================== DELETE ROLE TESTS ====================
 
     @Nested
-    @DisplayName("DELETE /api/roles/delete/{roleCode} Tests")
+    @DisplayName("DELETE /roles/delete/{roleCode} Tests")
     class DeleteRoleTests {
 
         @Test
@@ -343,7 +512,7 @@ class RoleControllerTest {
         void deleteRole_Success() throws Exception {
             doNothing().when(roleService).DeleteRole(anyString());
 
-            mockMvc.perform(delete("/api/roles/delete/{roleCode}", "ROLE_TEST"))
+            mockMvc.perform(delete(BASE_PATH + "/delete/{roleCode}", "ROLE_TEST"))
                     .andExpect(status().isAccepted());
 
             verify(roleService, times(1)).DeleteRole("ROLE_TEST");
@@ -355,7 +524,7 @@ class RoleControllerTest {
             doThrow(new RoleNotFoundException("Role not found"))
                     .when(roleService).DeleteRole(anyString());
 
-            mockMvc.perform(delete("/api/roles/delete/{roleCode}", "NON_EXISTENT"))
+            mockMvc.perform(delete(BASE_PATH + "/delete/{roleCode}", "NON_EXISTENT"))
                     .andExpect(status().isNotFound());
         }
 
@@ -365,7 +534,7 @@ class RoleControllerTest {
             doThrow(new RoleIsFixedException("Role is protected"))
                     .when(roleService).DeleteRole(anyString());
 
-            mockMvc.perform(delete("/api/roles/delete/{roleCode}", "ROLE_ADMIN"))
+            mockMvc.perform(delete(BASE_PATH + "/delete/{roleCode}", "ROLE_ADMIN"))
                     .andExpect(status().isBadRequest());
         }
 
@@ -375,17 +544,15 @@ class RoleControllerTest {
             doThrow(new RoleDeletionException("Failed to delete role"))
                     .when(roleService).DeleteRole(anyString());
 
-            mockMvc.perform(delete("/api/roles/delete/{roleCode}", "ROLE_TEST"))
+            mockMvc.perform(delete(BASE_PATH + "/delete/{roleCode}", "ROLE_TEST"))
                     .andExpect(status().isInternalServerError());
         }
 
         @Test
         @DisplayName("Should return 400 for empty role code in delete")
         void deleteRole_EmptyRoleCode() throws Exception {
-            mockMvc.perform(delete("/api/roles/delete/{roleCode}", "   "))
+            mockMvc.perform(delete(BASE_PATH + "/delete/{roleCode}", "   "))
                     .andExpect(status().isBadRequest());
         }
-
     }
-
 }

@@ -17,8 +17,8 @@ export default function RoleList() {
   const dispatch = useDispatch();
   const { roles, loading, error } = useSelector((state) => state.roles);
   const userPrivileges = useSelector(
-  (state) => state.user?.userInfo?.privileges || "",
-  (prev, next) => JSON.stringify(prev) === JSON.stringify(next)
+    (state) => state.user?.userInfo?.privileges || "",
+    (prev, next) => JSON.stringify(prev) === JSON.stringify(next)
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
@@ -153,7 +153,9 @@ export default function RoleList() {
         .catch((error) => {
           console.error("Update role error:", error); // Log đầy đủ cho dev
           const userMessage = formatErr(error);
-          toast.error(`Failed to update role. ${userMessage}`);
+          toast.error(`Failed to update role. ${userMessage}`, {
+            className: "!text-[#FF0000] font-bold text-[14px]"
+          });
         })
         .finally(() => setActionLoading(false));
     } else {
@@ -167,7 +169,9 @@ export default function RoleList() {
         .catch((error) => {
           console.error("Create role error:", error); // Log đầy đủ cho dev
           const userMessage = formatErr(error);
-          toast.error(`Failed to create role. ${userMessage}`);
+          toast.error(`Failed to create role. ${userMessage}`, {
+            className: "!text-[#FF0000] font-bold text-[14px]"
+          });
         })
         .finally(() => setActionLoading(false));
     }
@@ -224,7 +228,9 @@ export default function RoleList() {
       .catch((error) => {
         console.error("Delete role error:", error); // Log đầy đủ cho dev
         const userMessage = formatErr(error);
-        toast.error(`Failed to delete role. ${userMessage}`);
+        toast.error(`Failed to delete role. ${userMessage}`, {
+          className: "!text-[#FF0000] font-bold text-[14px]"
+        });
       })
       .finally(() => {
         setActionLoading(false);
@@ -258,7 +264,7 @@ export default function RoleList() {
             style={{
               fontSize: "18px",
               margin: 0,
-              color: "#fe535b",
+              color: "#FF5A5A",
               fontWeight: "600",
             }}
           >
@@ -268,8 +274,10 @@ export default function RoleList() {
             <button
               type="button"
               onClick={handleAddRole}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = "#FF3A3A"}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = "#FF5A5A"}
               style={{
-                backgroundColor: "#fe535b",
+                backgroundColor: "#FF5A5A",
                 color: "white",
                 border: "none",
                 borderRadius: "4px",

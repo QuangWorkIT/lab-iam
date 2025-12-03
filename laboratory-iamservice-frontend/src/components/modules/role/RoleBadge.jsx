@@ -67,9 +67,9 @@ export default function RoleBadge({ roleName }) {
       style={{
         backgroundColor,
         color,
-        padding: "4px 10px",
+        padding: "4px 15px",
         borderRadius: "20px",
-        fontSize: "12px",
+        fontSize: "13px",
         fontWeight: "bold",
         display: "inline-block",
         minWidth: "80px",
@@ -77,6 +77,7 @@ export default function RoleBadge({ roleName }) {
         boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
         textShadow: color === "white" ? "0 1px 1px rgba(0,0,0,0.1)" : "none",
         textTransform: "uppercase",
+        textWrap: "nowrap"
       }}
     >
       {displayName}

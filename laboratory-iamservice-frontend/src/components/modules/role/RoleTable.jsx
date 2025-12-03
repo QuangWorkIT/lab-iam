@@ -236,7 +236,7 @@ export default function RoleTable({
           }}
         >
           <thead>
-            <tr style={{ backgroundColor: "#fe535b" }}>
+            <tr style={{ backgroundColor: "#FF5A5A" }}>
               <th
                 style={{
                   padding: "12px 15px",
@@ -341,7 +341,7 @@ export default function RoleTable({
                     style={{
                       padding: "12px 15px",
                       borderBottom: "none",
-                      fontWeight: "500",
+                      fontWeight: "600",
                       color: "#333",
                     }}
                   >
@@ -529,14 +529,14 @@ function ConfirmDialog({
               fontWeight: 800,
               letterSpacing: 1,
               textTransform: "uppercase",
-              fontSize: 14,
-              color: "#e11d48",
+              fontSize: 16,
+              color: "#FF5A5A",
             }}
           >
             {title}
           </div>
         </div>
-        <div style={{ padding: "16px 20px", color: "#404553", fontSize: 14 }}>
+        <div style={{ padding: "16px 20px", color: "#777777", fontSize: 16 }}>
           {message}
         </div>
         <div
@@ -556,7 +556,7 @@ function ConfirmDialog({
               border: "1px solid #e1e7ef",
               borderRadius: 8,
               backgroundColor: "#ffffff",
-              color: "#404553",
+              color: "#777777",
               cursor: "pointer",
             }}
           >
@@ -569,7 +569,7 @@ function ConfirmDialog({
               padding: "8px 16px",
               border: "none",
               borderRadius: 8,
-              backgroundColor: "#fe535b",
+              backgroundColor: "#FF5A5A",
               color: "#fff",
               fontWeight: 700,
               cursor: "pointer",

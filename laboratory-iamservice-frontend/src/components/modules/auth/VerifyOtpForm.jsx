@@ -21,8 +21,12 @@ const VerifyOpt = ({ data, setIsResetPassWordOpen }) => {
             }, 1000);
         } catch (error) {
             console.error("Error verify OTP", error)
-            if (error.response.data?.message) toast.error(error.response.data.message)
-            else toast.error("Error verify OTP")
+            if (error.response.data?.message) toast.error(error.response.data.message, {
+                className: "!text-[#FF0000] font-bold text-[14px]"
+            })
+            else toast.error("Error verify OTP", {
+                className: "!text-[#FF0000] font-bold text-[14px]"
+            })
             setOtpVerifyState(null)
         }
     }
@@ -42,7 +46,8 @@ const VerifyOpt = ({ data, setIsResetPassWordOpen }) => {
                     name="otp"
                     rules={[{ required: true, message: "Please enter the OTP code" }]}
                 >
-                    <Input.OTP />
+                    <Input.OTP
+                    />
                 </Form.Item>
 
                 <Form.Item
@@ -77,14 +82,15 @@ const VerifyOpt = ({ data, setIsResetPassWordOpen }) => {
                             <motion.div
                                 key="button"
                                 initial={{ opacity: 0 }}
-                                animate={{ opacity: 1}}
+                                animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.3 }}
                             >
                                 <Button
-                                    className="w-25 hover:bg-[#fca9ad]"
-                                    color="danger"
-                                    variant="solid"
+                                    className="w-25"
+                                    style={{ backgroundColor: "#FF5A5A", color: "white" }} // primary color
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FF3A3A"} // hover
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                                     htmlType="submit"
                                 >
                                     Verify

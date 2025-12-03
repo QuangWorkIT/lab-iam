@@ -1,5 +1,6 @@
 package com.example.iam_service.controller;
 
+import com.example.iam_service.dto.response.ApiResponse;
 import com.example.iam_service.dto.user.AdminUpdateUserDTO;
 import com.example.iam_service.dto.user.DetailUserDTO;
 import com.example.iam_service.dto.user.UpdateUserProfileDTO;
@@ -17,16 +18,16 @@ import org.springframework.http.HttpStatus;
 import com.example.iam_service.mapper.UserMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 
-
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Tag(name = "User Management", description = "APIs for managing users and their accounts")
 @RestController
-@RequestMapping("/api/users") // all routes start with /api/users
+@RequestMapping("/users") // all routes start with /api/users
 @RequiredArgsConstructor
 public class UserController {
 
@@ -42,6 +43,18 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody User user) {
         User saved = userService.createUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toDto(saved));
+    }
+
+    @Operation(
+            summary = "Create a new user by patient service",
+            description = "Admins or users with PATIENT_CREATE permission can create new accounts. " +
+                    "Automatically calculates age and sends credentials if it's a patient."
+    )
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or (hasAuthority('CREATE_USER') and hasAuthority('PATIENT_CREATE'))")
+    @PostMapping("/patients")
+    public ResponseEntity<UserDTO> createUserByPatientService(@Valid @RequestBody User user) {
+        User saved = userService.createUserByPatientService(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toDto(saved));
     }
 
@@ -147,7 +160,7 @@ public class UserController {
             description = "A user retrieve their own account information."
     )
     @GetMapping("/{id}/profile")
-    public ResponseEntity<DetailUserDTO> viewDetailedInformation (@PathVariable UUID id) {
+    public ResponseEntity<DetailUserDTO> viewDetailedInformation(@PathVariable UUID id) {
         return userService.getUserById(id)
                 .map(user -> ResponseEntity.ok(userMapper.toDetailDto(user)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -167,7 +180,7 @@ public class UserController {
     @Operation(
             summary = "User deletion",
             description = "Admins or users with DELETE_USER permission can delete a user whose role is not patient." +
-                     "Changes will be applied immediately."
+                    "Changes will be applied immediately."
     )
     @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('DELETE_USER') or hasAuthority('ROLE_LAB_MANAGER')")
     @DeleteMapping("/{id}")
@@ -202,5 +215,67 @@ public class UserController {
         return ResponseEntity.ok("User restored successfully.");
     }
 
+    @Operation(
+            summary = "Update a user by email",
+            description = "Admins or users with MODIFY_USER permission can update a user's information by their email."
+    )
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasAuthority('MODIFY_USER') or hasAuthority('ROLE_LAB_MANAGER')")
+    @PutMapping("/email")
+    public ResponseEntity<UserDTO> updateUserByEmail(
+            @RequestParam String email,
+            @Valid @RequestBody AdminUpdateUserDTO dto) {
 
+        User updatedUser = userService.updateUserByEmail(email, dto);
+        return ResponseEntity.ok(userMapper.toDto(updatedUser));
+    }
+
+    @Operation(
+            summary = "Batch create patient users",
+            description = "Admins or users with CREATE_USER permission can create multiple patient users in a batch. " +
+                    "Invalid or duplicate emails will be skipped, valid users will receive credentials via email."
+    )
+    @PreAuthorize("hasAuthority('CREATE_USER') or hasAuthority('ROLE_ADMIN')")
+    @PostMapping("/batch/patients")
+    public ResponseEntity<List<UserDTO>> batchCreatePatientUsers(
+            @Valid @RequestBody List<User> users) {
+
+        List<User> createdUsers = userService.batchCreatePatientUsers(users);
+        List<UserDTO> dtoList = createdUsers.stream()
+                .map(userMapper::toDto)
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(dtoList);
+    }
+
+    @Operation(
+            summary = "Get the number of roles by users",
+            description = "Retrieve the total of roles."
+    )
+    @PreAuthorize("hasAuthority('VIEW_USER') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_LAB_MANAGER')")
+    @GetMapping("/roles")
+    public ResponseEntity<ApiResponse<Map<String, Integer>>> getAllRolesByUsers() {
+        List<User> users = userService.getAllUsers();
+        if (users == null || users.isEmpty()) {
+            return ResponseEntity
+                    .status(404)
+                    .body(new ApiResponse<>("Error", "No user found"));
+        }
+
+        Map<String, Integer> totalOfRoles = new HashMap<>();
+        users.forEach(user -> {
+            String key = user.getRoleCode().startsWith("ROLE_")
+                    ? user.getRoleCode().substring(5)
+                    : user.getRoleCode();
+            int counter = totalOfRoles.get(key) != null
+                    ? totalOfRoles.get(key)
+                    : 0;
+            totalOfRoles.put(key, ++counter);
+        });
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "success",
+                        "Fetched all roles in system",
+                        totalOfRoles));
+    }
 }

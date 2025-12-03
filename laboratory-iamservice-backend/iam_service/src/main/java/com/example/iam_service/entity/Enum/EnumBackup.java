@@ -57,7 +57,17 @@ public enum EnumBackup {
     ACTIVATE_DEACTIVATE_INSTRUMENT("Have right to activate or deactivate instrument"),
 
     // Blood Testing
-    EXECUTE_BLOOD_TESTING("Have right to execute a blood testing");
+    EXECUTE_BLOOD_TESTING("Have right to execute a blood testing"),
+
+    //Patient Management
+    PATIENT_VIEW("Have right to view patient"),
+    PATIENT_CREATE("Have right to create patient"),
+    PATIENT_UPDATE("Have right to update patient"),
+    PATIENT_EXPORT("Have right to export patient list"),
+    PATIENT_IMPORT("Have right to import patients"),
+    PATIENT_RESTORE("Have right to restore deleted patient"),
+    PATIENT_SOFT_DELETE("Have right to soft delete patient"),
+    PATIENT_DELETE("Have right to hard delete patient");
 
     private final String description;
 }

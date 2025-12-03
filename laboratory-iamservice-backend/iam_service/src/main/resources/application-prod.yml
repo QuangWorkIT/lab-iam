@@ -1,6 +1,6 @@
 server:
+  forward-headers-strategy: framework
   port: 8089
-  address: ${ALLOWED_PORT}   # <== Listen on all interfaces (NOT just localhost)
   error:
     include-message: always
 
@@ -8,7 +8,7 @@ spring:
   application:
     name: iam-service
   datasource:
-    url: jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -38,29 +38,51 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-
+  mvc:
+    servlet:
+      path: /api
 google:
   web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
+
+#  eureka cho production
 eureka:
   client:
-    register-with-eureka: true      # Cho phép đăng ký với Eureka
-    fetch-registry: true            # Cho phép lấy danh sách các service khác
     service-url:
-      defaultZone: https://discovery-server-zsph.onrender.com/eureka
+      defaultZone: https://discovery-server-zsph.onrender.com/eureka/
+    registry-fetch-interval-seconds: 30
+
   instance:
-    prefer-ip-address: true         # Dùng IP thay vì hostname (tránh lỗi trong Docker)
-    instance-id: iam-service-dep:8089
+    prefer-ip-address: false
+
+    hostname: iam-service.site
+
+    instance-id: ${spring.application.name}:${eureka.instance.hostname}:${server.port}
+
+    #    non-secure-port: ${server.port}
+    #    non-secure-port-enabled: true
+    secure-port-enabled: true
+    secure-port: 443
+    non-secure-port-enabled: false
+
+    health-check-url: https://iam-service.site/api/actuator/health
+    status-page-url: https://iam-service.site/api/actuator/info
+    home-page-url: https://iam-service.site/api
+
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics
+        include: health,info,prometheus,metrics
   endpoint:
     health:
       show-details: always
-  info:
-    env:
-      enabled: true
+    prometheus:
+      enable: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 logging:
   level:

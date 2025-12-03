@@ -89,7 +89,9 @@ export default function AccountList() {
     }
     // Check if account is deleted
     if (account.isDelete || account.deletedAt) {
-      toast.error("Cannot activate a deleted account! Please restore it first.");
+      toast.error("Cannot activate a deleted account! Please restore it first.", {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
       return;
     }
     setConfirmState({ open: true, type: "activate", account });
@@ -107,7 +109,9 @@ export default function AccountList() {
     } catch (error) {
       console.error("Activate error:", error);
       const errorMessage = error || "Unknown error";
-      toast.error(`Failed to activate account: ${errorMessage}`);
+      toast.error(`Failed to activate account: ${errorMessage}`, {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
     }
   };
 
@@ -129,8 +133,9 @@ export default function AccountList() {
     } catch (error) {
       toast.error(
         `Failed to restore account: ${error?.message || error || "Unknown error"
-        }`
-      );
+        }`, {
+        className: "!text-[#FF0000] font-bold text-[14px]"
+      });
     }
   };
 
@@ -162,7 +167,7 @@ export default function AccountList() {
           style={{
             fontSize: "18px",
             marginBottom: "20px",
-            color: "#fe535b",
+            color: "#FF5A5A",
             fontWeight: "600",
           }}
         >
@@ -200,7 +205,7 @@ export default function AccountList() {
           style={{
             fontSize: "18px",
             marginBottom: "20px",
-            color: "#fe535b",
+            color: "#FF5A5A",
             fontWeight: "600",
           }}
         >
@@ -310,7 +315,7 @@ function ConfirmDialog({
         <div style={{ marginBottom: 16 }}>
           <div
             style={{
-              color: "#fe535b",
+              color: "#FF5A5A",
               fontWeight: 800,
               letterSpacing: 1.5,
               textTransform: "uppercase",
@@ -365,15 +370,15 @@ function ConfirmDialog({
               padding: "10px 18px",
               border: "none",
               borderRadius: 8,
-              backgroundColor: "#fe535b",
+              backgroundColor: "#FF5A5A",
               color: "#fff",
               fontWeight: 700,
               cursor: "pointer",
               fontSize: 14,
               transition: "background-color 0.2s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#e64b52")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fe535b")}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#FF3A3A")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#FF5A5A")}
           >
             {confirmText}
           </button>

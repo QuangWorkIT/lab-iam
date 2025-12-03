@@ -11,15 +11,20 @@ import { parseClaims } from '../../utils/jwtUtil.js';
 import GoogleButton from './GoogleButton.jsx';
 import { formatBannedDate } from '../../utils/formatter.js';
 import CountDownTimer from "../common/CountDownTimer.jsx"
+import { fetchUserPrivileges } from '../../services/fetchUserPrivileges.js';
 
 // custom input theme 
 export const theme = {
     components: {
         Input: {
-            colorPrimary: '#FE535B',
-            colorPrimaryHover: '#FE535B',
-            colorPrimaryActive: '#FE535B',
+            colorPrimary: '#FF5A5A',
+            colorPrimaryHover: '#FF3A3A',
+            colorPrimaryActive: '#FF5A5A',
+            colorError: '#FF0000',
         },
+        Form: {
+            colorError: '#FF0000',
+        }
     },
 };
 
@@ -58,25 +63,32 @@ function LoginForm({ setIsResetPassWord }) {
             })
             const data = response.data?.data
 
-            const payload = parseClaims(data.accessToken)
-            dispatch(login({
-                token: data.accessToken,
-                userInfo: {
-                    id: payload.sub,
-                    userName: payload.userName,
-                    email: payload.email,
-                    role: payload.role,
-                    privileges: payload.privileges,
-                    identityNumber: payload.identityNumber,
-                    phoneNumber: payload.phone,
-                    gender: payload.gender,
-                    dateOfBirth: payload.dob,
-                    age: payload.age,
-                    address: payload.address,
-                    isActive: payload.isActive === "true",
-                }
-            }))
-            toast.success("Login successfully!")
+            const payload = parseClaims(data?.accessToken)
+            localStorage.setItem("token", data?.accessToken)
+            const privileges = await fetchUserPrivileges(payload?.role)
+
+            if (payload  && data) {
+                dispatch(login({
+                    token: data.accessToken,
+                    userInfo: {
+                        id: payload.sub,
+                        userName: payload.userName,
+                        email: payload.email,
+                        role: payload.role,
+                        privileges: privileges,
+                        identityNumber: payload.identityNumber,
+                        phoneNumber: payload.phone,
+                        gender: payload.gender,
+                        dateOfBirth: payload.dob,
+                        age: payload.age,
+                        address: payload.address,
+                        isActive: payload.isActive === "true",
+                        deletedAt: payload.deletedAt,
+                        isDeleted: payload.isDeleted === "true"
+                    }
+                }))
+                toast.success("Login successfully!")
+            }
             if (payload.role === "ROLE_ADMIN" || payload.role === "ROLE_LAB_MANAGER") {
                 nav("/roles", { replace: true });
             } else {
@@ -89,16 +101,28 @@ function LoginForm({ setIsResetPassWord }) {
                 if (error.response?.status === 429 &&
                     errMess.split(".")[0] === "Too many attempts"
                 ) {
-                    toast.error("Too many attempts!")
+                    toast.error("Too many attempts!", {
+                        className: "!text-[#FF0000] font-bold text-[14px]"
+                    })
                     dispatch(addBannedElement(
                         {
                             type: "loginBanned",
-                            banUntil: formatBannedDate(error.response.data.status)
+                            banUntil: formatBannedDate(error.response.data.data)
                         })
                     )
-                } else toast.error("Invalid credentials!")
+                }
+                else if (errMess === "Email not found" || errMess === "Password is invalid") {
+                    toast.error("Invalid creadetail!", {
+                        className: "!text-[#FF0000] font-bold text-[14px]"
+                    })
+                }
+                else toast.error(errMess, {
+                    className: "!text-[#FF0000] font-bold text-[14px]"
+                })
             }
-            else toast.error("Login failed!")
+            else toast.error("Login failed!", {
+                className: "!text-[#FF0000] font-bold text-[14px]"
+            })
             console.log(error)
         } finally {
             setIsSubmitting(false)
@@ -127,11 +151,11 @@ function LoginForm({ setIsResetPassWord }) {
                     >
                         <div className={`m-auto transition-all duration-500 ease-in-out w-70 md:w-100`}>
                             <Input
-                                prefix={<UserOutlined style={{ color: "#FE535B" }} />}
+                                prefix={<UserOutlined style={{ color: "#FF5A5A" }} />}
                                 placeholder="Email"
                                 variant='underlined'
                             />
-                        </div>  
+                        </div>
                     </Form.Item>
                 </ConfigProvider>
                 <ConfigProvider theme={theme}>
@@ -143,7 +167,7 @@ function LoginForm({ setIsResetPassWord }) {
                         <div className={`m-auto transition-all duration-500 ease-in-out w-70 md:w-100`}>
                             <Input.Password
                                 className="bg-transparent"
-                                prefix={<LockOutlined style={{ color: "#FE535B" }} />}
+                                prefix={<LockOutlined style={{ color: "#FF5A5A" }} />}
                                 placeholder="Password"
                                 variant='underlined'
                             />
@@ -165,7 +189,7 @@ function LoginForm({ setIsResetPassWord }) {
 
                 <div className="mt-15">
                     {bannedElements.some(e => e.type === "loginBanned") &&
-                        (<h2 className="text-center italic text-red-500">
+                        (<h2 className="text-center text-[12px] italic text-[#FF0000]">
                             Your account is locked! Please try again after
                             <span className='font-bold'>
                                 <CountDownTimer
@@ -176,9 +200,10 @@ function LoginForm({ setIsResetPassWord }) {
                     }
                     <Form.Item className='flex justify-center' style={{ margin: "0" }}>
                         <Button
-                            className='md:w-[200px] w-50 hover:bg-[#fca9ad]'
-                            color='danger'
-                            variant='solid'
+                            className='md:w-[200px] w-50'
+                            style={{ backgroundColor: "#FF5A5A", color: "white" }} // primary color
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FF3A3A"}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#FF5A5A"}
                             htmlType='submit'
                             loading={isSubmitting}
                             disabled={bannedElements.some(e => e.type === "loginBanned")}

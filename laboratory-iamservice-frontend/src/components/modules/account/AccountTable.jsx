@@ -147,22 +147,7 @@ export default function AccountTable({
           }}
         >
           <thead>
-            <tr style={{ backgroundColor: "#fe535b" }}>
-              <th
-                style={{
-                  padding: "12px 15px",
-                  textAlign: "left",
-                  borderBottom: "none",
-                  color: "white",
-                  fontWeight: "600",
-                  fontSize: "14px",
-                  minWidth: "80px",
-                  whiteSpace: "nowrap",
-                  verticalAlign: "middle",
-                }}
-              >
-                ID
-              </th>
+            <tr style={{ backgroundColor: "#FF5A5A" }}>
               <th
                 style={{
                   padding: "12px 15px",
@@ -349,18 +334,7 @@ export default function AccountTable({
                     style={{
                       padding: "12px 15px",
                       borderBottom: "none",
-                      fontWeight: "500",
-                      color: "#000",
-                    }}
-                    title={account.id}
-                  >
-                    {truncateId(account.id)}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 15px",
-                      borderBottom: "none",
-                      fontWeight: "500",
+                      fontWeight: "600",
                       color: "#000",
                     }}
                   >
@@ -415,7 +389,7 @@ export default function AccountTable({
                       onClick={() => onView && onView(account)}
                       style={{
                         backgroundColor: "transparent",
-                        color: "#fe535b",
+                        color: "#FF5A5A",
                         border: "none",
                         padding: "5px",
                         cursor: "pointer",
@@ -427,13 +401,13 @@ export default function AccountTable({
                       }}
                       title="View Details"
                     >
-                      <FiEye size={18} />
+                      <FiEye size={24} />
                     </button>
                     {!account.isActive && (
                       <button
                         onClick={() => onActivate && onActivate(account)}
                         style={{
-                          backgroundColor: "#48bb78",
+                          backgroundColor: "#FF5A5A",
                           color: "white",
                           border: "none",
                           borderRadius: "6px",
@@ -450,10 +424,10 @@ export default function AccountTable({
                         }}
                         title="Activate Account"
                         onMouseEnter={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#38a169")
+                          (e.currentTarget.style.backgroundColor = "#FF3A3A")
                         }
                         onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#48bb78")
+                          (e.currentTarget.style.backgroundColor = "#FF5A5A")
                         }
                       >
                         <FiUnlock size={18} />
