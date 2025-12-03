@@ -13,6 +13,8 @@ function useSocketClient() {
     const clientRef = useRef(null)
     const { userInfo } = useSelector(state => state.user)
 
+    const userEmail = userInfo?.email;
+    const userRole = userInfo?.role;
 
     useEffect(() => {
         const init = async () => {
@@ -54,7 +56,7 @@ function useSocketClient() {
         return () => {
             clientRef.current?.deactivate();
         };
-    }, [userInfo]);
+    }, [userEmail, userRole]);
 
 
     return [testOrderNotification, reagentNotification]
