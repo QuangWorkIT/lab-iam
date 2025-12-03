@@ -14,6 +14,7 @@ import com.example.notification_service.serviceImpl.WebSocketServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -78,6 +79,7 @@ public class NotifyConsumer {
             notification.setQuantity(event.getQuantity());
             notification.setCreatedFrom(event.getSource());
             notification.setReagentName(event.getReagentName());
+            notification.setUrl(event.getUrl());
             notification.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
             webSocketService.sendNotification(
                     DESTINATION + "reagent/alerts",

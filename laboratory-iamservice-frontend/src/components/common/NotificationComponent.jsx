@@ -10,11 +10,14 @@ import {
     ExclamationCircleOutlined
 } from '@ant-design/icons';
 import { BsBoxSeam } from "react-icons/bs";
+import { Link } from "react-router-dom";
+
 
 const NotificationDropdown = () => {
     const [isNotifyTriggered, setIsNotifyTriggered] = useState(false);
     const dropdownRef = useRef(null);
     const [testOrderNotification, reagentNotification] = useSocketClient()
+    const token = localStorage.getItem("token") || ""
 
     const statusIcon = {
         ALERT: <ExclamationCircleOutlined className="!text-[#FF5A5A] text-[16px] p-3 bg-[#ebebeb] rounded-full" />,
@@ -71,7 +74,7 @@ const NotificationDropdown = () => {
                                 <div>
                                     <p className="text-2xl font-bold !mb-2">Notifications</p>
                                     {reagentNotification?.map((item, index) => (
-                                        <div key={index + item.typeId}>
+                                        <Link to = {item.url} key={index + item.typeId}>
                                             <li
                                                 className={`w-full flex gap-5 justify-start p-3 text-sm text-gray-700 group bg-white hover:bg-[#f5f5f5] cursor-pointer`}
                                             >
@@ -122,10 +125,11 @@ const NotificationDropdown = () => {
                                             {index === reagentNotification.length - 1 && testOrderNotification.length > 0 && (
                                                 <div className="w-full h-[1px] bg-gray-200 my-2"></div>
                                             )}
-                                        </div>
+                                        </Link>
                                     ))}
                                     {testOrderNotification?.map((item, index) => (
-                                        <div key={index + item.typeId}>
+                                        <Link to={"http://18.141.34.176:5173/test-orders/detail/"+item.typeId+"?code="+token} 
+                                        key={index + item.typeId}>
                                             <li
                                                 className={`w-full flex gap-5 justify-start p-3 text-sm text-gray-700 group bg-white hover:bg-[#f5f5f5] cursor-pointer`}
                                             >
@@ -167,7 +171,7 @@ const NotificationDropdown = () => {
                                             {index !== testOrderNotification.length - 1 && (
                                                 <div className="w-full h-[1px] bg-gray-200 my-2"></div>
                                             )}
-                                        </div>
+                                        </Link>
                                     ))}
                                 </div>
                             ) : (

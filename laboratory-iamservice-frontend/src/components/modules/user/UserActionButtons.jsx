@@ -31,7 +31,7 @@ export default function UserActionButtons({
           <FiEye size={24} />
         </button>
       )}
-      {canModifyUser && userInfo.id !== user.id && (
+      {canModifyUser && userInfo.id !== user.id && user.roleCode !== "ROLE_ADMIN" && (
         <button
           style={{
             backgroundColor: "transparent",
@@ -48,7 +48,7 @@ export default function UserActionButtons({
           <FiEdit size={24} />
         </button>
       )}
-      {canDeleteUser && userInfo.id !== user.id &&(
+      {canDeleteUser && userInfo.id !== user.id  && user.roleCode !== "ROLE_ADMIN" && (
         <button
           style={{
             backgroundColor: "transparent",

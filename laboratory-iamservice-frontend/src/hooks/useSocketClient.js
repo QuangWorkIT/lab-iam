@@ -22,7 +22,7 @@ function useSocketClient() {
             setTestOrderNotification(testOrderData?.data);
 
             const reagentData = await fetchReagentNotifications();
-            if(userInfo.role === "ROLE_ADMIN" || userInfo.role === "ROLE_LAB_MANAGER") {
+            if (userInfo.role === "ROLE_ADMIN" || userInfo.role === "ROLE_LAB_MANAGER") {
                 setReagentNotification(reagentData?.data);
             }
 

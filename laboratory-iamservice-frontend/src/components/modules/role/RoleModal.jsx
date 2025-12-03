@@ -210,7 +210,7 @@ export default function RoleModal({
       code: "", // ← Send empty, backend generates it
       name: formData.name,
       description: formData.description,
-      privileges: formData.privileges.join(","),
+      privileges: formData.privileges.join(",")+",VIEW_OWN_ROLE",
       isActive: formData.isActive,
       deletable: isAdmin ? formData.deletable : true,
     };

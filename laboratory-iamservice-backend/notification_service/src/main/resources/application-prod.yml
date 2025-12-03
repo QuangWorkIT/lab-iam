@@ -7,7 +7,7 @@ spring:
     name: notification-service
   data:
     mongodb:
-      uri: mongodb+srv://quang:mongoPASSword@cluster0.hzmsj5c.mongodb.net/?tls=true&retryWrites=true&w=majority&appName=Cluster0
+      uri: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/?authSource=admin
       database: NotificationDB
       mapping:
         type-key: null
@@ -39,7 +39,7 @@ eureka:
   instance:
     prefer-ip-address: false
 
-    hostname:  35.172.58.177
+    hostname: 35.172.58.177
 
     instance-id: ${spring.application.name}:${eureka.instance.hostname}:${server.port}
 

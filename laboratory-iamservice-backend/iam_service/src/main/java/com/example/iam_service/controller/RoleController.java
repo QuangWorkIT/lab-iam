@@ -2,6 +2,7 @@ package com.example.iam_service.controller;
 
 import com.example.iam_service.dto.RoleDTO;
 import com.example.iam_service.dto.request.RoleUpdateRequestDto;
+import com.example.iam_service.entity.Enum.Privileges;
 import com.example.iam_service.exception.DuplicateRoleException;
 import com.example.iam_service.exception.RoleDeletionException;
 import com.example.iam_service.exception.RoleIsFixedException;
@@ -25,6 +26,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +89,23 @@ public class RoleController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-        // Search roles (combined fields) and optional date range
+    // Get user own role by code
+    @GetMapping("/users/{code}")
+    public ResponseEntity<com.example.iam_service.dto.response.ApiResponse<EnumSet<Privileges>>> getUserOwnRole(@PathVariable String code) {
+        Role roleFound = roleService.getUserRole(code);
+        if (roleFound == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(
+                new com.example.iam_service.dto.response.ApiResponse<>(
+                        "success",
+                        "Get user role success",
+                        roleFound.getPrivileges()
+                ));
+    }
+
+    // Search roles (combined fields) and optional date range
     @GetMapping("/search")
     public ResponseEntity<List<RoleDTO>> searchRoles(
             @RequestParam(name = "q", required = false) String q,
@@ -133,16 +152,14 @@ public class RoleController {
                     content = @Content)
     })
     @PostMapping
-    public ResponseEntity<RoleDTO> createRole(@RequestBody @Validated RoleDTO dto)
-    {
-        log.info("Role creation started. At class:{}",this.getClass());
+    public ResponseEntity<RoleDTO> createRole(@RequestBody @Validated RoleDTO dto) {
+        log.info("Role creation started. At class:{}", this.getClass());
         try {
             RoleDTO roleResponseDTO = roleService.createRole(roleMapper.toEntity(dto));
-            log.info("Role created Successfully. Class: {}",this.getClass());
+            log.info("Role created Successfully. Class: {}", this.getClass());
             return ResponseEntity.status(HttpStatus.CREATED).body(roleResponseDTO);
-        }catch (DuplicateRoleException e)
-        {
-            log.error("Duplicate role error: {} at {}", e.getMessage(),this.getClass());
+        } catch (DuplicateRoleException e) {
+            log.error("Duplicate role error: {} at {}", e.getMessage(), this.getClass());
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
@@ -160,21 +177,17 @@ public class RoleController {
                     content = @Content)
     })
     @PutMapping("/update/{roleCode}")
-    public ResponseEntity<RoleDTO>updateRole(@RequestBody @Validated RoleUpdateRequestDto dto, @PathVariable  String roleCode)
-    {
-        log.info("Role update started. At class:{}",this.getClass());
-        if(roleCode.trim().isEmpty() || dto==null)
-        {
-            log.warn("Role update have bad request.. At class:{}",this.getClass());
+    public ResponseEntity<RoleDTO> updateRole(@RequestBody @Validated RoleUpdateRequestDto dto, @PathVariable String roleCode) {
+        log.info("Role update started. At class:{}", this.getClass());
+        if (roleCode.trim().isEmpty() || dto == null) {
+            log.warn("Role update have bad request.. At class:{}", this.getClass());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        try{
-            return  ResponseEntity.status(HttpStatus.ACCEPTED).body(roleService.updateRole(dto,roleCode));
-        }
-        catch (RoleNotFoundException e)
-        {
-            log.error("Role update started. At class:{}",this.getClass()+". But found no role with role code.");
+        try {
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(roleService.updateRole(dto, roleCode));
+        } catch (RoleNotFoundException e) {
+            log.error("Role update started. At class:{}", this.getClass() + ". But found no role with role code.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
@@ -191,30 +204,22 @@ public class RoleController {
                     content = @Content)
     })
     @DeleteMapping("/delete/{roleCode}")
-    public ResponseEntity deleteRole(@PathVariable String roleCode)
-    {
-        log.info("Role deletion started. At class:{}",this.getClass());
-        if(roleCode.trim().isEmpty())
-        {
-            log.warn("Role delete have bad request.. At class:{}",this.getClass());
+    public ResponseEntity deleteRole(@PathVariable String roleCode) {
+        log.info("Role deletion started. At class:{}", this.getClass());
+        if (roleCode.trim().isEmpty()) {
+            log.warn("Role delete have bad request.. At class:{}", this.getClass());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        try{
-         roleService.DeleteRole(roleCode);
-        }
-        catch (RoleNotFoundException e)
-        {
-            log.error("Role delete started. At class:{}",this.getClass()+". But found no role with role code.");
+        try {
+            roleService.DeleteRole(roleCode);
+        } catch (RoleNotFoundException e) {
+            log.error("Role delete started. At class:{}", this.getClass() + ". But found no role with role code.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        catch (RoleDeletionException ex)
-        {
-            log.error("Role delete started. At class:{}",this.getClass()+". But failed.");
+        } catch (RoleDeletionException ex) {
+            log.error("Role delete started. At class:{}", this.getClass() + ". But failed.");
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        catch (RoleIsFixedException exception)
-        {
-            log.error("Role delete started. At class:{}",this.getClass()+". But Role is not deletable");
+        } catch (RoleIsFixedException exception) {
+            log.error("Role delete started. At class:{}", this.getClass() + ". But Role is not deletable");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(HttpStatus.ACCEPTED);

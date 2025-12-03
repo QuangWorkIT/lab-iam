@@ -6,6 +6,7 @@ import { parseClaims } from '../../utils/jwtUtil.js';
 import { useNavigate } from "react-router";
 import { toast } from 'react-toastify';
 import { formatBannedDate } from '../../utils/formatter.js';
+import { fetchUserPrivileges } from '../../services/fetchUserPrivileges.js';
 
 
 function GoogleButton({ setIsGoogleLogin }) {
@@ -18,28 +19,34 @@ function GoogleButton({ setIsGoogleLogin }) {
                 googleCredential: creadentailResponse.credential
             })
 
-            const data = response.data.data
-            const payload = parseClaims(data.accessToken)
-            dispatch(login({
-                token: data.accessToken,
-                userInfo: {
-                    id: payload.sub,
-                    userName: payload.userName,
-                    email: payload.email,
-                    role: payload.role,
-                    privileges: payload.privileges,
-                    identityNumber: payload.identityNumber,
-                    phoneNumber: payload.phone,
-                    gender: payload.gender,
-                    dateOfBirth: payload.dob,
-                    age: payload.age,
-                    address: payload.address,
-                    isActive: payload.isActive === "true",
-                    deletedAt: payload.deletedAt,
-                    isDeleted: payload.isDeleted === "true"
-                }
-            }))
-            toast.success("Login successfully!")
+            const data = response.data?.data
+            const payload = parseClaims(data?.accessToken)
+
+            localStorage.setItem("token", data?.accessToken)
+            const privileges = await fetchUserPrivileges(payload.role)
+
+            if (payload && data) {
+                dispatch(login({
+                    token: data.accessToken,
+                    userInfo: {
+                        id: payload.sub,
+                        userName: payload.userName,
+                        email: payload.email,
+                        role: payload.role,
+                        privileges: privileges,
+                        identityNumber: payload.identityNumber,
+                        phoneNumber: payload.phone,
+                        gender: payload.gender,
+                        dateOfBirth: payload.dob,
+                        age: payload.age,
+                        address: payload.address,
+                        isActive: payload.isActive === "true",
+                        deletedAt: payload.deletedAt,
+                        isDeleted: payload.isDeleted === "true"
+                    }
+                }))
+                toast.success("Login successfully!")
+            }
             localStorage.removeItem("banUntil")
             if (payload.role === "ROLE_ADMIN" || payload.role === "ROLE_LAB_MANAGER") {
                 nav("/roles", { replace: true });
@@ -60,7 +67,7 @@ function GoogleButton({ setIsGoogleLogin }) {
                             banUntil: formatBannedDate(error.response.data.data)
                         })
                     )
-                }else {
+                } else {
                     toast.error(errMess, {
                         className: "!text-[#FF0000] font-bold text-[14px]"
                     })

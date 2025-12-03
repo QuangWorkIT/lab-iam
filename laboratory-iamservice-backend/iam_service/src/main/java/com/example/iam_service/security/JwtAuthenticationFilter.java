@@ -69,8 +69,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             User user = userRepository.findById(UUID.fromString(userId))
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-            List<GrantedAuthority> authorities = jwtUtil.getUserAuthorities(jwt);
+//            List<GrantedAuthority> authorities = jwtUtil.getUserAuthorities(jwt);
 
+            List<GrantedAuthority> authorities = jwtUtil.getUserAuthoritiesV2(user);
             // create authentication object
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     user, null, authorities

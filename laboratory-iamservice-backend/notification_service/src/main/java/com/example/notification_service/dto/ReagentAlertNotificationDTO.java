@@ -16,7 +16,7 @@ public class ReagentAlertNotificationDTO {
     private String source;
     private String text;
     private double quantity;
-
+    private String url;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
@@ -30,6 +30,7 @@ public class ReagentAlertNotificationDTO {
         reagentDto.setQuantity(reagentNotification.getQuantity());
         reagentDto.setCreatedAt(reagentNotification.getCreatedAt());
         reagentDto.setText(reagentNotification.getAlertText());
+        reagentDto.setUrl(reagentNotification.getUrl());
 
         return reagentDto;
     }

@@ -42,7 +42,6 @@ public class JwtUtil {
                 .subject(user.getUserId().toString())
                 .expiration(expired)
                 .issuedAt(now)
-                .claim("privileges", authorityNames)
                 .claims(payload)
                 .signWith(key)
                 .compact();
@@ -65,6 +64,10 @@ public class JwtUtil {
             userAuthorities.add(new SimpleGrantedAuthority(p.trim()));
         });
         return userAuthorities;
+    }
+
+    public List<GrantedAuthority> getUserAuthoritiesV2(User user) {
+        return grantAuthority.getAuthorityByUser(user);
     }
 
     public String validate(String token) {
