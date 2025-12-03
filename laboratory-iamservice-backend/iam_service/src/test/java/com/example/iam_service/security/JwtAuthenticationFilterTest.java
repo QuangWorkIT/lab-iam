@@ -233,7 +233,7 @@ public class JwtAuthenticationFilterTest {
                 new SimpleGrantedAuthority("ROLE_ADMIN"),
                 new SimpleGrantedAuthority("VIEW_USER")
         );
-        when(jwtUtil.getUserAuthorities(validToken)).thenReturn(authorities);
+        when(jwtUtil.getUserAuthoritiesV2(testUser)).thenReturn(authorities);
 
         // Act
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -261,7 +261,7 @@ public class JwtAuthenticationFilterTest {
         List<GrantedAuthority> authorities = Arrays.asList(
                 new SimpleGrantedAuthority("ROLE_USER")
         );
-        when(jwtUtil.getUserAuthorities(validToken)).thenReturn(authorities);
+        when(jwtUtil.getUserAuthoritiesV2(testUser)).thenReturn(authorities);
 
         // Act
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -289,7 +289,7 @@ public class JwtAuthenticationFilterTest {
         List<GrantedAuthority> authorities = Arrays.asList(
                 new SimpleGrantedAuthority("ROLE_PATIENT")
         );
-        when(jwtUtil.getUserAuthorities(validToken)).thenReturn(authorities);
+        when(jwtUtil.getUserAuthoritiesV2(testUser)).thenReturn(authorities);
 
         // Act
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -310,7 +310,7 @@ public class JwtAuthenticationFilterTest {
         when(request.getHeader("Authorization")).thenReturn("Bearer " + tokenWithSpaces);
         when(jwtUtil.validate(validToken)).thenReturn(testUserId.toString());
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
-        when(jwtUtil.getUserAuthorities(validToken)).thenReturn(Arrays.asList(
+        when(jwtUtil.getUserAuthoritiesV2(testUser)).thenReturn(Arrays.asList(
                 new SimpleGrantedAuthority("ROLE_ADMIN")
         ));
 
@@ -331,7 +331,7 @@ public class JwtAuthenticationFilterTest {
         when(request.getHeader("X-Auth-Token")).thenReturn(xAuthToken);
         when(jwtUtil.validate(xAuthToken)).thenReturn(testUserId.toString());
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
-        when(jwtUtil.getUserAuthorities(xAuthToken)).thenReturn(Arrays.asList(
+        when(jwtUtil.getUserAuthoritiesV2(testUser)).thenReturn(Arrays.asList(
                 new SimpleGrantedAuthority("ROLE_ADMIN")
         ));
 
@@ -475,7 +475,7 @@ public class JwtAuthenticationFilterTest {
         when(request.getHeader("X-Auth-Token")).thenReturn(tokenWithSpaces);
         when(jwtUtil.validate(validToken)).thenReturn(testUserId.toString());
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
-        when(jwtUtil.getUserAuthorities(validToken)).thenReturn(Arrays.asList(
+        when(jwtUtil.getUserAuthoritiesV2(testUser)).thenReturn(Arrays.asList(
                 new SimpleGrantedAuthority("ROLE_ADMIN")
         ));
 
@@ -496,7 +496,7 @@ public class JwtAuthenticationFilterTest {
         when(request.getHeader("Authorization")).thenReturn("Bearer " + validToken);
         when(jwtUtil.validate(validToken)).thenReturn(testUserId.toString());
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
-        when(jwtUtil.getUserAuthorities(validToken)).thenReturn(Arrays.asList()); // Empty list
+        when(jwtUtil.getUserAuthoritiesV2(testUser)).thenReturn(Arrays.asList()); // Empty list
 
         // Act
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
@@ -525,7 +525,7 @@ public class JwtAuthenticationFilterTest {
                 new SimpleGrantedAuthority("VIEW_USER"),
                 new SimpleGrantedAuthority("MODIFY_USER")
         );
-        when(jwtUtil.getUserAuthorities(validToken)).thenReturn(authorities);
+        when(jwtUtil.getUserAuthoritiesV2(testUser)).thenReturn(authorities);
 
         // Act
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
