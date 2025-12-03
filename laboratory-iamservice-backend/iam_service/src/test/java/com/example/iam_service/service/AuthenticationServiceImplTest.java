@@ -11,7 +11,9 @@ import com.example.iam_service.serviceImpl.AuthenticationServiceImpl;
 import com.example.iam_service.util.JwtUtil;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,11 +29,15 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -371,6 +378,7 @@ public class AuthenticationServiceImplTest {
 
     @Nested
     class JwtTokenServiceTestGroup {
+
         private JwtUtil jwtUtil;
 
         @Mock
@@ -378,7 +386,8 @@ public class AuthenticationServiceImplTest {
 
         @BeforeEach
         void setUp() {
-            // provide a secret key for tests
+            MockitoAnnotations.openMocks(this);
+
             String secret = "my-very-secret-key-which-is-long-enough-12345";
             jwtUtil = new JwtUtil(secret, grantAuthority);
         }
@@ -392,9 +401,11 @@ public class AuthenticationServiceImplTest {
             user.setFullName("John Doe");
             user.setRoleCode("ROLE_USER");
             user.setIsActive(true);
-            // Mock the authorities
-            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
-            when(grantAuthority.getAuthorityByUser(user)).thenReturn(authorities);
+            user.setIsDeleted(false);
+
+            // IMPORTANT: generateToken() does not add "privileges" claim
+            when(grantAuthority.getAuthorityByUser(user))
+                    .thenReturn(List.of(new SimpleGrantedAuthority("ROLE_USER")));
 
             // Act
             String token = jwtUtil.generateToken(user);
@@ -403,19 +414,29 @@ public class AuthenticationServiceImplTest {
             assertNotNull(token);
             assertFalse(token.isEmpty());
 
-            // Decode token to verify payload
-            String subject = jwtUtil.getSubject(token);
-            assertEquals(user.getUserId().toString(), subject);
+            // JWT should contain USER ID as subject
+            assertEquals(user.getUserId().toString(), jwtUtil.getSubject(token));
 
-            List<GrantedAuthority> userAuthorities = jwtUtil.getUserAuthorities(token);
-            assertEquals(1, userAuthorities.size());
-            assertEquals("ROLE_USER", userAuthorities.getFirst().getAuthority());
+            // JWT should contain core claims
+            Claims claims = Jwts.parser()
+                    .verifyWith((SecretKey) new SecretKeySpec(
+                            "my-very-secret-key-which-is-long-enough-12345".getBytes(StandardCharsets.UTF_8),
+                            "HmacSHA256"))
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            assertEquals("John Doe", claims.get("userName"));
+            assertEquals("ROLE_USER", claims.get("role"));
+            assertEquals("test@example.com", claims.get("email"));
+            assertEquals("true", claims.get("isActive"));
+            assertEquals("false", claims.get("isDeleted"));
 
             verify(grantAuthority, times(1)).getAuthorityByUser(user);
         }
 
         @Test
-        void validateToken_ShouldThrowError() {
+        void validateToken_ShouldThrowError_WhenInvalid() {
             String token = "invalidToken";
 
             JwtException exception = assertThrows(JwtException.class, () -> {
@@ -424,7 +445,34 @@ public class AuthenticationServiceImplTest {
 
             assertTrue(exception.getMessage().contains("JWT validation failed"));
         }
+
+        @Test
+        void getUserAuthoritiesV2_ShouldReturnAuthoritiesFromGrantAuthority() {
+            // Arrange
+            User user = new User();
+            user.setUserId(UUID.randomUUID());
+            user.setRoleCode("ROLE_USER");
+
+            List<GrantedAuthority> authorities = List.of(
+                    new SimpleGrantedAuthority("ROLE_USER"),
+                    new SimpleGrantedAuthority("READ_PRIVILEGE")
+            );
+
+            when(grantAuthority.getAuthorityByUser(user)).thenReturn(authorities);
+
+            // Act
+            List<GrantedAuthority> result = jwtUtil.getUserAuthoritiesV2(user);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(2, result.size());
+            assertTrue(result.contains(new SimpleGrantedAuthority("ROLE_USER")));
+            assertTrue(result.contains(new SimpleGrantedAuthority("READ_PRIVILEGE")));
+
+            verify(grantAuthority, times(1)).getAuthorityByUser(user);
+        }
     }
+
 
     @Nested
     class ForgetPasswordTestGroup {

@@ -16,4 +16,5 @@ public class ReagentAlertEvent {
     private int days;
     private String source;
     private String url;
+    private String po_number;
 }
