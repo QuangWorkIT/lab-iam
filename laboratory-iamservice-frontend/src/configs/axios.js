@@ -1,6 +1,7 @@
 import axios from "axios";
 import { login, logout } from "../redux/features/userSlice";
 import { parseClaims } from '../utils/jwtUtil.js';
+import { fetchUserPrivileges } from "../services/fetchUserPrivileges.js";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -65,6 +66,10 @@ api.interceptors.response.use(
 
         // relogin user with new token
         const payload = parseClaims(data.accessToken)
+        
+        localStorage.setItem("token", data?.accessToken)
+        const privileges = await fetchUserPrivileges(payload?.role)
+
         store.dispatch(login({
           token: data.accessToken,
           userInfo: {
@@ -72,7 +77,16 @@ api.interceptors.response.use(
             userName: payload.userName,
             email: payload.email,
             role: payload.role,
-            privileges: payload.privileges,
+            privileges: privileges,
+            identityNumber: payload.identityNumber,
+            phoneNumber: payload.phone,
+            gender: payload.gender,
+            dateOfBirth: payload.dob,
+            age: payload.age,
+            address: payload.address,
+            isActive: payload.isActive === "true",
+            deletedAt: payload.deletedAt,
+            isDeleted: payload.isDeleted === "true"
           }
         }))
 
