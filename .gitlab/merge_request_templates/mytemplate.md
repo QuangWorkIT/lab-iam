@@ -1,2 +1,0 @@
-- Fix reset-password rate limiter logic
-- Fix authentication tests
