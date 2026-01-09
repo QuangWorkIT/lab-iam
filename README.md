@@ -22,8 +22,6 @@ All services are containerized using Docker for consistent development, testing,
 
 ## Technology Stack
 
-To provide a clearer and more visual overview of the technologies used in this project, the stack is grouped by layer and illustrated with recognizable icons.
-
 ### Backend (`laboratory-iamservice-backend`)
 
 | Category          | Technology                                                                                                       |
