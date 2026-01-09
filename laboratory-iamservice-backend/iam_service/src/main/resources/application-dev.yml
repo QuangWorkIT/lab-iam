@@ -1,5 +1,5 @@
 server:
-  port: 8089
+  port: 9090
   error:
     include-message: always
 
@@ -7,10 +7,10 @@ spring:
   application:
     name: iam-service
   datasource:
-    url: jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
-    username: postgres.ydpwctmqgqkdwciijwbt
-    password: db@pass12345``
-    driver-class-name: org.postgresql.Driver
+      url: jdbc:postgresql://localhost:5432/lab_db
+      username: postgres
+      password: db@pass12345
+      driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
@@ -26,7 +26,7 @@ spring:
     username: ${MAIL_USERNAME:no-reply@dummy.local}
     password: ${MAIL_PASSWORD:dummy-password}
   kafka:
-    bootstrap-servers: 34.199.182.98:9092
+    bootstrap-servers: broker:9092
     properties:
       security.protocol: PLAINTEXT
     producer:
@@ -48,7 +48,7 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
-    instance-id: iam-service:8089:8089
+    instance-id: iam-service:8089
 
 management:
   endpoints:

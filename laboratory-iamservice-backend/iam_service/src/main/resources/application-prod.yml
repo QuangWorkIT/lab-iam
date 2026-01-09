@@ -27,7 +27,7 @@ spring:
     username: ${MAIL_USERNAME:no-reply@dummy.local}
     password: ${MAIL_PASSWORD:dummy-password}
   kafka:
-    bootstrap-servers: 34.199.182.98:9092
+    bootstrap-servers: broker:9092
     properties:
       security.protocol: PLAINTEXT
     producer:
@@ -45,31 +45,40 @@ google:
   web-client-id: 757411247793-11ciuarrirqp0m07eqhq8uubvgpdhois.apps.googleusercontent.com
 
 #  eureka cho production
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: https://discovery-server-zsph.onrender.com/eureka/
+#    registry-fetch-interval-seconds: 30
+#
+#  instance:
+#    prefer-ip-address: false
+#
+#    hostname: iam-service.site
+#
+#    instance-id: ${spring.application.name}:${eureka.instance.hostname}:${server.port}
+#
+#    #    non-secure-port: ${server.port}
+#    #    non-secure-port-enabled: true
+#    secure-port-enabled: true
+#    secure-port: 443
+#    non-secure-port-enabled: false
+#
+#    health-check-url: https://iam-service.site/api/actuator/health
+#    status-page-url: https://iam-service.site/api/actuator/info
+#    home-page-url: https://iam-service.site/api
+#
+#    lease-renewal-interval-in-seconds: 30
+#    lease-expiration-duration-in-seconds: 90
 eureka:
   client:
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
-      defaultZone: https://discovery-server-zsph.onrender.com/eureka/
-    registry-fetch-interval-seconds: 30
-
+      defaultZone: http://service-registry:8761/eureka/
   instance:
-    prefer-ip-address: false
-
-    hostname: iam-service.site
-
-    instance-id: ${spring.application.name}:${eureka.instance.hostname}:${server.port}
-
-    #    non-secure-port: ${server.port}
-    #    non-secure-port-enabled: true
-    secure-port-enabled: true
-    secure-port: 443
-    non-secure-port-enabled: false
-
-    health-check-url: https://iam-service.site/api/actuator/health
-    status-page-url: https://iam-service.site/api/actuator/info
-    home-page-url: https://iam-service.site/api
-
-    lease-renewal-interval-in-seconds: 30
-    lease-expiration-duration-in-seconds: 90
+    prefer-ip-address: true
+    instance-id: iam-service:8089
 management:
   endpoints:
     web:

@@ -18,11 +18,11 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         final String securitySchemeName = "bearerAuth";
         return new OpenAPI()
-                .servers(List.of(
-                        new Server()
-                                .url("https://iam-service.site/api")
-                                .description("Production Server")
-                ))
+//                .servers(List.of(
+//                        new Server()
+//                                .url("https://iam-service.site/api")
+//                                .description("Production Server")
+//                ))
                 .info(new Info()
                         .title("IAM Service API")
                         .description("API documentation for the Laboratory IAM Service backend")

@@ -16,7 +16,7 @@ spring:
     username: ${MAIL_USERNAME:no-reply@dummy.local}
     password: ${MAIL_PASSWORD:dummy-password}
   kafka:
-    bootstrap-servers: 34.199.182.98:9092
+    bootstrap-servers: broker:9092
     properties:
       security.protocol: PLAINTEXT
     producer:
@@ -30,28 +30,37 @@ spring:
       enable-auto-commit: true
       auto-commit-interval: 1000
       max-poll-records: 10
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: https://discovery-server-zsph.onrender.com/eureka/
+#    registry-fetch-interval-seconds: 30
+#
+#  instance:
+#    prefer-ip-address: false
+#
+#    hostname: 35.172.58.177
+#
+#    instance-id: ${spring.application.name}:${eureka.instance.hostname}:${server.port}
+#
+#    non-secure-port: ${server.port}
+#    non-secure-port-enabled: true
+#
+#    health-check-url: http://${eureka.instance.hostname}:${server.port}/actuator/health
+#    status-page-url: http://${eureka.instance.hostname}:${server.port}/actuator/info
+#    home-page-url: http://${eureka.instance.hostname}:${server.port}/
+#
+#    lease-renewal-interval-in-seconds: 30
+#    lease-expiration-duration-in-seconds: 90
 eureka:
   client:
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
-      defaultZone: https://discovery-server-zsph.onrender.com/eureka/
-    registry-fetch-interval-seconds: 30
-
+      defaultZone: http://service-registry:8761/eureka/
   instance:
-    prefer-ip-address: false
-
-    hostname: 35.172.58.177
-
-    instance-id: ${spring.application.name}:${eureka.instance.hostname}:${server.port}
-
-    non-secure-port: ${server.port}
-    non-secure-port-enabled: true
-
-    health-check-url: http://${eureka.instance.hostname}:${server.port}/actuator/health
-    status-page-url: http://${eureka.instance.hostname}:${server.port}/actuator/info
-    home-page-url: http://${eureka.instance.hostname}:${server.port}/
-
-    lease-renewal-interval-in-seconds: 30
-    lease-expiration-duration-in-seconds: 90
+    prefer-ip-address: true
+    instance-id: notification-service:7070
 management:
   endpoints:
     web:

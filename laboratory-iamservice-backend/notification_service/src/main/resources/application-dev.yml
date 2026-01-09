@@ -19,13 +19,12 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   data:
     mongodb:
-      uri: mongodb+srv://quang:mongoPASSword@cluster0.hzmsj5c.mongodb.net/?tls=true&retryWrites=true&w=majority&appName=Cluster0
+      uri: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/?authSource=admin
       database: NotificationDB
       mapping:
         type-key: null
-
   kafka:
-    bootstrap-servers: 34.199.182.98:9092
+    bootstrap-servers: broker:9092
     properties:
       security.protocol: PLAINTEXT
     producer:
@@ -48,7 +47,7 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
-    instance-id: notification-service:9090
+    instance-id: notification-service:7070
 management:
   endpoints:
     web:
