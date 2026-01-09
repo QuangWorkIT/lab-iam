@@ -22,26 +22,48 @@ All services are containerized using Docker for consistent development, testing,
 
 ## Technology Stack
 
+To provide a clearer and more visual overview of the technologies used in this project, the stack is grouped by layer and illustrated with recognizable icons.
+
 ### Backend (`laboratory-iamservice-backend`)
 
--   **Framework**: Spring Boot 3
--   **Language**: Java 17
--   **Microservice Stack**: Spring Cloud (Gateway, Eureka)
--   **Database**: PostgreSQL, MongoDB
--   **Caching**: Redis
--   **Messaging**: Apache Kafka
--   **Build Tool**: Maven
--   **Containerization**: Docker
+| Category          | Technology                                                                                                       |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Language          | ![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk\&logoColor=white)                               |
+| Framework         | ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3-6DB33F?logo=springboot\&logoColor=white)             |
+| Microservices     | ![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2023-6DB33F?logo=spring\&logoColor=white)            |
+| API Gateway       | ![Spring Cloud Gateway](https://img.shields.io/badge/Gateway-Spring%20Cloud-6DB33F?logo=spring\&logoColor=white) |
+| Service Discovery | ![Eureka](https://img.shields.io/badge/Eureka-Service%20Registry-6DB33F?logo=spring\&logoColor=white)            |
+| Relational DB     | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql\&logoColor=white)                   |
+| NoSQL DB          | ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb\&logoColor=white)                            |
+| Cache             | ![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis\&logoColor=white)                                  |
+| Messaging         | ![Apache Kafka](https://img.shields.io/badge/Kafka-000000?logo=apachekafka\&logoColor=white)                     |
+| Security          | ![JWT](https://img.shields.io/badge/JWT-Authentication-000000?logo=jsonwebtokens\&logoColor=white)               |
+| Build Tool        | ![Maven](https://img.shields.io/badge/Maven-Build-C71A36?logo=apachemaven\&logoColor=white)                      |
+| Containerization  | ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker\&logoColor=white)                               |
+
+---
 
 ### Frontend (`laboratory-iamservice-frontend`)
 
--   **Framework**: React
--   **Language**: JavaScript (ES6+)
--   **Build Tool**: Vite
--   **State Management**: Redux Toolkit
--   **Styling**: CSS (with potential for a framework like Material-UI or Tailwind CSS)
--   **HTTP Client**: Axios
--   **Containerization**: Docker with Nginx
+| Category         | Technology                                                                                          |
+| ---------------- | --------------------------------------------------------------------------------------------------- |
+| Framework        | ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react\&logoColor=black)                  |
+| Language         | ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?logo=javascript\&logoColor=black) |
+| Build Tool       | ![Vite](https://img.shields.io/badge/Vite-Build-646CFF?logo=vite\&logoColor=white)                  |
+| State Management | ![Redux](https://img.shields.io/badge/Redux-Toolkit-764ABC?logo=redux\&logoColor=white)             |
+| Styling          | ![CSS3](https://img.shields.io/badge/CSS3-Styling-1572B6?logo=css3\&logoColor=white)                |
+| HTTP Client      | ![Axios](https://img.shields.io/badge/Axios-HTTP-5A29E4)                                            |
+| Web Server       | ![Nginx](https://img.shields.io/badge/Nginx-Server-009639?logo=nginx\&logoColor=white)              |
+| Containerization | ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker\&logoColor=white)                  |
+
+---
+
+### DevOps & Infrastructure
+
+![Docker Compose](https://img.shields.io/badge/Docker%20Compose-Orchestration-2496ED?logo=docker\&logoColor=white)
+![Git](https://img.shields.io/badge/Git-Version%20Control-F05032?logo=git\&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github\&logoColor=white)
+
 
 ## Prerequisites
 
@@ -55,7 +77,7 @@ All services are containerized using Docker for consistent development, testing,
 To get a local copy up and running, follow these simple steps.
 
 ```sh
-git clone <YOUR_REPOSITORY_URL>
+git clone https://github.com/QuangWorkIT/lab-iam.git
 cd laboratory-management-iam-service
 ```
 
